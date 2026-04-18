@@ -65,7 +65,7 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     }
 
     @Override
-    public List<StoredObject> pageObjects(
+    public List<StoredObject> page(
             StorageType storageType,
             StoredObjectStatus objectStatus,
             StoredObjectReferenceStatus referenceStatus,
@@ -86,7 +86,7 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     }
 
     @Override
-    public long countObjects(
+    public long count(
             StorageType storageType,
             StoredObjectStatus objectStatus,
             StoredObjectReferenceStatus referenceStatus,

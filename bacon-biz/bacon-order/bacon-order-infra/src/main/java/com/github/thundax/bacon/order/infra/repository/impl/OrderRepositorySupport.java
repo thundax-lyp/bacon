@@ -214,7 +214,7 @@ public class OrderRepositorySupport {
                 .toList();
     }
 
-    public long countOrders(
+    public long count(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -228,7 +228,7 @@ public class OrderRepositorySupport {
                 .orElse(0L);
     }
 
-    public List<Order> pageOrders(
+    public List<Order> page(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -242,15 +242,15 @@ public class OrderRepositorySupport {
         int normalizedPageNo = Math.max(pageNo, 1);
         int normalizedPageSize = Math.max(pageSize, 1);
         int offset = Math.max(0, (normalizedPageNo - 1) * normalizedPageSize);
-        List<OrderDO> pageOrders = orderMapper.selectList(
+        List<OrderDO> page = orderMapper.selectList(
                 buildPageQuery(userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
                         .orderByDesc(OrderDO::getCreatedAt, OrderDO::getId)
                         .last("limit " + offset + "," + normalizedPageSize));
-        if (pageOrders.isEmpty()) {
+        if (page.isEmpty()) {
             return List.of();
         }
-        List<String> orderNos = pageOrders.stream().map(OrderDO::getOrderNo).toList();
-        List<Long> orderIds = pageOrders.stream().map(OrderDO::getId).toList();
+        List<String> orderNos = page.stream().map(OrderDO::getOrderNo).toList();
+        List<Long> orderIds = page.stream().map(OrderDO::getId).toList();
         // 分页查询先批量拉主单，再一次性批量拉支付/库存快照，避免逐单 N+1 查询。
         Map<Long, OrderPaymentSnapshotDO> paymentSnapshotMap = orderPaymentSnapshotMapper
                 .selectList(
@@ -264,7 +264,7 @@ public class OrderRepositorySupport {
                 .stream()
                 .collect(Collectors.toMap(
                         OrderInventorySnapshotDO::getOrderNo, Function.identity(), (left, right) -> left));
-        List<Order> records = pageOrders.stream()
+        List<Order> records = page.stream()
                 .map(orderData -> orderPersistenceAssembler.toDomain(
                         orderData,
                         paymentSnapshotMap.get(orderData.getId()),

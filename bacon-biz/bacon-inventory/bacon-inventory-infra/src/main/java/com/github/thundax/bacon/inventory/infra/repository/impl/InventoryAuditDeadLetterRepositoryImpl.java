@@ -29,14 +29,14 @@ public class InventoryAuditDeadLetterRepositoryImpl implements InventoryAuditDea
     }
 
     @Override
-    public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
+    public List<InventoryAuditDeadLetter> page(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
-        return support.pageAuditDeadLetters(orderNo, replayStatus, pageNo, pageSize);
+        return support.page(orderNo, replayStatus, pageNo, pageSize);
     }
 
     @Override
-    public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
-        return support.countAuditDeadLetters(orderNo, replayStatus);
+    public long count(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+        return support.count(orderNo, replayStatus);
     }
 
     @Override

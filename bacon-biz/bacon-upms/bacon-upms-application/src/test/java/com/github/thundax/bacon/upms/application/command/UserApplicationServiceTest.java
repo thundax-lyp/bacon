@@ -133,7 +133,7 @@ class UserApplicationServiceTest {
         storedObject.setStoredObjectNo("storage-20260327100000-000401");
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/401.png");
 
-        when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
+        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
         mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
         when(storedObjectCommandFacade.uploadObject(any())).thenReturn(storedObject);
@@ -174,7 +174,7 @@ class UserApplicationServiceTest {
     @Test
     void shouldRejectUnsupportedAvatarContentType() {
         User currentUser = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
-        when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
+        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
 
         assertThatThrownBy(() -> service.updateAvatar(
                         UserId.of(101L), "avatar.gif", "image/gif", 12L, new ByteArrayInputStream(new byte[] {1, 2, 3
@@ -187,7 +187,7 @@ class UserApplicationServiceTest {
     void shouldRejectNonSquareAvatarImage() throws Exception {
         User currentUser = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
         byte[] bytes = createImageBytes("png", 256, 180);
-        when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
+        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
 
         assertThatThrownBy(() -> service.updateAvatar(
                         UserId.of(101L),
@@ -203,12 +203,12 @@ class UserApplicationServiceTest {
     void shouldNotResolveAvatarUrlWhenPagingUsers() {
         User user = user(
                 101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ACTIVE);
-        when(userRepository.pageUsers(null, null, null, null, 1, 20)).thenReturn(List.of(user));
-        when(userRepository.countUsers(null, null, null, null)).thenReturn(1L);
+        when(userRepository.page(null, null, null, null, 1, 20)).thenReturn(List.of(user));
+        when(userRepository.count(null, null, null, null)).thenReturn(1L);
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
         mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
 
-        PageResultDTO<UserDTO> result = service.pageUsers(null, null, null, null, 1, 20);
+        PageResultDTO<UserDTO> result = service.page(null, null, null, null, 1, 20);
 
         assertThat(result.getRecords()).hasSize(1);
         assertThat(result.getRecords().get(0).getAvatarStoredObjectNo()).isEqualTo("storage-20260327100000-000501");
@@ -220,11 +220,11 @@ class UserApplicationServiceTest {
     void shouldClearAvatarReferenceWhenDeletingUser() {
         User user = user(
                 101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ACTIVE);
-        when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
+        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
 
-        service.deleteUser(UserId.of(101L));
+        service.delete(UserId.of(101L));
 
-        verify(userRepository).deleteUser(UserId.of(101L));
+        verify(userRepository).delete(UserId.of(101L));
         verify(storedObjectCommandFacade)
                 .clearObjectReference(
                         new StoredObjectReferenceFacadeRequest(
@@ -239,7 +239,7 @@ class UserApplicationServiceTest {
                 101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ACTIVE);
         StoredObjectFacadeResponse storedObject = new StoredObjectFacadeResponse();
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/501.png");
-        when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
+        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
         when(storedObjectReadFacade.getObjectByNo(new StoredObjectGetFacadeRequest("storage-20260327100000-000501")))
                 .thenReturn(storedObject);
 
@@ -252,15 +252,15 @@ class UserApplicationServiceTest {
         UserIdentity accountIdentity = identity(201L, 101L, UserIdentityType.ACCOUNT, "alice");
         UserIdentity phoneIdentity = identity(202L, 101L, UserIdentityType.PHONE, "13800000001");
         UserCredential passwordCredential = credential(301L, 101L, 201L, "{noop}identity", true);
-        when(userRepository.findUserIdentity(UserIdentityType.ACCOUNT, "alice"))
+        when(userRepository.findIdentity(UserIdentityType.ACCOUNT, "alice"))
                 .thenReturn(Optional.of(accountIdentity));
-        when(userRepository.findUserIdentityByUserId(UserId.of(101L), UserIdentityType.ACCOUNT))
+        when(userRepository.findIdentityByUserId(UserId.of(101L), UserIdentityType.ACCOUNT))
                 .thenReturn(Optional.of(accountIdentity));
-        when(userRepository.findUserIdentityByUserId(UserId.of(101L), UserIdentityType.PHONE))
+        when(userRepository.findIdentityByUserId(UserId.of(101L), UserIdentityType.PHONE))
                 .thenReturn(Optional.of(phoneIdentity));
-        when(userRepository.findUserCredential(UserId.of(101L), UserCredentialType.PASSWORD))
+        when(userRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
                 .thenReturn(Optional.of(passwordCredential));
-        when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
+        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
 
         UserLoginCredentialDTO credential = service.getUserLoginCredential(UserIdentityType.ACCOUNT, "alice");
 
@@ -275,8 +275,8 @@ class UserApplicationServiceTest {
     void shouldValidateOldPasswordAgainstAccountIdentity() {
         User user = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
         UserCredential passwordCredential = credential(301L, 101L, 201L, "{noop}identity", false);
-        when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
-        when(userRepository.findUserCredential(UserId.of(101L), UserCredentialType.PASSWORD))
+        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
+        when(userRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
                 .thenReturn(Optional.of(passwordCredential));
         when(passwordEncoder.matches("old-password", "{noop}identity")).thenReturn(true);
         service.changePassword(UserId.of(101L), "old-password", "new-password");
@@ -302,9 +302,9 @@ class UserApplicationServiceTest {
                 null,
                 Instant.parse("2000-01-01T00:00:00Z"),
                 null);
-        when(userRepository.findUserIdentity(UserIdentityType.ACCOUNT, "alice"))
+        when(userRepository.findIdentity(UserIdentityType.ACCOUNT, "alice"))
                 .thenReturn(Optional.of(accountIdentity));
-        when(userRepository.findUserCredential(UserId.of(101L), UserCredentialType.PASSWORD))
+        when(userRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
                 .thenReturn(Optional.of(passwordCredential));
 
         assertThatThrownBy(() -> service.getUserLoginCredential(UserIdentityType.ACCOUNT, "alice"))
@@ -313,7 +313,7 @@ class UserApplicationServiceTest {
     }
 
     private void mockIdentity(UserId userId, UserIdentityType identityType, String identityValue) {
-        when(userRepository.findUserIdentityByUserId(userId, identityType))
+        when(userRepository.findIdentityByUserId(userId, identityType))
                 .thenReturn(Optional.of(identity(
                         identityType == UserIdentityType.ACCOUNT ? 10001L : 10002L,
                         userId.value(),

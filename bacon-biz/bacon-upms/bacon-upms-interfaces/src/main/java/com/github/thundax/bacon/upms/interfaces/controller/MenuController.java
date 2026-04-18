@@ -83,8 +83,8 @@ public class MenuController {
     @HasPermission("sys:menu:delete")
     @SysLog(module = "UPMS", action = "删除菜单", eventType = LogEventType.DELETE)
     @DeleteMapping("/{menuId}")
-    public void deleteMenu(@PathVariable("menuId") Long menuId) {
-        menuApplicationService.deleteMenu(MenuIdCodec.toDomain(menuId));
+    public void delete(@PathVariable("menuId") Long menuId) {
+        menuApplicationService.delete(MenuIdCodec.toDomain(menuId));
     }
 
     @Operation(summary = "调整菜单排序")

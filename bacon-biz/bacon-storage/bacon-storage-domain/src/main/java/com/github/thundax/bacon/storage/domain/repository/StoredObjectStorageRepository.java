@@ -10,16 +10,16 @@ import java.util.List;
 
 public interface StoredObjectStorageRepository {
 
-    StoredObjectStorageResult upload(
+    StoredObjectStorageResult insert(
             String category, String originalFilename, String contentType, InputStream inputStream);
 
-    MultipartUploadStorageSession initMultipartUpload(String category, String originalFilename, String contentType);
+    MultipartUploadStorageSession insertMultipartUpload(String category, String originalFilename, String contentType);
 
-    String uploadPart(MultipartUploadSession session, Integer partNumber, Long size, InputStream inputStream);
+    String insertPart(MultipartUploadSession session, Integer partNumber, Long size, InputStream inputStream);
 
-    StoredObjectStorageResult completeMultipartUpload(MultipartUploadSession session, List<MultipartUploadPart> parts);
+    StoredObjectStorageResult update(MultipartUploadSession session, List<MultipartUploadPart> parts);
 
-    void abortMultipartUpload(MultipartUploadSession session);
+    void delete(MultipartUploadSession session);
 
     void delete(StoredObject storedObject);
 }

@@ -50,8 +50,8 @@ public class OrderReadProviderController {
     }
 
     @GetMapping
-    public OrderPageFacadeResponse pageOrders(@Valid OrderPageFacadeRequest request) {
-        return OrderFacadeResponseAssembler.fromPageDto(orderQueryService.pageOrders(
+    public OrderPageFacadeResponse page(@Valid OrderPageFacadeRequest request) {
+        return OrderFacadeResponseAssembler.fromPageDto(orderQueryService.page(
                 UserIdCodec.toDomain(request.getUserId()),
                 OrderNoCodec.toDomain(request.getOrderNo()),
                 request.getOrderStatus() == null ? null : OrderStatus.from(request.getOrderStatus()),

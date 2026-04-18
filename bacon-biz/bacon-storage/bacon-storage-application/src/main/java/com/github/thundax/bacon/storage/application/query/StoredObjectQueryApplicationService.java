@@ -37,7 +37,7 @@ public class StoredObjectQueryApplicationService {
         return StoredObjectAssembler.toDto(storedObject);
     }
 
-    public StoredObjectPageResultDTO pageObjects(
+    public StoredObjectPageResultDTO page(
             StorageType storageType,
             StoredObjectStatus objectStatus,
             StoredObjectReferenceStatus referenceStatus,
@@ -47,11 +47,11 @@ public class StoredObjectQueryApplicationService {
             Integer pageSize) {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
-        long total = storedObjectRepository.countObjects(
+        long total = storedObjectRepository.count(
                 storageType, objectStatus, referenceStatus, originalFilename, objectKey);
         List<StoredObjectDTO> records = (total <= 0
                         ? List.<StoredObject>of()
-                        : storedObjectRepository.pageObjects(
+                        : storedObjectRepository.page(
                                 storageType,
                                 objectStatus,
                                 referenceStatus,

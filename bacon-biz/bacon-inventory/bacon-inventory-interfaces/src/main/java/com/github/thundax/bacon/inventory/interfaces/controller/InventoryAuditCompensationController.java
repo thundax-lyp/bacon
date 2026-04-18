@@ -60,7 +60,7 @@ public class InventoryAuditCompensationController {
             @Valid @ModelAttribute InventoryAuditDeadLetterPageRequest request) {
         InventoryAuditReplayStatus replayStatus =
                 request.getReplayStatus() == null ? null : InventoryAuditReplayStatus.from(request.getReplayStatus());
-        return InventoryAuditDeadLetterPageResponse.from(inventoryQueryService.pageAuditDeadLetters(
+        return InventoryAuditDeadLetterPageResponse.from(inventoryQueryService.page(
                 OrderNoCodec.toDomain(request.getOrderNo()), replayStatus, request.getPageNo(), request.getPageSize()));
     }
 

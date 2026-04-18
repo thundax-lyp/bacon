@@ -41,11 +41,11 @@ public class DepartmentReadFacadeLocalImpl implements DepartmentReadFacade {
     }
 
     @Override
-    public DepartmentListFacadeResponse listDepartmentsByIds(DepartmentListFacadeRequest request) {
+    public DepartmentListFacadeResponse listByIds(DepartmentListFacadeRequest request) {
         requireContext();
         Set<DepartmentId> departmentIds =
                 request.getDepartmentIds().stream().map(DepartmentId::of).collect(Collectors.toUnmodifiableSet());
-        return DepartmentListFacadeResponse.from(departmentApplicationService.listDepartmentsByIds(departmentIds));
+        return DepartmentListFacadeResponse.from(departmentApplicationService.listByIds(departmentIds));
     }
 
     private void requireContext() {

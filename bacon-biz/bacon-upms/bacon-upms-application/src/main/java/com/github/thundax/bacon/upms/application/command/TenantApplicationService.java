@@ -35,15 +35,15 @@ public class TenantApplicationService {
         this.idGenerator = idGenerator;
     }
 
-    public PageResultDTO<TenantDTO> pageTenants(String name, TenantStatus status, Integer pageNo, Integer pageSize) {
+    public PageResultDTO<TenantDTO> page(String name, TenantStatus status, Integer pageNo, Integer pageSize) {
         // 租户分页属于运营后台能力，统一先归一化分页参数，避免不同入口传入 0/负数时结果漂移。
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         return new PageResultDTO<>(
-                tenantRepository.pageTenants(name, status, normalizedPageNo, normalizedPageSize).stream()
+                tenantRepository.page(name, status, normalizedPageNo, normalizedPageSize).stream()
                         .map(TenantAssembler::toDto)
                         .toList(),
-                tenantRepository.countTenants(name, status),
+                tenantRepository.count(name, status),
                 normalizedPageNo,
                 normalizedPageSize);
     }

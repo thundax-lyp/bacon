@@ -68,8 +68,8 @@ public class OrderController {
     @Operation(summary = "分页查询订单")
     @HasPermission("order:order:view")
     @GetMapping
-    public OrderPageResponse pageOrders(@Valid @ModelAttribute OrderPageRequest request) {
-        return OrderPageResponse.from(orderQueryService.pageOrders(
+    public OrderPageResponse page(@Valid @ModelAttribute OrderPageRequest request) {
+        return OrderPageResponse.from(orderQueryService.page(
                 UserIdCodec.toDomain(request.getUserId()),
                 OrderNoCodec.toDomain(request.getOrderNo()),
                 request.getOrderStatus() == null ? null : OrderStatus.from(request.getOrderStatus()),

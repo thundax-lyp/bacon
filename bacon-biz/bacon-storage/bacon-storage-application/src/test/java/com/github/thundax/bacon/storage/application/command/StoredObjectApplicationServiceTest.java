@@ -131,7 +131,7 @@ class StoredObjectApplicationServiceTest {
         assertThrows(
                 NotFoundException.class,
                 () -> service.markObjectReferenced("storage-20260327100000-000102", "GENERIC_ATTACHMENT", "owner-1"));
-        verify(storedObjectReferenceRepository, never()).saveIfAbsent(org.mockito.ArgumentMatchers.any());
+        verify(storedObjectReferenceRepository, never()).insert(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
@@ -148,14 +148,14 @@ class StoredObjectApplicationServiceTest {
                 "/files/d.bin");
         when(storedObjectRepository.findByNo(StoredObjectNo.of("storage-20260327100000-000103")))
                 .thenReturn(Optional.of(storedObject));
-        when(storedObjectReferenceRepository.saveIfAbsent(any())).thenReturn(false);
+        when(storedObjectReferenceRepository.insert(any())).thenReturn(false);
         when(storedObjectReferenceRepository.existsByObjectId(StoredObjectId.of(103L)))
                 .thenReturn(true);
         when(storedObjectRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.markObjectReferenced("storage-20260327100000-000103", "GENERIC_ATTACHMENT", "owner-1");
 
-        verify(storedObjectReferenceRepository).saveIfAbsent(any());
+        verify(storedObjectReferenceRepository).insert(any());
         verify(storedObjectRepository).update(any());
         verify(storageAuditApplicationService, never()).record(any(), any(), any(), any(), any(), any(), any());
     }
@@ -200,7 +200,7 @@ class StoredObjectApplicationServiceTest {
                 "/files/f.bin");
         when(storedObjectRepository.findByNo(StoredObjectNo.of("storage-20260327100000-000105")))
                 .thenReturn(Optional.of(storedObject));
-        when(storedObjectReferenceRepository.saveIfAbsent(any())).thenReturn(false);
+        when(storedObjectReferenceRepository.insert(any())).thenReturn(false);
         when(storedObjectReferenceRepository.existsByObjectId(StoredObjectId.of(105L)))
                 .thenReturn(true);
         when(storedObjectRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));

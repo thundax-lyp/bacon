@@ -140,7 +140,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public long countOrders(
+    public long count(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -153,7 +153,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<Order> pageOrders(
+    public List<Order> page(
             Long userId,
             String orderNo,
             String orderStatus,

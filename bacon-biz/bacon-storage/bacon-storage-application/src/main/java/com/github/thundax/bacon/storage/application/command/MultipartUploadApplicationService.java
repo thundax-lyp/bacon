@@ -72,7 +72,7 @@ public class MultipartUploadApplicationService {
     @Transactional
     public MultipartUploadSessionDTO initMultipartUpload(InitMultipartUploadCommand command) {
         storageUploadLimitValidator.validateMultipartInit(command.getTotalSize(), command.getPartSize());
-        MultipartUploadStorageSession storageSession = storedObjectStorageRepository.initMultipartUpload(
+        MultipartUploadStorageSession storageSession = storedObjectStorageRepository.insertMultipartUpload(
                 command.getCategory(), command.getOriginalFilename(), command.getContentType());
         Long sessionId = idGenerator.nextId(MULTIPART_UPLOAD_BIZ_TAG);
         String uploadId = TimestampedBizCodeFormatter.format(UPLOAD_ID_DOMAIN, sessionId);
@@ -105,7 +105,7 @@ public class MultipartUploadApplicationService {
         boolean existingPartPresent = multipartUploadPartRepository
                 .findByUploadIdAndPartNumber(uploadId, command.getPartNumber())
                 .isPresent();
-        String etag = storedObjectStorageRepository.uploadPart(
+        String etag = storedObjectStorageRepository.insertPart(
                 session, command.getPartNumber(), command.getSize(), command.getInputStream());
         if (!existingPartPresent) {
             session.recordUploadedPart();
@@ -143,7 +143,7 @@ public class MultipartUploadApplicationService {
         session.assertOwnership(command.getOwnerType(), command.getOwnerId());
         List<MultipartUploadPart> parts = multipartUploadPartRepository.listByUploadId(uploadId);
         session.assertCompletable(parts);
-        var storageResult = storedObjectStorageRepository.completeMultipartUpload(session, parts);
+        var storageResult = storedObjectStorageRepository.update(session, parts);
         long storedObjectNoSeed = idGenerator.nextId(STORED_OBJECT_NO_BIZ_TAG);
         StoredObject storedObject = StoredObject.create(
                 StoredObjectId.of(idGenerator.nextId(STORED_OBJECT_ID_BIZ_TAG)),
@@ -180,7 +180,7 @@ public class MultipartUploadApplicationService {
         session.assertOwnership(command.getOwnerType(), command.getOwnerId());
         session.markAborted();
         multipartUploadSessionRepository.update(session);
-        storedObjectStorageRepository.abortMultipartUpload(session);
+        storedObjectStorageRepository.delete(session);
         multipartUploadPartRepository.deleteByUploadId(uploadId);
     }
 }

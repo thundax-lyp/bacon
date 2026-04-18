@@ -9,11 +9,11 @@ import java.util.Set;
 
 public interface DepartmentRepository {
 
-    Optional<Department> findDepartmentById(DepartmentId departmentId);
+    Optional<Department> findById(DepartmentId departmentId);
 
-    Optional<Department> findDepartmentByCode(DepartmentCode departmentCode);
+    Optional<Department> findByCode(DepartmentCode departmentCode);
 
-    List<Department> listDepartmentsByIds(Set<DepartmentId> departmentIds);
+    List<Department> listByIds(Set<DepartmentId> departmentIds);
 
     List<Department> listDepartmentTree();
 
@@ -23,7 +23,7 @@ public interface DepartmentRepository {
 
     Department updateSort(DepartmentId departmentId, Integer sort);
 
-    void deleteDepartment(DepartmentId departmentId);
+    void delete(DepartmentId departmentId);
 
     boolean existsChildDepartment(DepartmentId departmentId);
 

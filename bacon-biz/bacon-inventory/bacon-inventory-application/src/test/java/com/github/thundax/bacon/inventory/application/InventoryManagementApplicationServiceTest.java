@@ -106,7 +106,7 @@ class InventoryManagementApplicationServiceTest {
         }
 
         @Override
-        public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+        public List<Inventory> page(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
             return findInventories().stream()
                     .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus()))
@@ -116,7 +116,7 @@ class InventoryManagementApplicationServiceTest {
         }
 
         @Override
-        public long countInventories(SkuId skuId, InventoryStatus status) {
+        public long count(SkuId skuId, InventoryStatus status) {
             return findInventories().stream()
                     .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus()))

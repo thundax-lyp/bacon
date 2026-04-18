@@ -93,7 +93,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public long countOrders(
+    public long count(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -101,12 +101,12 @@ public class OrderRepositoryImpl implements OrderRepository {
             String inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo) {
-        return support.countOrders(
+        return support.count(
                 userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo);
     }
 
     @Override
-    public List<Order> pageOrders(
+    public List<Order> page(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -116,7 +116,7 @@ public class OrderRepositoryImpl implements OrderRepository {
             Instant createdAtTo,
             int pageNo,
             int pageSize) {
-        return support.pageOrders(
+        return support.page(
                 userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo, pageNo, pageSize);
     }
 

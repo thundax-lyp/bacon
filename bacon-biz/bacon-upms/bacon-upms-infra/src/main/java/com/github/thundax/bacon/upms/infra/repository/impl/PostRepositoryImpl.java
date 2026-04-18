@@ -27,14 +27,14 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public List<Post> pagePosts(
+    public List<Post> page(
             PostCode code, String name, DepartmentId departmentId, PostStatus status, int pageNo, int pageSize) {
         return support.listPosts(code, name, departmentId, status, pageNo, pageSize);
     }
 
     @Override
-    public long countPosts(PostCode code, String name, DepartmentId departmentId, PostStatus status) {
-        return support.countPosts(code, name, departmentId, status);
+    public long count(PostCode code, String name, DepartmentId departmentId, PostStatus status) {
+        return support.count(code, name, departmentId, status);
     }
 
     @Override

@@ -37,7 +37,7 @@ class InventoryQueryApplicationServiceTest {
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         InventoryPageResult result = BaconContextHolder.callWithTenantId(
-                1001L, () -> service.pageInventories(null, InventoryStatus.ENABLED, 1, 2));
+                1001L, () -> service.page(null, InventoryStatus.ENABLED, 1, 2));
 
         assertEquals(2, result.getRecords().size());
         assertEquals(3, result.getTotal());
@@ -52,7 +52,7 @@ class InventoryQueryApplicationServiceTest {
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         InventoryPageResult result =
-                BaconContextHolder.callWithTenantId(1001L, () -> service.pageInventories(SkuId.of(104L), null, 0, 0));
+                BaconContextHolder.callWithTenantId(1001L, () -> service.page(SkuId.of(104L), null, 0, 0));
 
         assertEquals(1, result.getRecords().size());
         assertEquals(1, result.getTotal());
@@ -138,7 +138,7 @@ class InventoryQueryApplicationServiceTest {
         }
 
         @Override
-        public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+        public List<Inventory> page(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
             return findInventories().stream()
                     .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus()))
@@ -148,7 +148,7 @@ class InventoryQueryApplicationServiceTest {
         }
 
         @Override
-        public long countInventories(SkuId skuId, InventoryStatus status) {
+        public long count(SkuId skuId, InventoryStatus status) {
             return findInventories().stream()
                     .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus()))

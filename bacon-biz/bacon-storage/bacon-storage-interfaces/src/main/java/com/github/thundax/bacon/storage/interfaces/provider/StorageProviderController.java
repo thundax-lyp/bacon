@@ -119,8 +119,8 @@ public class StorageProviderController {
 
     @Operation(summary = "分页查询存储对象")
     @GetMapping("/objects")
-    public StoredObjectPageResultDTO pageObjects(StoredObjectPageProviderRequest request) {
-        return storedObjectQueryApplicationService.pageObjects(
+    public StoredObjectPageResultDTO page(StoredObjectPageProviderRequest request) {
+        return storedObjectQueryApplicationService.page(
                 request.getStorageType() == null ? null : StorageType.from(request.getStorageType()),
                 request.getObjectStatus() == null ? null : StoredObjectStatus.from(request.getObjectStatus()),
                 request.getReferenceStatus() == null

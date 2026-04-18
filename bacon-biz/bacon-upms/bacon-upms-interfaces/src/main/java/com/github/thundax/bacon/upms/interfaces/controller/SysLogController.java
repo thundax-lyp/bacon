@@ -34,8 +34,8 @@ public class SysLogController {
     @HasPermission("sys:log:view")
     @SysLog(module = "UPMS", action = "分页查询系统日志", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public SysLogPageResponse pageLogs(@Valid @ModelAttribute SysLogPageRequest request) {
-        return SysLogPageResponse.from(sysLogQueryService.pageLogs(
+    public SysLogPageResponse page(@Valid @ModelAttribute SysLogPageRequest request) {
+        return SysLogPageResponse.from(sysLogQueryService.page(
                 request.getModule(),
                 request.getEventType() == null ? null : request.getEventType().name(),
                 request.getResult(),

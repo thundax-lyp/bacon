@@ -366,26 +366,26 @@ class UpmsRepositoryIntegrationTest {
 
         assertEquals(1, permissionRepository.listMenus().size());
 
-        User persistedUser = userRepository.findUserByAccount("alice").orElseThrow();
+        User persistedUser = userRepository.findByAccount("alice").orElseThrow();
         assertNotNull(persistedUser.getId());
         assertTrue(persistedUser.getId().value() > 0);
         assertEquals(
                 AvatarStoredObjectNo.of("storage-20260327100000-000901"), persistedUser.getAvatarStoredObjectNo());
         assertTrue(userRepository
-                .findUserIdentity(UserIdentityType.ACCOUNT, "alice")
+                .findIdentity(UserIdentityType.ACCOUNT, "alice")
                 .isPresent());
         assertNotNull(userRepository
-                .findUserCredential(persistedUser.getId(), UserCredentialType.PASSWORD)
+                .findCredentialByUserId(persistedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue());
         assertTrue(userRepository
-                .findUserCredential(persistedUser.getId(), UserCredentialType.PASSWORD)
+                .findCredentialByUserId(persistedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .isNeedChangePassword());
         assertTrue(userRepository
-                .findUserIdentity(UserIdentityType.PHONE, "13800000001")
+                .findIdentity(UserIdentityType.PHONE, "13800000001")
                 .isPresent());
-        assertEquals(1L, userRepository.countUsers("ali", null, null, UserStatus.ACTIVE));
+        assertEquals(1L, userRepository.count("ali", null, null, UserStatus.ACTIVE));
 
         List<Menu> menuTree = permissionRepository.listUserMenuTree(user.getId());
         assertEquals(1, menuTree.size());
@@ -431,10 +431,10 @@ class UpmsRepositoryIntegrationTest {
 
         userRepository.updateRoleIds(createdUser.getId(), List.of(role.getId()));
         UserIdentity originalAccountIdentity = userRepository
-                .findUserIdentityByUserId(createdUser.getId(), UserIdentityType.ACCOUNT)
+                .findIdentityByUserId(createdUser.getId(), UserIdentityType.ACCOUNT)
                 .orElseThrow();
         UserIdentity originalPhoneIdentity = userRepository
-                .findUserIdentityByUserId(createdUser.getId(), UserIdentityType.PHONE)
+                .findIdentityByUserId(createdUser.getId(), UserIdentityType.PHONE)
                 .orElseThrow();
         User updatedUser = userRepository.update(
                 User.create(
@@ -450,38 +450,38 @@ class UpmsRepositoryIntegrationTest {
                 UserCredentialId.of(3203L));
 
         assertFalse(userRepository
-                .findUserIdentity(UserIdentityType.PHONE, "13800000002")
+                .findIdentity(UserIdentityType.PHONE, "13800000002")
                 .isPresent());
         assertTrue(userRepository
-                .findUserIdentity(UserIdentityType.PHONE, "13900000003")
+                .findIdentity(UserIdentityType.PHONE, "13900000003")
                 .isPresent());
         assertEquals(
                 originalAccountIdentity.getId(),
                 userRepository
-                        .findUserIdentityByUserId(updatedUser.getId(), UserIdentityType.ACCOUNT)
+                        .findIdentityByUserId(updatedUser.getId(), UserIdentityType.ACCOUNT)
                         .orElseThrow()
                         .getId());
         assertEquals(
                 originalPhoneIdentity.getId(),
                 userRepository
-                        .findUserIdentityByUserId(updatedUser.getId(), UserIdentityType.PHONE)
+                        .findIdentityByUserId(updatedUser.getId(), UserIdentityType.PHONE)
                         .orElseThrow()
                         .getId());
         assertNotNull(userRepository
-                .findUserCredential(updatedUser.getId(), UserCredentialType.PASSWORD)
+                .findCredentialByUserId(updatedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue());
         assertEquals(
                 AvatarStoredObjectNo.of("storage-20260327100000-001002"),
-                userRepository.findUserById(updatedUser.getId()).orElseThrow().getAvatarStoredObjectNo());
+                userRepository.findById(updatedUser.getId()).orElseThrow().getAvatarStoredObjectNo());
         assertTrue(departmentRepository.existsUserInDepartment(department.getId()));
 
-        userRepository.deleteUser(updatedUser.getId());
+        userRepository.delete(updatedUser.getId());
 
-        assertFalse(userRepository.findUserById(updatedUser.getId()).isPresent());
+        assertFalse(userRepository.findById(updatedUser.getId()).isPresent());
         assertFalse(
-                userRepository.findUserIdentity(UserIdentityType.ACCOUNT, "bob").isPresent());
-        assertTrue(roleRepository.findRolesByUserId(updatedUser.getId()).isEmpty());
+                userRepository.findIdentity(UserIdentityType.ACCOUNT, "bob").isPresent());
+        assertTrue(roleRepository.findByUserId(updatedUser.getId()).isEmpty());
         assertFalse(departmentRepository.existsUserInDepartment(department.getId()));
         assertTrue(isUserDeleted(String.valueOf(updatedUser.getId().value())));
     }
@@ -501,7 +501,7 @@ class UpmsRepositoryIntegrationTest {
                 UserCredentialId.of(3303L));
 
         String originalPasswordHash = userRepository
-                .findUserCredential(createdUser.getId(), UserCredentialType.PASSWORD)
+                .findCredentialByUserId(createdUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue();
 
@@ -509,12 +509,12 @@ class UpmsRepositoryIntegrationTest {
                 userRepository.updatePassword(createdUser.getId(), "654321", false, UserCredentialId.of(3304L));
 
         String updatedPasswordHash = userRepository
-                .findUserCredential(createdUser.getId(), UserCredentialType.PASSWORD)
+                .findCredentialByUserId(createdUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue();
         assertNotEquals(originalPasswordHash, updatedPasswordHash);
         assertFalse(userRepository
-                .findUserCredential(createdUser.getId(), UserCredentialType.PASSWORD)
+                .findCredentialByUserId(createdUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .isNeedChangePassword());
     }
@@ -592,11 +592,11 @@ class UpmsRepositoryIntegrationTest {
         assertTrue(departmentRepository.existsChildDepartment(root.getId()));
         assertEquals(
                 Set.of(root.getId(), child.getId()),
-                departmentRepository.listDepartmentsByIds(Set.of(root.getId(), child.getId())).stream()
+                departmentRepository.listByIds(Set.of(root.getId(), child.getId())).stream()
                         .map(Department::getId)
                         .collect(java.util.stream.Collectors.toSet()));
 
-        menuRepository.deleteMenu(newMenu.getId());
+        menuRepository.delete(newMenu.getId());
         resourceRepository.delete(newResource.getId());
 
         assertTrue(roleRepository.findMenuIds(role.getId()).isEmpty());

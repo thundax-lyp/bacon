@@ -41,8 +41,8 @@ public class StorageController {
     @Operation(summary = "分页查询存储对象")
     @HasPermission("storage:object:view")
     @GetMapping
-    public StoredObjectPageResponse pageObjects(@Valid @ModelAttribute StoredObjectPageRequest request) {
-        return StoredObjectPageResponse.from(storedObjectQueryApplicationService.pageObjects(
+    public StoredObjectPageResponse page(@Valid @ModelAttribute StoredObjectPageRequest request) {
+        return StoredObjectPageResponse.from(storedObjectQueryApplicationService.page(
                 request.getStorageType() == null ? null : StorageType.from(request.getStorageType()),
                 request.getObjectStatus() == null ? null : StoredObjectStatus.from(request.getObjectStatus()),
                 request.getReferenceStatus() == null

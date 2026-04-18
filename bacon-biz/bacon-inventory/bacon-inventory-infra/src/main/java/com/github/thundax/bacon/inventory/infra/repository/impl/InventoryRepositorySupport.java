@@ -145,7 +145,7 @@ public class InventoryRepositorySupport {
                 .toList();
     }
 
-    public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+    public List<Inventory> page(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
         long offset = (long) (pageNo - 1) * pageSize;
         return inventoryMapper
                 .selectPageByCondition(
@@ -155,7 +155,7 @@ public class InventoryRepositorySupport {
                 .toList();
     }
 
-    public long countInventories(SkuId skuId, InventoryStatus status) {
+    public long count(SkuId skuId, InventoryStatus status) {
         return inventoryMapper.countByCondition(
                 skuId == null ? null : skuId.value(), status == null ? null : status.value());
     }
@@ -417,7 +417,7 @@ public class InventoryRepositorySupport {
         auditDeadLetterMapper.insert(InventoryAuditDeadLetterPersistenceAssembler.toDataObject(deadLetter));
     }
 
-    public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
+    public List<InventoryAuditDeadLetter> page(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
         BaconContextHolder.requireTenantId();
         long offset = (long) (pageNo - 1) * pageSize;
@@ -437,7 +437,7 @@ public class InventoryRepositorySupport {
                 .toList();
     }
 
-    public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+    public long count(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
         BaconContextHolder.requireTenantId();
         LambdaQueryWrapper<InventoryAuditDeadLetterDO> query = Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery();
         if (orderNo != null) {

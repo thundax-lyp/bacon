@@ -9,5 +9,5 @@ public interface OrderReadFacade {
 
     OrderDetailFacadeResponse getByOrderNo(OrderDetailFacadeRequest request);
 
-    OrderPageFacadeResponse pageOrders(OrderPageFacadeRequest request);
+    OrderPageFacadeResponse page(OrderPageFacadeRequest request);
 }

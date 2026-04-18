@@ -78,7 +78,7 @@ public class MenuApplicationService {
             Integer sort,
             String permissionCode) {
         Menu currentMenu = menuRepository
-                .findMenuById(menuId)
+                .findById(menuId)
                 .orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
         validateParent(parentId);
         currentMenu.retypeAs(menuType.value());
@@ -95,14 +95,14 @@ public class MenuApplicationService {
     }
 
     @Transactional
-    public void deleteMenu(MenuId menuId) {
+    public void delete(MenuId menuId) {
         menuRepository
-                .findMenuById(menuId)
+                .findById(menuId)
                 .orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
         if (menuRepository.existsChildMenu(menuId)) {
             throw new ConflictException("Menu has child menus: " + menuId);
         }
-        menuRepository.deleteMenu(menuId);
+        menuRepository.delete(menuId);
     }
 
     @Transactional
@@ -123,7 +123,7 @@ public class MenuApplicationService {
             return;
         }
         menuRepository
-                .findMenuById(parentId)
+                .findById(parentId)
                 .orElseThrow(() -> new NotFoundException("Parent menu not found: " + parentId));
     }
 }

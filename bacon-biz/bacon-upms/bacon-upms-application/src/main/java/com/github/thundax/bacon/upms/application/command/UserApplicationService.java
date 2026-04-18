@@ -120,21 +120,21 @@ public class UserApplicationService {
 
     public UserIdentityDTO getUserIdentity(UserIdentityType identityType, String identityValue) {
         UserIdentity userIdentity = userRepository
-                .findUserIdentity(identityType, identityValue)
+                .findIdentity(identityType, identityValue)
                 .orElseThrow(() -> new NotFoundException("User identity not found"));
         return UserIdentityAssembler.toDto(userIdentity);
     }
 
     public UserLoginCredentialDTO getUserLoginCredential(UserIdentityType identityType, String identityValue) {
         UserIdentity userIdentity = userRepository
-                .findUserIdentity(identityType, identityValue)
+                .findIdentity(identityType, identityValue)
                 .orElseThrow(() -> new NotFoundException("User identity not found"));
         UserCredential passwordCredential = userRepository
-                .findUserCredential(userIdentity.getUserId(), UserCredentialType.PASSWORD)
+                .findCredentialByUserId(userIdentity.getUserId(), UserCredentialType.PASSWORD)
                 .orElseThrow(() -> new NotFoundException("Password credential not found"));
         passwordCredential.assertVerifiable(Instant.now());
         User user = userRepository
-                .findUserById(userIdentity.getUserId())
+                .findById(userIdentity.getUserId())
                 .orElseThrow(() -> new NotFoundException("User not found: " + userIdentity.getUserId()));
         String account = resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT);
         String phone = resolveIdentityValue(user.getId(), UserIdentityType.PHONE);
@@ -148,19 +148,19 @@ public class UserApplicationService {
         return TenantAssembler.toDto(tenant);
     }
 
-    public PageResultDTO<UserDTO> pageUsers(
+    public PageResultDTO<UserDTO> page(
             String account, String name, String phone, UserStatus status, Integer pageNo, Integer pageSize) {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         return new PageResultDTO<>(
-                userRepository.pageUsers(account, name, phone, status, normalizedPageNo, normalizedPageSize).stream()
+                userRepository.page(account, name, phone, status, normalizedPageNo, normalizedPageSize).stream()
                         .map(user -> UserAssembler.toDto(
                                 user,
                                 resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT),
                                 resolveIdentityValue(user.getId(), UserIdentityType.PHONE),
                                 null))
                         .toList(),
-                userRepository.countUsers(account, name, phone, status),
+                userRepository.count(account, name, phone, status),
                 normalizedPageNo,
                 normalizedPageSize);
     }
@@ -255,9 +255,9 @@ public class UserApplicationService {
     }
 
     @Transactional
-    public void deleteUser(UserId userId) {
+    public void delete(UserId userId) {
         User currentUser = requireUser(userId);
-        userRepository.deleteUser(userId);
+        userRepository.delete(userId);
         if (currentUser.getAvatarStoredObjectNo() != null) {
             storedObjectCommandFacade.clearObjectReference(
                     new StoredObjectReferenceFacadeRequest(
@@ -305,7 +305,7 @@ public class UserApplicationService {
     public void changePassword(UserId userId, String oldPassword, String newPassword) {
         requireUser(userId);
         UserCredential passwordCredential = userRepository
-                .findUserCredential(userId, UserCredentialType.PASSWORD)
+                .findCredentialByUserId(userId, UserCredentialType.PASSWORD)
                 .orElseThrow(() -> new NotFoundException("Password credential not found: " + userId));
         validateRequired(oldPassword, "oldPassword");
         validateRequired(newPassword, "newPassword");
@@ -327,7 +327,7 @@ public class UserApplicationService {
 
     public List<RoleDTO> getRolesByUserId(UserId userId) {
         requireUser(userId);
-        return roleRepository.findRolesByUserId(userId).stream()
+        return roleRepository.findByUserId(userId).stream()
                 .map(RoleAssembler::toDto)
                 .toList();
     }
@@ -399,13 +399,13 @@ public class UserApplicationService {
 
     private User requireUser(UserId userId) {
         return userRepository
-                .findUserById(userId)
+                .findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found: " + userId));
     }
 
     private void ensureAccountUnique(String account, UserId excludedUserId) {
         userRepository
-                .findUserByAccount(account == null ? null : account.trim())
+                .findByAccount(account == null ? null : account.trim())
                 .filter(existingUser -> !existingUser.getId().equals(excludedUserId))
                 .ifPresent(existingUser -> {
                     throw new ConflictException("User account already exists: " + account);
@@ -414,7 +414,7 @@ public class UserApplicationService {
 
     private String requireIdentityValue(UserId userId, UserIdentityType identityType) {
         return userRepository
-                .findUserIdentityByUserId(userId, identityType)
+                .findIdentityByUserId(userId, identityType)
                 .map(UserIdentity::getIdentityValue)
                 .orElseThrow(() -> new NotFoundException(
                         "User identity not found: " + userId + "/" + identityType.value()));
@@ -422,7 +422,7 @@ public class UserApplicationService {
 
     private String resolveIdentityValue(UserId userId, UserIdentityType identityType) {
         return userRepository
-                .findUserIdentityByUserId(userId, identityType)
+                .findIdentityByUserId(userId, identityType)
                 .map(UserIdentity::getIdentityValue)
                 .orElse(null);
     }
@@ -432,7 +432,7 @@ public class UserApplicationService {
             return null;
         }
         return departmentRepository
-                .findDepartmentByCode(DepartmentCodeCodec.toDomain(departmentCode))
+                .findByCode(DepartmentCodeCodec.toDomain(departmentCode))
                 .map(Department::getId)
                 .orElseThrow(() -> new NotFoundException("Department not found by code: " + departmentCode));
     }

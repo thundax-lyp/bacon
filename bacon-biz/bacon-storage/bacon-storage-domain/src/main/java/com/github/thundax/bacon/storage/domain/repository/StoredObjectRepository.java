@@ -21,7 +21,7 @@ public interface StoredObjectRepository {
 
     List<StoredObject> listByObjectStatus(StoredObjectStatus objectStatus, int limit);
 
-    List<StoredObject> pageObjects(
+    List<StoredObject> page(
             StorageType storageType,
             StoredObjectStatus objectStatus,
             StoredObjectReferenceStatus referenceStatus,
@@ -30,7 +30,7 @@ public interface StoredObjectRepository {
             int pageNo,
             int pageSize);
 
-    long countObjects(
+    long count(
             StorageType storageType,
             StoredObjectStatus objectStatus,
             StoredObjectReferenceStatus referenceStatus,

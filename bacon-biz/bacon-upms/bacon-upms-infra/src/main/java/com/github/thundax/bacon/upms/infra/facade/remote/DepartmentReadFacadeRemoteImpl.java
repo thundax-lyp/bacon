@@ -54,7 +54,7 @@ public class DepartmentReadFacadeRemoteImpl implements DepartmentReadFacade {
     }
 
     @Override
-    public DepartmentListFacadeResponse listDepartmentsByIds(DepartmentListFacadeRequest request) {
+    public DepartmentListFacadeResponse listByIds(DepartmentListFacadeRequest request) {
         // 批量部门查询通过重复 queryParam 传主键数组，保持 provider 端可以直接按集合解析。
         List<DepartmentDTO> departments = restClient
                 .get()

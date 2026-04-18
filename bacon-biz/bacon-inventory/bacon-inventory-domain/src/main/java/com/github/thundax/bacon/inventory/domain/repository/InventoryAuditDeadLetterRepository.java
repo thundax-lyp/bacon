@@ -14,12 +14,12 @@ public interface InventoryAuditDeadLetterRepository {
 
     default void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {}
 
-    default List<InventoryAuditDeadLetter> pageAuditDeadLetters(
+    default List<InventoryAuditDeadLetter> page(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
         return List.of();
     }
 
-    default long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+    default long count(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
         return 0L;
     }
 

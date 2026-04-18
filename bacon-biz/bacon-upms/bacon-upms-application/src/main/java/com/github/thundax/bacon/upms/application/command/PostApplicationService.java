@@ -30,13 +30,13 @@ public class PostApplicationService {
         this.idGenerator = idGenerator;
     }
 
-    public PageResultDTO<PostDTO> pagePosts(
+    public PageResultDTO<PostDTO> page(
             String code, String name, DepartmentId departmentId, PostStatus status, Integer pageNo, Integer pageSize) {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         return new PageResultDTO<>(
                 postRepository
-                        .pagePosts(
+                        .page(
                                 PostCodeCodec.toDomain(code),
                                 name,
                                 departmentId,
@@ -46,7 +46,7 @@ public class PostApplicationService {
                         .stream()
                         .map(PostAssembler::toDto)
                         .toList(),
-                postRepository.countPosts(PostCodeCodec.toDomain(code), name, departmentId, status),
+                postRepository.count(PostCodeCodec.toDomain(code), name, departmentId, status),
                 normalizedPageNo,
                 normalizedPageSize);
     }

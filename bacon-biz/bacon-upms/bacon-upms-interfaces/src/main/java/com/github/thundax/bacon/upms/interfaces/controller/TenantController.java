@@ -42,8 +42,8 @@ public class TenantController {
     @HasPermission("sys:tenant:view")
     @SysLog(module = "UPMS", action = "分页查询租户", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public TenantPageResponse pageTenants(@Valid @ModelAttribute TenantPageRequest request) {
-        return TenantPageResponse.from(tenantApplicationService.pageTenants(
+    public TenantPageResponse page(@Valid @ModelAttribute TenantPageRequest request) {
+        return TenantPageResponse.from(tenantApplicationService.page(
                 request.getName(),
                 request.getStatus() == null ? null : TenantStatus.from(request.getStatus()),
                 request.getPageNo(),

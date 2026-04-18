@@ -54,8 +54,8 @@ public class RoleController {
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "分页查询角色", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public RolePageResponse pageRoles(@Valid @ModelAttribute RolePageRequest request) {
-        return RolePageResponse.from(roleApplicationService.pageRoles(
+    public RolePageResponse page(@Valid @ModelAttribute RolePageRequest request) {
+        return RolePageResponse.from(roleApplicationService.page(
                 request.getCode(),
                 request.getName(),
                 request.getRoleType() == null ? null : RoleType.from(request.getRoleType()),
@@ -111,8 +111,8 @@ public class RoleController {
     @HasPermission("sys:role:delete")
     @SysLog(module = "UPMS", action = "删除角色", eventType = LogEventType.DELETE)
     @DeleteMapping("/{roleId}")
-    public void deleteRole(@PathVariable("roleId") Long roleId) {
-        roleApplicationService.deleteRole(RoleIdCodec.toDomain(roleId));
+    public void delete(@PathVariable("roleId") Long roleId) {
+        roleApplicationService.delete(RoleIdCodec.toDomain(roleId));
     }
 
     @Operation(summary = "分配角色菜单")

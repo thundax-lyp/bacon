@@ -100,7 +100,7 @@ public class UpmsProviderController {
 
     @Operation(summary = "批量查询部门")
     @GetMapping("/departments")
-    public List<DepartmentDTO> listDepartmentsByIds(@RequestParam("departmentIds") Set<String> departmentIds) {
+    public List<DepartmentDTO> listByIds(@RequestParam("departmentIds") Set<String> departmentIds) {
         Set<DepartmentId> resolvedDepartmentIds = departmentIds == null
                 ? Set.of()
                 : departmentIds.stream()
@@ -109,7 +109,7 @@ public class UpmsProviderController {
                         .map(Long::parseLong)
                         .map(DepartmentId::of)
                         .collect(Collectors.toSet());
-        return departmentApplicationService.listDepartmentsByIds(resolvedDepartmentIds);
+        return departmentApplicationService.listByIds(resolvedDepartmentIds);
     }
 
     @Operation(summary = "按角色 ID 查询角色")

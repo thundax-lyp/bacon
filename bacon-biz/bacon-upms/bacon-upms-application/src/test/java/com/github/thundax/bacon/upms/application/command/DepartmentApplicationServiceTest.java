@@ -46,7 +46,7 @@ class DepartmentApplicationServiceTest {
     @Test
     void shouldRejectMissingParentDepartment() {
         DepartmentId parentId = DepartmentId.of(11L);
-        when(departmentRepository.findDepartmentById(parentId)).thenReturn(Optional.empty());
+        when(departmentRepository.findById(parentId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.createDepartment(DepartmentCode.of("OPS"), "Operations", parentId, null))
                 .isInstanceOf(NotFoundException.class)
@@ -56,7 +56,7 @@ class DepartmentApplicationServiceTest {
 
     @Test
     void shouldRejectMissingLeaderUser() {
-        when(userRepository.findUserById(UserId.of(2001L))).thenReturn(Optional.empty());
+        when(userRepository.findById(UserId.of(2001L))).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
                         service.createDepartment(DepartmentCode.of("OPS"), "Operations", null, UserId.of(2001L)))
@@ -67,9 +67,9 @@ class DepartmentApplicationServiceTest {
     @Test
     void shouldRejectMissingLeaderUserWhenUpdatingDepartment() {
         DepartmentId departmentId = DepartmentId.of(101L);
-        when(departmentRepository.findDepartmentById(departmentId))
+        when(departmentRepository.findById(departmentId))
                 .thenReturn(Optional.of(department(departmentId, "OPS", "Operations", null, null, 1)));
-        when(userRepository.findUserById(UserId.of(2002L))).thenReturn(Optional.empty());
+        when(userRepository.findById(UserId.of(2002L))).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.updateDepartment(
                         departmentId, DepartmentCode.of("OPS"), "Operations", null, UserId.of(2002L), 2))
@@ -83,10 +83,10 @@ class DepartmentApplicationServiceTest {
         DepartmentId parentId = DepartmentId.of(102L);
         UserId leaderUserId = UserId.of(2002L);
         Department current = department(departmentId, "OPS", "Operations", null, null, 1);
-        when(departmentRepository.findDepartmentById(departmentId)).thenReturn(Optional.of(current));
-        when(departmentRepository.findDepartmentById(parentId)).thenReturn(Optional.of(department(
+        when(departmentRepository.findById(departmentId)).thenReturn(Optional.of(current));
+        when(departmentRepository.findById(parentId)).thenReturn(Optional.of(department(
                 parentId, "PARENT", "Parent Department", null, null, 0)));
-        when(userRepository.findUserById(leaderUserId))
+        when(userRepository.findById(leaderUserId))
                 .thenReturn(Optional.of(User.create(leaderUserId, "Leader", null, null, UserStatus.ACTIVE)));
         when(departmentRepository.update(any(Department.class))).thenAnswer(invocation -> invocation.getArgument(0));
 

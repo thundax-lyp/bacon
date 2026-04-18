@@ -74,7 +74,7 @@ public class MultipartUploadCleanupService {
     }
 
     protected void cleanupSingleSession(MultipartUploadSession session) {
-        storedObjectStorageRepository.abortMultipartUpload(session);
+        storedObjectStorageRepository.delete(session);
         multipartUploadPartRepository.deleteByUploadId(session.getUploadId());
         if (!session.isAborted()) {
             session.markAborted();

@@ -31,13 +31,13 @@ public class TenantRepositoryImpl implements TenantRepository {
     }
 
     @Override
-    public List<Tenant> pageTenants(String name, TenantStatus status, int pageNo, int pageSize) {
+    public List<Tenant> page(String name, TenantStatus status, int pageNo, int pageSize) {
         return support.listTenants(name, status == null ? null : status.value(), pageNo, pageSize);
     }
 
     @Override
-    public long countTenants(String name, TenantStatus status) {
-        return support.countTenants(name, status == null ? null : status.value());
+    public long count(String name, TenantStatus status) {
+        return support.count(name, status == null ? null : status.value());
     }
 
     @Override

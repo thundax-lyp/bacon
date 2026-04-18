@@ -9,7 +9,7 @@ public interface MenuRepository {
 
     List<Menu> listMenus();
 
-    Optional<Menu> findMenuById(MenuId menuId);
+    Optional<Menu> findById(MenuId menuId);
 
     Menu insert(Menu menu);
 
@@ -17,7 +17,7 @@ public interface MenuRepository {
 
     Menu updateSort(MenuId menuId, Integer sort);
 
-    void deleteMenu(MenuId menuId);
+    void delete(MenuId menuId);
 
     boolean existsChildMenu(MenuId menuId);
 }

@@ -32,14 +32,14 @@ public class ResourceRepositoryImpl implements ResourceRepository {
     }
 
     @Override
-    public List<Resource> pageResources(
+    public List<Resource> page(
             ResourceCode code, String name, ResourceType resourceType, ResourceStatus status, int pageNo, int pageSize) {
         return support.listResources(code, name, resourceType, status, pageNo, pageSize);
     }
 
     @Override
-    public long countResources(ResourceCode code, String name, ResourceType resourceType, ResourceStatus status) {
-        return support.countResources(code, name, resourceType, status);
+    public long count(ResourceCode code, String name, ResourceType resourceType, ResourceStatus status) {
+        return support.count(code, name, resourceType, status);
     }
 
     @Override

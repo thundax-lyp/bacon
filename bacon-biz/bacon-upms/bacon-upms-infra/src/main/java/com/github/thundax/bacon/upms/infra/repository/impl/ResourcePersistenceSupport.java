@@ -52,7 +52,7 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countResources(ResourceCode code, String name, ResourceType resourceType, ResourceStatus status) {
+    long count(ResourceCode code, String name, ResourceType resourceType, ResourceStatus status) {
         return Optional.ofNullable(resourceMapper.selectCount(Wrappers.<ResourceDO>lambdaQuery()
                         .like(code != null, ResourceDO::getCode, code == null ? null : code.value())
                         .like(hasText(name), ResourceDO::getName, name)

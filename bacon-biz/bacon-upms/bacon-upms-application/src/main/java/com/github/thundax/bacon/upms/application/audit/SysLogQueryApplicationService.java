@@ -18,18 +18,18 @@ public class SysLogQueryApplicationService {
         this.sysLogRepository = sysLogRepository;
     }
 
-    public PageResultDTO<SysLogDTO> pageLogs(
+    public PageResultDTO<SysLogDTO> page(
             String module, String eventType, String result, String operatorName, Integer pageNo, Integer pageSize) {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         // 日志分页统一先归一化页码参数，避免调用方传入 0/负数时把仓储查询语义拉偏。
         return new PageResultDTO<>(
                 sysLogRepository
-                        .pageLogs(module, eventType, result, operatorName, normalizedPageNo, normalizedPageSize)
+                        .page(module, eventType, result, operatorName, normalizedPageNo, normalizedPageSize)
                         .stream()
                         .map(SysLogAssembler::toDto)
                         .toList(),
-                sysLogRepository.countLogs(module, eventType, result, operatorName),
+                sysLogRepository.count(module, eventType, result, operatorName),
                 normalizedPageNo,
                 normalizedPageSize);
     }

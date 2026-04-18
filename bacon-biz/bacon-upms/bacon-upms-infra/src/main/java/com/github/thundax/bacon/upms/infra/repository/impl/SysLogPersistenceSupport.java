@@ -50,7 +50,7 @@ class SysLogPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countSysLogs(String module, String eventType, String result, String operatorName) {
+    long count(String module, String eventType, String result, String operatorName) {
         return Optional.ofNullable(sysLogRecordMapper.selectCount(Wrappers.<SysLogRecordDO>lambdaQuery()
                         .eq(hasText(module), SysLogRecordDO::getModule, trim(module))
                         .eq(hasText(eventType), SysLogRecordDO::getEventType, trim(eventType))

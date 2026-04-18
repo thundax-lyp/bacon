@@ -149,13 +149,13 @@ class InventoryAuditCompensationControllerContractTest {
                 "3001");
 
         @Override
-        public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
+        public List<InventoryAuditDeadLetter> page(
                 OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
             return List.of(deadLetter);
         }
 
         @Override
-        public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+        public long count(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
             return 1L;
         }
     }

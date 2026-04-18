@@ -53,7 +53,7 @@ public class OrderQueryApplicationService {
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));
     }
 
-    public OrderPageResult pageOrders(
+    public OrderPageResult page(
             UserId userId,
             OrderNo orderNo,
             OrderStatus orderStatus,
@@ -65,7 +65,7 @@ public class OrderQueryApplicationService {
             Integer pageSize) {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
-        long total = orderRepository.countOrders(
+        long total = orderRepository.count(
                 UserIdCodec.toValue(userId),
                 OrderNoCodec.toValue(orderNo),
                 orderStatus == null ? null : orderStatus.value(),
@@ -73,9 +73,9 @@ public class OrderQueryApplicationService {
                 inventoryStatus == null ? null : inventoryStatus.value(),
                 createdAtFrom,
                 createdAtTo);
-        List<Order> pageOrders = total <= 0
+        List<Order> page = total <= 0
                 ? List.of()
-                : orderRepository.pageOrders(
+                : orderRepository.page(
                         UserIdCodec.toValue(userId),
                         OrderNoCodec.toValue(orderNo),
                         orderStatus == null ? null : orderStatus.value(),
@@ -85,7 +85,7 @@ public class OrderQueryApplicationService {
                         createdAtTo,
                         normalizedPageNo,
                         normalizedPageSize);
-        List<OrderSummaryDTO> records = pageOrders.stream().map(this::toSummary).toList();
+        List<OrderSummaryDTO> records = page.stream().map(this::toSummary).toList();
         return new OrderPageResult(records, total, normalizedPageNo, normalizedPageSize);
     }
 

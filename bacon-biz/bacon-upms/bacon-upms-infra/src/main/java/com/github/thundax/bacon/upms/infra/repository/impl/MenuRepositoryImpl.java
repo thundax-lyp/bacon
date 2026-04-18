@@ -35,8 +35,8 @@ public class MenuRepositoryImpl implements MenuRepository {
     }
 
     @Override
-    public Optional<Menu> findMenuById(MenuId menuId) {
-        return support.findMenuById(menuId);
+    public Optional<Menu> findById(MenuId menuId) {
+        return support.findById(menuId);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class MenuRepositoryImpl implements MenuRepository {
     public Menu updateSort(MenuId menuId, Integer sort) {
         TenantId tenantId = requireTenantId();
         Menu currentMenu =
-                findMenuById(menuId).orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
+                findById(menuId).orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
         currentMenu.sort(sort);
         Menu savedMenu = support.updateMenu(currentMenu);
         cacheSupport.evictTenantPermission(tenantId);
@@ -67,9 +67,9 @@ public class MenuRepositoryImpl implements MenuRepository {
     }
 
     @Override
-    public void deleteMenu(MenuId menuId) {
+    public void delete(MenuId menuId) {
         TenantId tenantId = requireTenantId();
-        support.deleteMenu(menuId);
+        support.delete(menuId);
         roleRepository.removeMenuFromAssignments(menuId);
         cacheSupport.evictTenantPermission(tenantId);
     }

@@ -62,8 +62,8 @@ public class UserController {
     @HasPermission("sys:user:view")
     @SysLog(module = "UPMS", action = "分页查询用户", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public UserPageResponse pageUsers(@Valid @ModelAttribute UserPageRequest request) {
-        return UserPageResponse.from(userApplicationService.pageUsers(
+    public UserPageResponse page(@Valid @ModelAttribute UserPageRequest request) {
+        return UserPageResponse.from(userApplicationService.page(
                 request.getAccount(),
                 request.getName(),
                 request.getPhone(),
@@ -138,8 +138,8 @@ public class UserController {
     @HasPermission("sys:user:delete")
     @SysLog(module = "UPMS", action = "删除用户", eventType = LogEventType.DELETE)
     @DeleteMapping("/{userId}")
-    public void deleteUser(@PathVariable("userId") Long userId) {
-        userApplicationService.deleteUser(UserIdCodec.toDomain(userId));
+    public void delete(@PathVariable("userId") Long userId) {
+        userApplicationService.delete(UserIdCodec.toDomain(userId));
     }
 
     @Operation(summary = "管理员初始化密码")

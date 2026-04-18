@@ -26,21 +26,21 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.departmentMapper = departmentMapper;
     }
 
-    Optional<Department> findDepartmentById(DepartmentId departmentId) {
+    Optional<Department> findById(DepartmentId departmentId) {
         requireTenantId();
         return Optional.ofNullable(departmentMapper.selectOne(
                         Wrappers.<DepartmentDO>lambdaQuery().eq(DepartmentDO::getId, departmentId.value())))
                 .map(DepartmentPersistenceAssembler::toDomain);
     }
 
-    Optional<Department> findDepartmentByCode(DepartmentCode code) {
+    Optional<Department> findByCode(DepartmentCode code) {
         requireTenantId();
         return Optional.ofNullable(departmentMapper.selectOne(
                         Wrappers.<DepartmentDO>lambdaQuery().eq(DepartmentDO::getCode, code.value())))
                 .map(DepartmentPersistenceAssembler::toDomain);
     }
 
-    List<Department> listDepartmentsByIds(Set<DepartmentId> departmentIds) {
+    List<Department> listByIds(Set<DepartmentId> departmentIds) {
         if (departmentIds == null || departmentIds.isEmpty()) {
             return List.of();
         }
@@ -79,13 +79,13 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Department updateDepartmentSort(DepartmentId departmentId, Integer sort) {
-        Department currentDepartment = findDepartmentById(departmentId)
+        Department currentDepartment = findById(departmentId)
                 .orElseThrow(() -> new NotFoundException("Department not found: " + departmentId));
         currentDepartment.sort(sort);
         return updateDepartment(currentDepartment);
     }
 
-    void deleteDepartment(DepartmentId departmentId) {
+    void delete(DepartmentId departmentId) {
         requireTenantId();
         departmentMapper.delete(Wrappers.<DepartmentDO>lambdaQuery().eq(DepartmentDO::getId, departmentId.value()));
     }

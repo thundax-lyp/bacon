@@ -54,8 +54,8 @@ class OrderRepositorySupportPagingTest {
         long total;
         java.util.List<com.github.thundax.bacon.order.domain.model.entity.Order> result;
         try {
-            total = support.countOrders(null, null, null, null, null, null, null);
-            result = support.pageOrders(null, null, null, null, null, null, null, 1, 2);
+            total = support.count(null, null, null, null, null, null, null);
+            result = support.page(null, null, null, null, null, null, null, 1, 2);
         } finally {
             BaconContextHolder.restore(previous);
         }

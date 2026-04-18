@@ -20,7 +20,7 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
     }
 
     @Override
-    public boolean saveIfAbsent(StoredObjectReference storedObjectReference) {
+    public boolean insert(StoredObjectReference storedObjectReference) {
         StoredObjectReferenceDO dataObject =
                 StoredObjectReferencePersistenceAssembler.toDataObject(storedObjectReference);
         try {

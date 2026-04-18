@@ -154,13 +154,13 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+        public List<Inventory> page(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
             captureContext();
             return List.of(stock);
         }
 
         @Override
-        public long countInventories(SkuId skuId, InventoryStatus status) {
+        public long count(SkuId skuId, InventoryStatus status) {
             captureContext();
             return 1;
         }

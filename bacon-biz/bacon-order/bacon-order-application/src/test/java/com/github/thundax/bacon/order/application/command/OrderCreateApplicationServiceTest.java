@@ -160,7 +160,7 @@ class OrderCreateApplicationServiceTest {
         OrderPageResult page = runWithContext(
                 1001L,
                 2001L,
-                () -> queryService.pageOrders(UserId.of(2001L), null, null, PayStatus.UNPAID, null, null, null, 1, 10));
+                () -> queryService.page(UserId.of(2001L), null, null, PayStatus.UNPAID, null, null, null, 1, 10));
 
         assertEquals(1, page.getTotal());
         assertEquals(1, page.getRecords().size());
@@ -557,7 +557,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public long countOrders(
+        public long count(
                 Long userId,
                 String orderNo,
                 String orderStatus,
@@ -570,7 +570,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public List<Order> pageOrders(
+        public List<Order> page(
                 Long userId,
                 String orderNo,
                 String orderStatus,

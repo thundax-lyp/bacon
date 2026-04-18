@@ -15,9 +15,9 @@ public interface InventoryStockRepository {
 
     List<Inventory> findInventories(Set<SkuId> skuIds);
 
-    List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize);
+    List<Inventory> page(SkuId skuId, InventoryStatus status, int pageNo, int pageSize);
 
-    long countInventories(SkuId skuId, InventoryStatus status);
+    long count(SkuId skuId, InventoryStatus status);
 
     Inventory insertInventory(Inventory inventory);
 

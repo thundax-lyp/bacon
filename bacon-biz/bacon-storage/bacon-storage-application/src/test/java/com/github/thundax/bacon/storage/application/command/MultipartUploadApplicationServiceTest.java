@@ -81,7 +81,7 @@ class MultipartUploadApplicationServiceTest {
 
     @Test
     void shouldPersistOwnershipWhenInitMultipartUpload() {
-        when(storedObjectStorageRepository.initMultipartUpload("attachment", "a.png", "image/png"))
+        when(storedObjectStorageRepository.insertMultipartUpload("attachment", "a.png", "image/png"))
                 .thenReturn(new MultipartUploadStorageSession("attachment/key.png", "provider-1"));
         when(idGenerator.nextId("storage_multipart_upload")).thenReturn(1001L);
         when(multipartUploadSessionRepository.insert(any(MultipartUploadSession.class)))
@@ -113,7 +113,7 @@ class MultipartUploadApplicationServiceTest {
                 IllegalArgumentException.class,
                 () -> service.initMultipartUpload(new InitMultipartUploadCommand(
                         "GENERIC_ATTACHMENT", "owner-1", "attachment", "a.png", "image/png", 2048L, 512L)));
-        verify(storedObjectStorageRepository, never()).initMultipartUpload(any(), any(), any());
+        verify(storedObjectStorageRepository, never()).insertMultipartUpload(any(), any(), any());
     }
 
     @Test
@@ -142,7 +142,7 @@ class MultipartUploadApplicationServiceTest {
                 IllegalArgumentException.class,
                 () -> service.uploadMultipartPart(new UploadMultipartPartCommand(
                         "1", "GENERIC_ATTACHMENT", "owner-2", 1, 512L, new ByteArrayInputStream(new byte[] {1}))));
-        verify(storedObjectStorageRepository, never()).uploadPart(any(), any(), any(), any());
+        verify(storedObjectStorageRepository, never()).insertPart(any(), any(), any(), any());
     }
 
     @Test
@@ -174,7 +174,7 @@ class MultipartUploadApplicationServiceTest {
                 IllegalArgumentException.class,
                 () -> service.uploadMultipartPart(new UploadMultipartPartCommand(
                         "2", "GENERIC_ATTACHMENT", "owner-1", 1, 1024L, new ByteArrayInputStream(new byte[] {1}))));
-        verify(storedObjectStorageRepository, never()).uploadPart(any(), any(), any(), any());
+        verify(storedObjectStorageRepository, never()).insertPart(any(), any(), any(), any());
     }
 
     @Test
@@ -202,7 +202,7 @@ class MultipartUploadApplicationServiceTest {
         when(multipartUploadSessionRepository.findByUploadId("3")).thenReturn(Optional.of(session));
         when(multipartUploadPartRepository.findByUploadIdAndPartNumber("3", 1))
                 .thenReturn(Optional.of(existingPart), Optional.of(existingPart));
-        when(storedObjectStorageRepository.uploadPart(eq(session), eq(1), eq(512L), org.mockito.ArgumentMatchers.any()))
+        when(storedObjectStorageRepository.insertPart(eq(session), eq(1), eq(512L), org.mockito.ArgumentMatchers.any()))
                 .thenReturn("etag-new");
         when(multipartUploadPartRepository.update(any(MultipartUploadPart.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -246,7 +246,7 @@ class MultipartUploadApplicationServiceTest {
                 IllegalArgumentException.class,
                 () -> service.completeMultipartUpload(
                         new CompleteMultipartUploadCommand("2", "GENERIC_ATTACHMENT", "owner-1")));
-        verify(storedObjectStorageRepository, never()).completeMultipartUpload(any(), any());
+        verify(storedObjectStorageRepository, never()).update(any(), any());
     }
 
     @Test
@@ -275,7 +275,7 @@ class MultipartUploadApplicationServiceTest {
 
         service.abortMultipartUpload(new AbortMultipartUploadCommand("5", "GENERIC_ATTACHMENT", "owner-1"));
 
-        verify(storedObjectStorageRepository).abortMultipartUpload(session);
+        verify(storedObjectStorageRepository).delete(session);
         verify(multipartUploadPartRepository).deleteByUploadId("5");
     }
 
@@ -306,7 +306,7 @@ class MultipartUploadApplicationServiceTest {
                         MultipartUploadPart.create(null, "6", 2, "etag-2", 512L, Instant.now())));
         when(idGenerator.nextId("stored-object-no")).thenReturn(123456L);
         when(idGenerator.nextId("stored-object-id")).thenReturn(100L);
-        when(storedObjectStorageRepository.completeMultipartUpload(eq(session), any()))
+        when(storedObjectStorageRepository.update(eq(session), any()))
                 .thenReturn(new StoredObjectStorageResult(
                         StorageType.OSS, "bucket", "attachment/key.png", "http://test/key"));
         when(storedObjectRepository.insert(any(StoredObject.class))).thenAnswer(invocation -> {

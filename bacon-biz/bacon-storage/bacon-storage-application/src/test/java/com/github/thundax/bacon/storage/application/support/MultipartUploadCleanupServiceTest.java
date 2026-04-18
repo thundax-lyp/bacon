@@ -95,7 +95,7 @@ class MultipartUploadCleanupServiceTest {
         ArgumentCaptor<MultipartUploadSession> sessionCaptor = ArgumentCaptor.forClass(MultipartUploadSession.class);
         verify(multipartUploadSessionRepository).update(sessionCaptor.capture());
         assertEquals(UploadStatus.ABORTED, sessionCaptor.getValue().getUploadStatus());
-        verify(storedObjectStorageRepository).abortMultipartUpload(session);
+        verify(storedObjectStorageRepository).delete(session);
         verify(multipartUploadPartRepository).deleteByUploadId("upload-expired");
         assertEquals(
                 1.0d,
@@ -136,7 +136,7 @@ class MultipartUploadCleanupServiceTest {
         int cleanedCount = service.cleanupExpiredSessions();
 
         assertEquals(1, cleanedCount);
-        verify(storedObjectStorageRepository).abortMultipartUpload(session);
+        verify(storedObjectStorageRepository).delete(session);
         verify(multipartUploadPartRepository).deleteByUploadId("upload-aborted");
         verify(multipartUploadSessionRepository, never()).update(any(MultipartUploadSession.class));
         assertEquals(
@@ -172,7 +172,7 @@ class MultipartUploadCleanupServiceTest {
                 .thenReturn(List.of(session));
         org.mockito.Mockito.doThrow(new IllegalStateException("abort-fail"))
                 .when(storedObjectStorageRepository)
-                .abortMultipartUpload(session);
+                .delete(session);
 
         int cleanedCount = service.cleanupExpiredSessions();
 

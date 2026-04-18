@@ -12,10 +12,10 @@ public interface PostRepository {
 
     Optional<Post> findById(PostId postId);
 
-    List<Post> pagePosts(
+    List<Post> page(
             PostCode code, String name, DepartmentId departmentId, PostStatus status, int pageNo, int pageSize);
 
-    long countPosts(PostCode code, String name, DepartmentId departmentId, PostStatus status);
+    long count(PostCode code, String name, DepartmentId departmentId, PostStatus status);
 
     Post insert(Post post);
 

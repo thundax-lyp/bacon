@@ -39,7 +39,7 @@ public interface OrderRepository {
 
     List<OrderAuditLog> findAuditLogs(String orderNo);
 
-    long countOrders(
+    long count(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -48,7 +48,7 @@ public interface OrderRepository {
             Instant createdAtFrom,
             Instant createdAtTo);
 
-    List<Order> pageOrders(
+    List<Order> page(
             Long userId,
             String orderNo,
             String orderStatus,

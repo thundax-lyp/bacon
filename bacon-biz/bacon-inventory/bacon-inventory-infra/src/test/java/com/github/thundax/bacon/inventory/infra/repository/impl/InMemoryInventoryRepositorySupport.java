@@ -94,7 +94,7 @@ public class InMemoryInventoryRepositorySupport {
                 .toList();
     }
 
-    public List<Inventory> pageInventories(
+    public List<Inventory> page(
             TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
         return findInventories(tenantId).stream()
                 .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
@@ -104,7 +104,7 @@ public class InMemoryInventoryRepositorySupport {
                 .toList();
     }
 
-    public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
+    public long count(TenantId tenantId, SkuId skuId, InventoryStatus status) {
         return findInventories(tenantId).stream()
                 .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                 .filter(inventory -> status == null || status.equals(inventory.getStatus()))
@@ -374,7 +374,7 @@ public class InMemoryInventoryRepositorySupport {
                 .add(deadLetter);
     }
 
-    public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
+    public List<InventoryAuditDeadLetter> page(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
         TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
         return auditDeadLetters.values().stream()
@@ -394,7 +394,7 @@ public class InMemoryInventoryRepositorySupport {
                 .toList();
     }
 
-    public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+    public long count(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
         TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)

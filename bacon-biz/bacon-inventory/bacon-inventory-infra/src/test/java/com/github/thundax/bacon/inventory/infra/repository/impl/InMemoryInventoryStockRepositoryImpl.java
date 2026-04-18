@@ -40,13 +40,13 @@ public class InMemoryInventoryStockRepositoryImpl implements InventoryStockRepos
     }
 
     @Override
-    public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
-        return support.pageInventories(currentTenantId(), skuId, status, pageNo, pageSize);
+    public List<Inventory> page(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+        return support.page(currentTenantId(), skuId, status, pageNo, pageSize);
     }
 
     @Override
-    public long countInventories(SkuId skuId, InventoryStatus status) {
-        return support.countInventories(currentTenantId(), skuId, status);
+    public long count(SkuId skuId, InventoryStatus status) {
+        return support.count(currentTenantId(), skuId, status);
     }
 
     @Override

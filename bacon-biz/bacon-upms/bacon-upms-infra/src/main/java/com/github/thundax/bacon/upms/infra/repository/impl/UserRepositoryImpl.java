@@ -57,39 +57,39 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<User> findUserById(UserId userId) {
-        return support.findUserById(userId);
+    public Optional<User> findById(UserId userId) {
+        return support.findById(userId);
     }
 
     @Override
-    public Optional<User> findUserByAccount(String account) {
-        return support.findUserByAccount(account);
+    public Optional<User> findByAccount(String account) {
+        return support.findByAccount(account);
     }
 
     @Override
-    public Optional<UserIdentity> findUserIdentity(UserIdentityType identityType, String identityValue) {
-        return support.findUserIdentity(identityType, identityValue);
+    public Optional<UserIdentity> findIdentity(UserIdentityType identityType, String identityValue) {
+        return support.findIdentity(identityType, identityValue);
     }
 
     @Override
-    public Optional<UserIdentity> findUserIdentityByUserId(UserId userId, UserIdentityType identityType) {
-        return support.findUserIdentityByUserId(userId, identityType);
+    public Optional<UserIdentity> findIdentityByUserId(UserId userId, UserIdentityType identityType) {
+        return support.findIdentityByUserId(userId, identityType);
     }
 
     @Override
-    public Optional<UserCredential> findUserCredential(UserId userId, UserCredentialType credentialType) {
-        return support.findUserCredential(userId, credentialType);
+    public Optional<UserCredential> findCredentialByUserId(UserId userId, UserCredentialType credentialType) {
+        return support.findCredentialByUserId(userId, credentialType);
     }
 
     @Override
-    public List<User> pageUsers(
+    public List<User> page(
             String account, String name, String phone, UserStatus status, int pageNo, int pageSize) {
         return support.listUsers(account, name, phone, status, pageNo, pageSize);
     }
 
     @Override
-    public long countUsers(String account, String name, String phone, UserStatus status) {
-        return support.countUsers(account, name, phone, status);
+    public long count(String account, String name, String phone, UserStatus status) {
+        return support.count(account, name, phone, status);
     }
 
     @Override
@@ -149,7 +149,7 @@ public class UserRepositoryImpl implements UserRepository {
             UserId userId, String password, boolean needChangePassword, UserCredentialId passwordCredentialIdIfAbsent) {
         TenantId tenantId = requireTenantId();
         User currentUser =
-                findUserById(userId).orElseThrow(() -> new NotFoundException("User not found: " + userId));
+                findById(userId).orElseThrow(() -> new NotFoundException("User not found: " + userId));
         User savedUser = support.updateUser(copyUser(currentUser));
         UserIdentity accountIdentity = requireUserIdentity(userId, UserIdentityType.ACCOUNT);
         upsertPasswordCredential(
@@ -167,7 +167,7 @@ public class UserRepositoryImpl implements UserRepository {
         TenantId tenantId = requireTenantId();
         List<Role> roles = roleIds.stream()
                 .map(roleId -> roleRepository
-                        .findRoleById(roleId)
+                        .findById(roleId)
                         .orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value())))
                 .toList();
         roleRepository.bindUserRoles(tenantId, userId, roles);
@@ -176,9 +176,9 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public void deleteUser(UserId userId) {
+    public void delete(UserId userId) {
         TenantId tenantId = requireTenantId();
-        support.deleteUser(userId);
+        support.delete(userId);
         roleRepository.clearUserRoles(tenantId, userId);
         support.deleteUserIdentitiesByUser(tenantId, userId);
         support.deleteUserCredentialsByUser(tenantId, userId);
@@ -197,7 +197,7 @@ public class UserRepositoryImpl implements UserRepository {
     private UserIdentity replaceAccountIdentity(
             TenantId tenantId, User user, String account, UserIdentityId accountIdentityId) {
         String normalizedAccount = requireIdentityValue(account, UserIdentityType.ACCOUNT);
-        UserIdentity currentIdentity = support.findUserIdentityByUserId(user.getId(), UserIdentityType.ACCOUNT)
+        UserIdentity currentIdentity = support.findIdentityByUserId(user.getId(), UserIdentityType.ACCOUNT)
                 .orElse(null);
         if (currentIdentity == null) {
             return support.saveUserIdentity(UserIdentity.create(
@@ -213,7 +213,7 @@ public class UserRepositoryImpl implements UserRepository {
             return;
         }
         String normalizedPhone = phone.trim();
-        UserIdentity currentIdentity = support.findUserIdentityByUserId(user.getId(), UserIdentityType.PHONE)
+        UserIdentity currentIdentity = support.findIdentityByUserId(user.getId(), UserIdentityType.PHONE)
                 .orElse(null);
         if (currentIdentity == null) {
             support.saveUserIdentity(UserIdentity.create(
@@ -225,7 +225,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private UserIdentity requireUserIdentity(UserId userId, UserIdentityType identityType) {
-        return support.findUserIdentityByUserId(userId, identityType)
+        return support.findIdentityByUserId(userId, identityType)
                 .orElseThrow(() -> new NotFoundException(
                         "User identity not found: " + userId + "/" + identityType.value()));
     }
@@ -241,7 +241,7 @@ public class UserRepositoryImpl implements UserRepository {
         if (newUser) {
             return passwordEncoder.encode(DEFAULT_PASSWORD);
         }
-        return support.findUserCredential(user.getId(), PASSWORD_CREDENTIAL_TYPE)
+        return support.findCredentialByUserId(user.getId(), PASSWORD_CREDENTIAL_TYPE)
                 .map(UserCredential::getCredentialValue)
                 .orElseGet(() -> passwordEncoder.encode(DEFAULT_PASSWORD));
     }
@@ -253,7 +253,7 @@ public class UserRepositoryImpl implements UserRepository {
             boolean newUser,
             boolean needChangePassword,
             UserCredentialId passwordCredentialIdIfAbsent) {
-        UserCredential currentCredential = support.findUserCredential(user.getId(), PASSWORD_CREDENTIAL_TYPE)
+        UserCredential currentCredential = support.findCredentialByUserId(user.getId(), PASSWORD_CREDENTIAL_TYPE)
                 .orElse(null);
         Instant passwordExpiresAt = Instant.now().plus(PASSWORD_EXPIRE_DAYS, ChronoUnit.DAYS);
         if (currentCredential == null) {

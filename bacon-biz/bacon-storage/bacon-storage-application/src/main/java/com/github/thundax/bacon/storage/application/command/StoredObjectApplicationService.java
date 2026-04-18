@@ -61,7 +61,7 @@ public class StoredObjectApplicationService {
     @Transactional
     public StoredObjectDTO uploadObject(UploadObjectCommand command) {
         storageUploadLimitValidator.validateSingleUpload(command.getSize());
-        StoredObjectStorageResult storageResult = storedObjectStorageRepository.upload(
+        StoredObjectStorageResult storageResult = storedObjectStorageRepository.insert(
                 command.getCategory(),
                 command.getOriginalFilename(),
                 command.getContentType(),
@@ -99,7 +99,7 @@ public class StoredObjectApplicationService {
         ensureAvailable(storedObject, storedObjectNo);
         String beforeStatus = storedObject.getReferenceStatus().value();
         StoredObjectReference reference = StoredObjectReference.create(storedObjectId, ownerType, ownerId);
-        boolean created = storedObjectReferenceRepository.saveIfAbsent(reference);
+        boolean created = storedObjectReferenceRepository.insert(reference);
         StoredObject savedObject =
                 syncReferenceStatus(storedObject, storedObjectReferenceRepository.existsByObjectId(storedObjectId));
         if (!created) {

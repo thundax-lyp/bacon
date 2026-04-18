@@ -41,18 +41,18 @@ public class DepartmentApplicationService {
 
     public DepartmentDTO getDepartmentById(DepartmentId departmentId) {
         return DepartmentAssembler.toDto(departmentRepository
-                .findDepartmentById(departmentId)
+                .findById(departmentId)
                 .orElseThrow(() -> new NotFoundException("Department not found: " + departmentId)));
     }
 
     public DepartmentDTO getDepartmentByCode(DepartmentCode departmentCode) {
         return DepartmentAssembler.toDto(departmentRepository
-                .findDepartmentByCode(departmentCode)
+                .findByCode(departmentCode)
                 .orElseThrow(() -> new NotFoundException("Department not found: " + departmentCode.value())));
     }
 
-    public List<DepartmentDTO> listDepartmentsByIds(Set<DepartmentId> departmentIds) {
-        return departmentRepository.listDepartmentsByIds(departmentIds).stream()
+    public List<DepartmentDTO> listByIds(Set<DepartmentId> departmentIds) {
+        return departmentRepository.listByIds(departmentIds).stream()
                 .map(DepartmentAssembler::toDto)
                 .toList();
     }
@@ -103,7 +103,7 @@ public class DepartmentApplicationService {
             UserId leaderUserId,
             Integer sort) {
         Department currentDepartment = departmentRepository
-                .findDepartmentById(departmentId)
+                .findById(departmentId)
                 .orElseThrow(() -> new NotFoundException("Department not found: " + departmentId));
         validateParent(parentId);
         validateLeaderUser(leaderUserId);
@@ -126,9 +126,9 @@ public class DepartmentApplicationService {
     }
 
     @Transactional
-    public void deleteDepartment(DepartmentId departmentId) {
+    public void delete(DepartmentId departmentId) {
         departmentRepository
-                .findDepartmentById(departmentId)
+                .findById(departmentId)
                 .orElseThrow(() -> new NotFoundException("Department not found: " + departmentId));
         if (departmentRepository.existsChildDepartment(departmentId)) {
             throw new ConflictException("Department has child departments: " + departmentId);
@@ -136,7 +136,7 @@ public class DepartmentApplicationService {
         if (departmentRepository.existsUserInDepartment(departmentId)) {
             throw new ConflictException("Department has assigned users: " + departmentId);
         }
-        departmentRepository.deleteDepartment(departmentId);
+        departmentRepository.delete(departmentId);
     }
 
     private Comparator<DepartmentTreeDTO> treeComparator() {
@@ -149,7 +149,7 @@ public class DepartmentApplicationService {
             return;
         }
         departmentRepository
-                .findDepartmentById(parentId)
+                .findById(parentId)
                 .orElseThrow(() -> new NotFoundException("Parent department not found: " + parentId));
     }
 
@@ -158,7 +158,7 @@ public class DepartmentApplicationService {
             return;
         }
         userRepository
-                .findUserById(leaderUserId)
+                .findById(leaderUserId)
                 .orElseThrow(() -> new NotFoundException("Leader user not found: " + leaderUserId.value()));
     }
 

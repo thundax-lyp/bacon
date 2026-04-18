@@ -23,18 +23,18 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public Optional<Department> findDepartmentById(DepartmentId departmentId) {
-        return support.findDepartmentById(departmentId);
+    public Optional<Department> findById(DepartmentId departmentId) {
+        return support.findById(departmentId);
     }
 
     @Override
-    public Optional<Department> findDepartmentByCode(DepartmentCode departmentCode) {
-        return support.findDepartmentByCode(departmentCode);
+    public Optional<Department> findByCode(DepartmentCode departmentCode) {
+        return support.findByCode(departmentCode);
     }
 
     @Override
-    public List<Department> listDepartmentsByIds(Set<DepartmentId> departmentIds) {
-        return support.listDepartmentsByIds(departmentIds);
+    public List<Department> listByIds(Set<DepartmentId> departmentIds) {
+        return support.listByIds(departmentIds);
     }
 
     @Override
@@ -58,8 +58,8 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public void deleteDepartment(DepartmentId departmentId) {
-        support.deleteDepartment(departmentId);
+    public void delete(DepartmentId departmentId) {
+        support.delete(departmentId);
     }
 
     @Override

@@ -13,8 +13,8 @@ public interface SysLogRepository {
 
     Optional<SysLogRecord> findById(SysLogId logId);
 
-    List<SysLogRecord> pageLogs(
+    List<SysLogRecord> page(
             String module, String eventType, String result, String operatorName, int pageNo, int pageSize);
 
-    long countLogs(String module, String eventType, String result, String operatorName);
+    long count(String module, String eventType, String result, String operatorName);
 }

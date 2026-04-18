@@ -65,16 +65,16 @@ public class InventoryQueryApplicationService {
                 .toList();
     }
 
-    public InventoryPageResult pageInventories(
+    public InventoryPageResult page(
             SkuId skuId, InventoryStatus status, Integer pageNo, Integer pageSize) {
         BaconContextHolder.requireTenantId();
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         List<InventoryStockDTO> records =
-                inventoryStockRepository.pageInventories(skuId, status, normalizedPageNo, normalizedPageSize).stream()
+                inventoryStockRepository.page(skuId, status, normalizedPageNo, normalizedPageSize).stream()
                         .map(InventoryStockAssembler::fromInventory)
                         .toList();
-        long total = inventoryStockRepository.countInventories(skuId, status);
+        long total = inventoryStockRepository.count(skuId, status);
         return new InventoryPageResult(records, total, normalizedPageNo, normalizedPageSize);
     }
 
@@ -101,18 +101,18 @@ public class InventoryQueryApplicationService {
                 .toList();
     }
 
-    public InventoryAuditDeadLetterPageResult pageAuditDeadLetters(
+    public InventoryAuditDeadLetterPageResult page(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, Integer pageNo, Integer pageSize) {
         BaconContextHolder.requireTenantId();
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         List<InventoryAuditDeadLetterDTO> records =
                 inventoryAuditDeadLetterRepository
-                        .pageAuditDeadLetters(orderNo, replayStatus, normalizedPageNo, normalizedPageSize)
+                        .page(orderNo, replayStatus, normalizedPageNo, normalizedPageSize)
                         .stream()
                         .map(InventoryAuditDeadLetterAssembler::toDto)
                         .toList();
-        long total = inventoryAuditDeadLetterRepository.countAuditDeadLetters(orderNo, replayStatus);
+        long total = inventoryAuditDeadLetterRepository.count(orderNo, replayStatus);
         return new InventoryAuditDeadLetterPageResult(records, total, normalizedPageNo, normalizedPageSize);
     }
 

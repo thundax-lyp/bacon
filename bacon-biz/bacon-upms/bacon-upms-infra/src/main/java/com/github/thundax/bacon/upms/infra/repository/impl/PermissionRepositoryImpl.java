@@ -76,7 +76,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     }
 
     private List<Menu> loadUserMenuTree(UserId userId) {
-        List<Role> roles = roleRepository.findRolesByUserId(userId);
+        List<Role> roles = roleRepository.findByUserId(userId);
         if (roles.isEmpty()) {
             return List.of();
         }
@@ -92,7 +92,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     }
 
     private Set<String> loadUserPermissionCodes(UserId userId) {
-        List<Role> roles = roleRepository.findRolesByUserId(userId);
+        List<Role> roles = roleRepository.findByUserId(userId);
         if (roles.isEmpty()) {
             return Set.of();
         }
@@ -117,14 +117,14 @@ public class PermissionRepositoryImpl implements PermissionRepository {
 
     private Set<DepartmentId> loadUserDepartmentIds(UserId userId) {
         Set<DepartmentId> departmentIds = new HashSet<>();
-        roleRepository.findRolesByUserId(userId).forEach(role -> departmentIds.addAll(
+        roleRepository.findByUserId(userId).forEach(role -> departmentIds.addAll(
                 roleRepository.findDataScope(role.getId()).departmentIds()));
         return Set.copyOf(departmentIds);
     }
 
     private Set<String> loadUserScopeTypes(UserId userId) {
         Set<String> scopeTypes = new HashSet<>();
-        roleRepository.findRolesByUserId(userId).stream()
+        roleRepository.findByUserId(userId).stream()
                 .map(Role::getId)
                 .map(roleRepository::findDataScope)
                 .map(RoleDataScopeAssignment::dataScopeType)

@@ -238,7 +238,7 @@ class OrderInterfaceContractTest {
     private static final class StubOrderQueryApplicationService extends OrderQueryApplicationService {
 
         private StubOrderQueryApplicationService() {
-            super(null);
+            super(null, null, null);
         }
 
         @Override

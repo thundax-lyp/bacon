@@ -129,6 +129,53 @@ public final class NamingAndPlacementRuleSupport {
                 .because("RepositoryImpl -> infra.repository.impl");
     }
 
+    public static ArchRule repositoryImplShouldNotDependOnOtherRepositoryImpl(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .haveSimpleNameEndingWith("RepositoryImpl")
+                .and()
+                .resideInAPackage(basePackage + ".infra.repository.impl..")
+                .should(new ArchCondition<>("avoid direct dependency on other RepositoryImpl") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        List<String> referencedTypes = findSimpleTypeReferences(item, "RepositoryImpl");
+                        referencedTypes.stream()
+                                .filter(typeName -> !typeName.equals(item.getSimpleName()))
+                                .forEach(typeName -> events.add(SimpleConditionEvent.violated(
+                                        item,
+                                        item.getFullName() + " references " + typeName
+                                                + " violates RULE NAME_REPOSITORY_IMPL_NO_CROSS_IMPL_DEP")));
+                    }
+                })
+                .allowEmptyShould(true)
+                .because(
+                        "RULE NAME_REPOSITORY_IMPL_NO_CROSS_IMPL_DEP: RepositoryImpl must not depend on other RepositoryImpl");
+    }
+
+    public static ArchRule repositoryImplShouldOnlyDependOnOwnPersistenceSupport(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .haveSimpleNameEndingWith("RepositoryImpl")
+                .and()
+                .resideInAPackage(basePackage + ".infra.repository.impl..")
+                .should(new ArchCondition<>("depend only on own aggregate PersistenceSupport") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        String allowedSupportSimpleName = ownPersistenceSupportSimpleName(item.getSimpleName());
+                        findSimpleTypeReferences(item, "PersistenceSupport").stream()
+                                .filter(typeName -> !allowedSupportSimpleName.equals(typeName))
+                                .forEach(typeName -> events.add(SimpleConditionEvent.violated(
+                                        item,
+                                        item.getFullName() + " references " + typeName
+                                                + " violates RULE NAME_REPOSITORY_IMPL_NO_CROSS_SUPPORT_DEP; allowed support is "
+                                                + allowedSupportSimpleName)));
+                    }
+                })
+                .allowEmptyShould(true)
+                .because(
+                        "RULE NAME_REPOSITORY_IMPL_NO_CROSS_SUPPORT_DEP: RepositoryImpl must depend only on own aggregate PersistenceSupport");
+    }
+
     public static ArchRule repositoryMethodShouldUseWhitelistedPrefix(String basePackage) {
         return ArchRuleDefinition.classes()
                 .that()
@@ -684,6 +731,29 @@ public final class NamingAndPlacementRuleSupport {
     private static String domainName(String basePackage) {
         int index = basePackage.lastIndexOf('.');
         return index >= 0 ? basePackage.substring(index + 1) : basePackage;
+    }
+
+    private static String ownPersistenceSupportSimpleName(String repositoryImplSimpleName) {
+        return repositoryImplSimpleName.substring(0, repositoryImplSimpleName.length() - "RepositoryImpl".length())
+                + "PersistenceSupport";
+    }
+
+    private static List<String> findSimpleTypeReferences(JavaClass item, String suffix) {
+        try {
+            Optional<Path> sourceFile = resolveSourceFilePath(item.getSource(), item);
+            if (sourceFile.isEmpty()) {
+                return List.of();
+            }
+            String source = Files.readString(sourceFile.get());
+            return Pattern.compile("\\b([A-Z][A-Za-z0-9_]*" + suffix + ")\\b")
+                    .matcher(source)
+                    .results()
+                    .map(result -> result.group(1))
+                    .distinct()
+                    .toList();
+        } catch (Exception ex) {
+            return List.of();
+        }
     }
 
     private static final class RequestMappingPathPrefixCondition extends ArchCondition<JavaClass> {

@@ -70,6 +70,18 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     }
 
     @Test
+    void shouldEnforceNameRepositoryImplNoCrossImplDependency() {
+        NamingAndPlacementRuleSupport.repositoryImplShouldNotDependOnOtherRepositoryImpl(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    void shouldEnforceNameRepositoryImplNoCrossSupportDependency() {
+        NamingAndPlacementRuleSupport.repositoryImplShouldOnlyDependOnOwnPersistenceSupport(basePackage())
+                .check(classes());
+    }
+
+    @Test
     void shouldEnforceNameMapperPlacement() {
         NamingAndPlacementRuleSupport.mapperShouldUseMapperNameAndPackage(basePackage())
                 .check(classes());

@@ -48,7 +48,7 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countPosts(PostCode code, String name, DepartmentId departmentId, PostStatus status) {
+    long count(PostCode code, String name, DepartmentId departmentId, PostStatus status) {
         return Optional.ofNullable(postMapper.selectCount(Wrappers.<PostDO>lambdaQuery()
                         .like(code != null, PostDO::getCode, code == null ? null : code.value())
                         .like(hasText(name), PostDO::getName, name)

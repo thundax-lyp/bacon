@@ -40,41 +40,41 @@ public class SessionApplicationService {
                 .parseSessionId(accessToken)
                 .orElseThrow(() -> new IllegalArgumentException("Access token invalid"));
         AuthSession authSession = authSessionRepository
-                .findSessionBySessionId(sessionId)
+                .findBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
         authSession.logout(Instant.now());
-        authSessionRepository.saveSession(authSession);
-        authSessionRepository.invalidateRefreshTokensBySessionId(sessionId);
+        authSessionRepository.update(authSession);
+        authSessionRepository.markInvalidBySessionId(sessionId);
         authAuditApplicationService.record("LOGOUT", "SUCCESS", sessionId);
     }
 
     public void invalidateUserSessions(Long tenantId, Long userId, String reason) {
-        List<AuthSession> sessions = authSessionRepository.findSessionsByTenantIdAndUserId(tenantId, userId);
+        List<AuthSession> sessions = authSessionRepository.listByTenantIdAndUserId(tenantId, userId);
         sessions.forEach(session -> {
             session.invalidate(reason);
-            authSessionRepository.saveSession(session);
-            authSessionRepository.invalidateRefreshTokensBySessionId(session.getSessionId());
+            authSessionRepository.update(session);
+            authSessionRepository.markInvalidBySessionId(session.getSessionId());
         });
         authAuditApplicationService.record("INVALIDATE_USER_SESSIONS", "SUCCESS", tenantId + ":" + userId);
     }
 
     public void invalidateTenantSessions(Long tenantId, String reason) {
-        List<AuthSession> sessions = authSessionRepository.findSessionsByTenantId(tenantId);
+        List<AuthSession> sessions = authSessionRepository.listByTenantId(tenantId);
         sessions.forEach(session -> {
             session.invalidate(reason);
-            authSessionRepository.saveSession(session);
-            authSessionRepository.invalidateRefreshTokensBySessionId(session.getSessionId());
+            authSessionRepository.update(session);
+            authSessionRepository.markInvalidBySessionId(session.getSessionId());
         });
         authAuditApplicationService.record("INVALIDATE_TENANT_SESSIONS", "SUCCESS", String.valueOf(tenantId));
     }
 
     public void invalidateSession(String sessionId, String reason) {
         AuthSession authSession = authSessionRepository
-                .findSessionBySessionId(sessionId)
+                .findBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
         authSession.invalidate(reason);
-        authSessionRepository.saveSession(authSession);
-        authSessionRepository.invalidateRefreshTokensBySessionId(sessionId);
+        authSessionRepository.update(authSession);
+        authSessionRepository.markInvalidBySessionId(sessionId);
         authAuditApplicationService.record("INVALIDATE_SESSION", "SUCCESS", sessionId);
     }
 }

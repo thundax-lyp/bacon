@@ -136,57 +136,57 @@ class InventoryControllerContractTest {
                 Instant.parse("2026-03-26T10:00:00Z"));
 
         @Override
-        public Optional<Inventory> findInventory(SkuId skuId) {
+        public Optional<Inventory> findBySkuId(SkuId skuId) {
             captureContext();
             return Optional.of(stock);
         }
 
         @Override
-        public List<Inventory> findInventories() {
+        public List<Inventory> list() {
             captureContext();
             return List.of(stock);
         }
 
         @Override
-        public List<Inventory> findInventories(Set<SkuId> skuIds) {
+        public List<Inventory> listBySkuIds(Set<SkuId> skuIds) {
             captureContext();
             return List.of(stock);
         }
 
         @Override
-        public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+        public List<Inventory> page(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
             captureContext();
             return List.of(stock);
         }
 
         @Override
-        public long countInventories(SkuId skuId, InventoryStatus status) {
+        public long count(SkuId skuId, InventoryStatus status) {
             captureContext();
             return 1;
         }
 
         @Override
-        public Inventory insertInventory(Inventory inventory) {
+        public Inventory insert(Inventory inventory) {
             return inventory;
         }
 
         @Override
-        public Inventory updateInventory(Inventory inventory) {
+        public Inventory update(Inventory inventory) {
             return inventory;
         }
 
         @Override
-        public InventoryReservation insertReservation(InventoryReservation reservation) {
+        public InventoryReservation insert(InventoryReservation reservation) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public InventoryReservation updateReservation(InventoryReservation reservation) {
+        public InventoryReservation update(InventoryReservation reservation) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
+        public Optional<InventoryReservation> findByOrderNo(OrderNo orderNo) {
             captureContext();
             return Optional.empty();
         }
@@ -195,25 +195,25 @@ class InventoryControllerContractTest {
         public void insertLedger(InventoryLedger ledger) {}
 
         @Override
-        public List<InventoryLedger> findLedgers(OrderNo orderNo) {
+        public List<InventoryLedger> listLedgers(OrderNo orderNo) {
             captureContext();
             return List.of();
         }
 
         @Override
-        public void insertAuditLog(InventoryAuditLog auditLog) {}
+        public void insertLog(InventoryAuditLog auditLog) {}
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
+        public List<InventoryAuditLog> listLogs(OrderNo orderNo) {
             captureContext();
             return List.of();
         }
 
         @Override
-        public void insertAuditOutbox(InventoryAuditOutbox outbox) {}
+        public void insert(InventoryAuditOutbox outbox) {}
 
         @Override
-        public void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {}
+        public void insert(InventoryAuditDeadLetter deadLetter) {}
 
         private void captureContext() {
             capturedTenantId = BaconContextHolder.currentTenantId();

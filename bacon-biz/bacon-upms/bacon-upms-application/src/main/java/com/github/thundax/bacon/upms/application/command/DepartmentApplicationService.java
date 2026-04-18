@@ -41,24 +41,24 @@ public class DepartmentApplicationService {
 
     public DepartmentDTO getDepartmentById(DepartmentId departmentId) {
         return DepartmentAssembler.toDto(departmentRepository
-                .findDepartmentById(departmentId)
+                .findById(departmentId)
                 .orElseThrow(() -> new NotFoundException("Department not found: " + departmentId)));
     }
 
     public DepartmentDTO getDepartmentByCode(DepartmentCode departmentCode) {
         return DepartmentAssembler.toDto(departmentRepository
-                .findDepartmentByCode(departmentCode)
+                .findByCode(departmentCode)
                 .orElseThrow(() -> new NotFoundException("Department not found: " + departmentCode.value())));
     }
 
-    public List<DepartmentDTO> listDepartmentsByIds(Set<DepartmentId> departmentIds) {
-        return departmentRepository.listDepartmentsByIds(departmentIds).stream()
+    public List<DepartmentDTO> listByIds(Set<DepartmentId> departmentIds) {
+        return departmentRepository.listByIds(departmentIds).stream()
                 .map(DepartmentAssembler::toDto)
                 .toList();
     }
 
     public List<DepartmentTreeDTO> getDepartmentTree() {
-        List<Department> departments = departmentRepository.listDepartmentTree();
+        List<Department> departments = departmentRepository.listTree();
         // 先平铺映射成节点表，再按 parentId 二次挂接，避免 repository 被迫返回固定层级结构。
         Map<Long, DepartmentTreeDTO> treeNodeMap = departments.stream()
                 .map(DepartmentAssembler::toTreeDto)
@@ -103,7 +103,7 @@ public class DepartmentApplicationService {
             UserId leaderUserId,
             Integer sort) {
         Department currentDepartment = departmentRepository
-                .findDepartmentById(departmentId)
+                .findById(departmentId)
                 .orElseThrow(() -> new NotFoundException("Department not found: " + departmentId));
         validateParent(parentId);
         validateLeaderUser(leaderUserId);
@@ -122,21 +122,25 @@ public class DepartmentApplicationService {
         if (sort == null) {
             throw new BadRequestException("sort must not be null");
         }
-        return DepartmentAssembler.toDto(departmentRepository.updateSort(departmentId, sort));
+        Department currentDepartment = departmentRepository
+                .findById(departmentId)
+                .orElseThrow(() -> new NotFoundException("Department not found: " + departmentId));
+        currentDepartment.sort(sort);
+        return DepartmentAssembler.toDto(departmentRepository.update(currentDepartment));
     }
 
     @Transactional
-    public void deleteDepartment(DepartmentId departmentId) {
+    public void delete(DepartmentId departmentId) {
         departmentRepository
-                .findDepartmentById(departmentId)
+                .findById(departmentId)
                 .orElseThrow(() -> new NotFoundException("Department not found: " + departmentId));
-        if (departmentRepository.existsChildDepartment(departmentId)) {
+        if (departmentRepository.existsChild(departmentId)) {
             throw new ConflictException("Department has child departments: " + departmentId);
         }
-        if (departmentRepository.existsUserInDepartment(departmentId)) {
+        if (departmentRepository.existsUser(departmentId)) {
             throw new ConflictException("Department has assigned users: " + departmentId);
         }
-        departmentRepository.deleteDepartment(departmentId);
+        departmentRepository.delete(departmentId);
     }
 
     private Comparator<DepartmentTreeDTO> treeComparator() {
@@ -149,7 +153,7 @@ public class DepartmentApplicationService {
             return;
         }
         departmentRepository
-                .findDepartmentById(parentId)
+                .findById(parentId)
                 .orElseThrow(() -> new NotFoundException("Parent department not found: " + parentId));
     }
 
@@ -158,7 +162,7 @@ public class DepartmentApplicationService {
             return;
         }
         userRepository
-                .findUserById(leaderUserId)
+                .findById(leaderUserId)
                 .orElseThrow(() -> new NotFoundException("Leader user not found: " + leaderUserId.value()));
     }
 

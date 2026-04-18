@@ -47,11 +47,11 @@ public class OrderDerivedDataPersistenceSupport {
                             : PaymentChannelStatus.from(order.getPaymentChannelStatus()),
                     now);
             if (orderRepository
-                    .findPaymentSnapshotByOrderId(order.getId() == null ? null : order.getId().value())
+                    .findPaymentByOrderId(order.getId() == null ? null : order.getId().value())
                     .isPresent()) {
-                orderRepository.updatePaymentSnapshot(paymentSnapshot);
+                orderRepository.updatePayment(paymentSnapshot);
             } else {
-                orderRepository.insertPaymentSnapshot(paymentSnapshot);
+                orderRepository.insertPayment(paymentSnapshot);
             }
         }
         if (order.getReservationNo() != null
@@ -64,13 +64,13 @@ public class OrderDerivedDataPersistenceSupport {
                     order.getWarehouseCode(),
                     order.getInventoryFailureReason(),
                     now);
-            if (orderRepository.findInventorySnapshotByOrderNo(order.getOrderNo().value()).isPresent()) {
-                orderRepository.updateInventorySnapshot(inventorySnapshot);
+            if (orderRepository.findInventoryByOrderNo(order.getOrderNo().value()).isPresent()) {
+                orderRepository.updateInventory(inventorySnapshot);
             } else {
-                orderRepository.insertInventorySnapshot(inventorySnapshot);
+                orderRepository.insertInventory(inventorySnapshot);
             }
         }
-        orderRepository.insertAuditLog(OrderAuditLog.create(
+        orderRepository.insertLog(OrderAuditLog.create(
                 order.getOrderNo(),
                 actionType,
                 beforeStatus,

@@ -16,7 +16,7 @@ public class PaymentAuditQueryApplicationService {
     }
 
     public List<PaymentAuditLogDTO> getByPaymentNo(String paymentNo) {
-        return paymentAuditLogRepository.findAuditLogsByPaymentNo(paymentNo).stream()
+        return paymentAuditLogRepository.listLogsByPaymentNo(paymentNo).stream()
                 .map(auditLog -> new PaymentAuditLogDTO(
                         auditLog.getPaymentNo().value(),
                         auditLog.getActionType().value(),

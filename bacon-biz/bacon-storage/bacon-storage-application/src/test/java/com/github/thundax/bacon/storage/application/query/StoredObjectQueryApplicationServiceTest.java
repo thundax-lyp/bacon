@@ -66,14 +66,14 @@ class StoredObjectQueryApplicationServiceTest {
                 "application/octet-stream",
                 2048L,
                 "/files/e.bin");
-        when(storedObjectRepository.countObjects(
+        when(storedObjectRepository.count(
                         eq(StorageType.LOCAL_FILE),
                         eq(StoredObjectStatus.ACTIVE),
                         eq(StoredObjectReferenceStatus.UNREFERENCED),
                         eq("e.bin"),
                         eq("attachment")))
                 .thenReturn(1L);
-        when(storedObjectRepository.pageObjects(
+        when(storedObjectRepository.page(
                         eq(StorageType.LOCAL_FILE),
                         eq(StoredObjectStatus.ACTIVE),
                         eq(StoredObjectReferenceStatus.UNREFERENCED),
@@ -83,7 +83,7 @@ class StoredObjectQueryApplicationServiceTest {
                         eq(200)))
                 .thenReturn(List.of(storedObject));
 
-        StoredObjectPageResultDTO result = service.pageObjects(
+        StoredObjectPageResultDTO result = service.page(
                 StorageType.LOCAL_FILE,
                 StoredObjectStatus.ACTIVE,
                 StoredObjectReferenceStatus.UNREFERENCED,

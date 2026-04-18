@@ -60,7 +60,7 @@ public class OrderOutboxActionExecutor {
     public void enqueueReserveStock(String orderNo, String channelCode) {
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("channelCode", channelCode == null ? "MOCK" : channelCode);
-        orderOutboxRepository.insertOutboxEvent(OrderOutboxEvent.create(
+        orderOutboxRepository.insert(OrderOutboxEvent.create(
                 orderNo,
                 OrderOutboxEventType.RESERVE_STOCK,
                 orderNo + ":RESERVE",
@@ -97,7 +97,7 @@ public class OrderOutboxActionExecutor {
     private void executeReserveStock(OrderOutboxEvent event) {
         Order order =
                 findOrder(event.getOrderNo() == null ? null : event.getOrderNo().value());
-        List<OrderItem> items = orderRepository.findItemsByOrderId(
+        List<OrderItem> items = orderRepository.listItemsByOrderId(
                 order.getId() == null ? null : order.getId().value());
         List<InventoryReservationItemFacadeRequest> reserveItems = items.stream()
                 .map(item -> new InventoryReservationItemFacadeRequest(
@@ -120,7 +120,7 @@ public class OrderOutboxActionExecutor {
                             : WarehouseCode.of(reserveResult.getWarehouseCode()),
                     reason);
             order.closeByInventoryReserveFailed(CLOSE_REASON_INVENTORY_RESERVE_FAILED);
-            orderRepository.updateOrder(order);
+            orderRepository.update(order);
             orderDerivedDataPersistenceSupport.persist(
                     order, OrderAuditActionType.OUTBOX_RESERVE_FAILED, OrderStatus.RESERVING_STOCK);
             return;
@@ -128,7 +128,7 @@ public class OrderOutboxActionExecutor {
         order.markInventoryReserved(
                 ReservationNoCodec.toDomain(reserveResult.getReservationNo()),
                 reserveResult.getWarehouseCode() == null ? null : WarehouseCode.of(reserveResult.getWarehouseCode()));
-        orderRepository.updateOrder(order);
+        orderRepository.update(order);
         orderDerivedDataPersistenceSupport.persist(
                 order, OrderAuditActionType.OUTBOX_RESERVE_OK, OrderStatus.RESERVING_STOCK);
 
@@ -137,7 +137,7 @@ public class OrderOutboxActionExecutor {
         String channelCode = source.getOrDefault("channelCode", "MOCK");
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("channelCode", channelCode);
-        orderOutboxRepository.insertOutboxEvent(OrderOutboxEvent.create(
+        orderOutboxRepository.insert(OrderOutboxEvent.create(
                 order.getOrderNo() == null ? null : order.getOrderNo().value(),
                 OrderOutboxEventType.CREATE_PAYMENT,
                 (order.getOrderNo() == null ? null : order.getOrderNo().value()) + ":CREATE_PAYMENT",
@@ -173,13 +173,13 @@ public class OrderOutboxActionExecutor {
                 || paymentResult.getPaymentNo().isBlank()
                 || !PayStatus.PAYING.value().equals(paymentResult.getPaymentStatus())) {
             order.closeByPaymentCreateFailed(CLOSE_REASON_PAYMENT_CREATE_FAILED);
-            orderRepository.updateOrder(order);
+            orderRepository.update(order);
             orderDerivedDataPersistenceSupport.persist(
                     order, OrderAuditActionType.OUTBOX_CREATE_PAYMENT_FAILED, OrderStatus.RESERVING_STOCK);
 
             Map<String, String> releasePayload = new LinkedHashMap<>();
             releasePayload.put("reason", CLOSE_REASON_PAYMENT_CREATE_FAILED);
-            orderOutboxRepository.insertOutboxEvent(OrderOutboxEvent.create(
+            orderOutboxRepository.insert(OrderOutboxEvent.create(
                     order.getOrderNo() == null ? null : order.getOrderNo().value(),
                     OrderOutboxEventType.RELEASE_STOCK,
                     (order.getOrderNo() == null ? null : order.getOrderNo().value()) + ":RELEASE_PAYMENT_CREATE_FAILED",
@@ -197,7 +197,7 @@ public class OrderOutboxActionExecutor {
             return;
         }
         order.markPendingPayment(PaymentNo.of(paymentResult.getPaymentNo()), paymentResult.getChannelCode());
-        orderRepository.updateOrder(order);
+        orderRepository.update(order);
         orderDerivedDataPersistenceSupport.persist(
                 order, OrderAuditActionType.OUTBOX_CREATE_PAYMENT_OK, OrderStatus.RESERVING_STOCK);
     }
@@ -230,7 +230,7 @@ public class OrderOutboxActionExecutor {
                             ? reason
                             : releaseResult.getFailureReason());
         }
-        orderRepository.updateOrder(order);
+        orderRepository.update(order);
         orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RELEASE, order.getOrderStatus());
     }
 

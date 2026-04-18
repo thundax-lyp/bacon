@@ -132,12 +132,12 @@ public class LoginApplicationService {
                 loginType,
                 now,
                 now.plus(ACCESS_TOKEN_TTL_SECONDS, ChronoUnit.SECONDS));
-        authSessionRepository.saveSession(authSession);
+        authSessionRepository.update(authSession);
 
         String accessToken = tokenCodec.issueUserAccessToken(authSession);
         String refreshToken = tokenCodec.randomToken();
         // refresh token 入库只存哈希，不保留明文，防止仓储泄露时直接复用长期凭证。
-        authSessionRepository.saveRefreshToken(new RefreshTokenSession(
+        authSessionRepository.update(new RefreshTokenSession(
                 sessionId,
                 tokenCodec.sha256(refreshToken),
                 now,

@@ -38,7 +38,7 @@ public class InventoryManagementApplicationService {
         Objects.requireNonNull(skuId, "skuId must not be null");
         Objects.requireNonNull(onHandQuantity, "onHandQuantity must not be null");
         Objects.requireNonNull(status, "status must not be null");
-        inventoryRepository.findInventory(skuId).ifPresent(inventory -> {
+        inventoryRepository.findBySkuId(skuId).ifPresent(inventory -> {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_ALREADY_EXISTS, String.valueOf(skuId));
         });
         Inventory inventory = Inventory.create(
@@ -50,7 +50,7 @@ public class InventoryManagementApplicationService {
             inventory.updateStatus(status);
         }
         try {
-            Inventory savedInventory = inventoryRepository.insertInventory(inventory);
+            Inventory savedInventory = inventoryRepository.insert(inventory);
             return InventoryStockAssembler.fromInventory(savedInventory);
         } catch (DuplicateKeyException ex) {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_ALREADY_EXISTS, String.valueOf(skuId), ex);
@@ -63,11 +63,11 @@ public class InventoryManagementApplicationService {
         Objects.requireNonNull(skuId, "skuId must not be null");
         Objects.requireNonNull(status, "status must not be null");
         Inventory inventory = inventoryRepository
-                .findInventory(skuId)
+                .findBySkuId(skuId)
                 .orElseThrow(() ->
                         new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(skuId)));
         inventory.updateStatus(status);
-        Inventory savedInventory = inventoryRepository.updateInventory(inventory);
+        Inventory savedInventory = inventoryRepository.update(inventory);
         return InventoryStockAssembler.fromInventory(savedInventory);
     }
 

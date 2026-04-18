@@ -206,7 +206,7 @@ class StorageProviderControllerContractTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
-        when(storedObjectQueryApplicationService.pageObjects(any(), any(), any(), any(), any(), any(), any()))
+        when(storedObjectQueryApplicationService.page(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new StoredObjectPageResultDTO(
                         java.util.List.of(new StoredObjectDTO(
                                 "storage-20260327100000-000101",

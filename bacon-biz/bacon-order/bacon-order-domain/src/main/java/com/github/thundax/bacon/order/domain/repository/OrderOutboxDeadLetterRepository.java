@@ -4,5 +4,5 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 
 public interface OrderOutboxDeadLetterRepository {
 
-    default void insertDeadLetter(OrderOutboxDeadLetter deadLetter) {}
+    default void insert(OrderOutboxDeadLetter deadLetter) {}
 }

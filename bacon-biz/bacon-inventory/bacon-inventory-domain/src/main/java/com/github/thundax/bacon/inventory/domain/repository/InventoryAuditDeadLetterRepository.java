@@ -12,22 +12,22 @@ import java.util.Optional;
 
 public interface InventoryAuditDeadLetterRepository {
 
-    default void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {}
+    default void insert(InventoryAuditDeadLetter deadLetter) {}
 
-    default List<InventoryAuditDeadLetter> pageAuditDeadLetters(
+    default List<InventoryAuditDeadLetter> page(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
         return List.of();
     }
 
-    default long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+    default long count(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
         return 0L;
     }
 
-    default Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
+    default Optional<InventoryAuditDeadLetter> findById(DeadLetterId id) {
         return Optional.empty();
     }
 
-    default boolean claimAuditDeadLetterForReplay(
+    default boolean claimForReplay(
             DeadLetterId id,
             String replayKey,
             InventoryAuditOperatorType operatorType,
@@ -36,14 +36,14 @@ public interface InventoryAuditDeadLetterRepository {
         return false;
     }
 
-    default void markAuditDeadLetterReplaySuccess(
+    default void markReplaySuccess(
             DeadLetterId id,
             String replayKey,
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,
             Instant replayAt) {}
 
-    default void markAuditDeadLetterReplayFailed(
+    default void markReplayFailed(
             DeadLetterId id,
             String replayKey,
             InventoryAuditOperatorType operatorType,

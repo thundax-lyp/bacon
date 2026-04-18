@@ -46,11 +46,11 @@ public class StorageAuditOutboxRetryService {
             return 0;
         }
         Instant now = Instant.now();
-        List<StorageAuditOutbox> outboxItems = storageAuditOutboxRepository.listRetryable(
+        List<StorageAuditOutbox> outboxItems = storageAuditOutboxRepository.findRetryable(
                 RETRYABLE_STATUSES, now, Math.max(properties.getBatchSize(), 1));
         int processedCount = 0;
         for (StorageAuditOutbox item : outboxItems) {
-            if (!storageAuditOutboxRepository.claimForProcessing(item.getId(), RETRYABLE_STATUSES, now, now)) {
+            if (!storageAuditOutboxRepository.claim(item.getId(), RETRYABLE_STATUSES, now, now)) {
                 continue;
             }
             retryOne(item, now);
@@ -64,7 +64,7 @@ public class StorageAuditOutboxRetryService {
             return 0;
         }
         Instant updatedBefore = Instant.now().minusSeconds(Math.max(properties.getDeadRetentionSeconds(), 1L));
-        int deleted = storageAuditOutboxRepository.deleteExpiredDead(
+        int deleted = storageAuditOutboxRepository.deleteExpired(
                 updatedBefore, Math.max(properties.getCleanupBatchSize(), 1));
         if (deleted > 0) {
             Metrics.counter("bacon.storage.audit.cleanup.dead.total").increment(deleted);

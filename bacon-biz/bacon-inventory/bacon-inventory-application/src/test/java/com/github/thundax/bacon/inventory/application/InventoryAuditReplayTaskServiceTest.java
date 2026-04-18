@@ -45,7 +45,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         TestLogRepository repository = new TestLogRepository();
         BaconContextHolder.runWithTenantId(
                 3001L,
-                () -> repository.insertAuditDeadLetter(InventoryAuditDeadLetter.create(
+                () -> repository.insert(InventoryAuditDeadLetter.create(
                         DeadLetterId.of(101L),
                         com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(101L),
                         EventCode.of("EVT20260326000000-000101"),
@@ -74,12 +74,12 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         assertNotNull(created.getTaskId());
 
         String owner = "test-owner";
-        List<InventoryAuditReplayTask> claimed = repository.claimRunnableAuditReplayTasks(
+        List<InventoryAuditReplayTask> claimed = repository.claim(
                 Instant.now(), 1, owner, Instant.now().plusSeconds(60));
         taskService.processClaimedTask(claimed.get(0), compensationService, owner, 10, 60);
 
         InventoryAuditReplayTask finished = repository
-                .findAuditReplayTaskById(TaskId.of(created.getTaskId()))
+                .findById(TaskId.of(created.getTaskId()))
                 .orElseThrow();
         assertEquals(InventoryAuditReplayTaskStatus.SUCCEEDED, finished.getStatus());
         assertEquals(1, finished.getProcessedCount());
@@ -96,7 +96,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         private final List<InventoryAuditLog> auditLogs = new ArrayList<>();
 
         @Override
-        public void insertAuditLog(InventoryAuditLog auditLog) {
+        public void insertLog(InventoryAuditLog auditLog) {
             auditLogs.add(auditLog);
         }
 
@@ -104,27 +104,27 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         public void insertLedger(InventoryLedger ledger) {}
 
         @Override
-        public List<InventoryLedger> findLedgers(OrderNo orderNo) {
+        public List<InventoryLedger> listLedgers(OrderNo orderNo) {
             return List.of();
         }
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
+        public List<InventoryAuditLog> listLogs(OrderNo orderNo) {
             return List.copyOf(auditLogs);
         }
 
         @Override
-        public void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
+        public void insert(InventoryAuditDeadLetter deadLetter) {
             deadLetters.put(OutboxIdCodec.toValue(deadLetter.getOutboxId()), deadLetter);
         }
 
         @Override
-        public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
+        public Optional<InventoryAuditDeadLetter> findById(DeadLetterId id) {
             return Optional.ofNullable(deadLetters.get(id.value()));
         }
 
         @Override
-        public boolean claimAuditDeadLetterForReplay(
+        public boolean claimForReplay(
                 DeadLetterId id,
                 String replayKey,
                 InventoryAuditOperatorType operatorType,
@@ -144,7 +144,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void markAuditDeadLetterReplaySuccess(
+        public void markReplaySuccess(
                 DeadLetterId id,
                 String replayKey,
                 InventoryAuditOperatorType operatorType,
@@ -156,7 +156,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void markAuditDeadLetterReplayFailed(
+        public void markReplayFailed(
                 DeadLetterId id,
                 String replayKey,
                 InventoryAuditOperatorType operatorType,
@@ -169,7 +169,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public InventoryAuditReplayTask insertAuditReplayTask(InventoryAuditReplayTask task) {
+        public InventoryAuditReplayTask insert(InventoryAuditReplayTask task) {
             assertNotNull(task.getId());
             Long taskId = task.getId() == null ? null : task.getId().value();
             tasks.put(taskId, task);
@@ -181,7 +181,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void insertAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
+        public void insertItems(List<InventoryAuditReplayTaskItem> items) {
             if (items == null || items.isEmpty()) {
                 return;
             }
@@ -196,17 +196,17 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
+        public Optional<InventoryAuditReplayTask> findById(TaskId taskId) {
             return Optional.ofNullable(tasks.get(taskId == null ? null : taskId.value()));
         }
 
         @Override
-        public Long findAuditReplayTaskTenantId(TaskId taskId) {
+        public Long findTenantIdById(TaskId taskId) {
             return taskTenants.get(taskId == null ? null : taskId.value());
         }
 
         @Override
-        public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(
+        public List<InventoryAuditReplayTask> claim(
                 Instant now, int limit, String processingOwner, Instant leaseUntil) {
             return tasks.values().stream()
                     .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
@@ -221,7 +221,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void renewAuditReplayTaskLease(
+        public void renew(
                 TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
             InventoryAuditReplayTask task = tasks.get(taskId == null ? null : taskId.value());
             if (task != null && processingOwner.equals(task.getProcessingOwner())) {
@@ -230,7 +230,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(TaskId taskId, int limit) {
+        public List<InventoryAuditReplayTaskItem> listPendingItems(TaskId taskId, int limit) {
             return taskItems.getOrDefault(taskId == null ? null : taskId.value(), List.of()).stream()
                     .filter(item -> InventoryAuditReplayTaskItemStatus.PENDING.equals(item.getItemStatus()))
                     .sorted(Comparator.comparing(InventoryAuditReplayTaskItem::getId))
@@ -239,7 +239,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void markAuditReplayTaskItemResult(
+        public void markItemResult(
                 Long itemId,
                 InventoryAuditReplayTaskItemStatus itemStatus,
                 InventoryAuditReplayStatus replayStatus,
@@ -256,7 +256,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void updateAuditReplayTaskProgress(
+        public void updateProgress(
                 TaskId taskId,
                 String processingOwner,
                 int processedDelta,
@@ -271,7 +271,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void markAuditReplayTaskFinished(
+        public void markFinished(
                 TaskId taskId, String processingOwner, String status, String lastError, Instant finishedAt) {
             InventoryAuditReplayTask task = tasks.get(taskId == null ? null : taskId.value());
             if (task == null || !processingOwner.equals(task.getProcessingOwner())) {

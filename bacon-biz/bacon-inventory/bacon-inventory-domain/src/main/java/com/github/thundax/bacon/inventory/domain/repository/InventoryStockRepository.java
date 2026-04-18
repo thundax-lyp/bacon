@@ -9,17 +9,17 @@ import java.util.Set;
 
 public interface InventoryStockRepository {
 
-    Optional<Inventory> findInventory(SkuId skuId);
+    Optional<Inventory> findBySkuId(SkuId skuId);
 
-    List<Inventory> findInventories();
+    List<Inventory> list();
 
-    List<Inventory> findInventories(Set<SkuId> skuIds);
+    List<Inventory> listBySkuIds(Set<SkuId> skuIds);
 
-    List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize);
+    List<Inventory> page(SkuId skuId, InventoryStatus status, int pageNo, int pageSize);
 
-    long countInventories(SkuId skuId, InventoryStatus status);
+    long count(SkuId skuId, InventoryStatus status);
 
-    Inventory insertInventory(Inventory inventory);
+    Inventory insert(Inventory inventory);
 
-    Inventory updateInventory(Inventory inventory);
+    Inventory update(Inventory inventory);
 }

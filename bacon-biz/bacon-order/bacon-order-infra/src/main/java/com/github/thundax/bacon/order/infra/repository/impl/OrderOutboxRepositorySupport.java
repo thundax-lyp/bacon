@@ -53,7 +53,7 @@ public class OrderOutboxRepositorySupport {
         this.orderOutboxDeadLetterPersistenceAssembler = orderOutboxDeadLetterPersistenceAssembler;
     }
 
-    public void insertOutboxEvent(OrderOutboxEvent event) {
+    public void insert(OrderOutboxEvent event) {
         OrderOutboxEventDO dataObject = orderOutboxEventPersistenceAssembler.toDataObject(event);
         Instant now = Instant.now();
         dataObject.setCreatedAt(dataObject.getCreatedAt() == null ? now : dataObject.getCreatedAt());
@@ -76,7 +76,7 @@ public class OrderOutboxRepositorySupport {
         event.setEventCode(EventCode.of(dataObject.getEventCode()));
     }
 
-    public List<OrderOutboxEvent> claimRetryableOutbox(
+    public List<OrderOutboxEvent> claimRetryable(
             Instant now, int limit, String processingOwner, Instant leaseUntil) {
         List<OrderOutboxEventDO> candidates = outboxEventMapper
                 .selectList(Wrappers.<OrderOutboxEventDO>lambdaQuery()
@@ -199,7 +199,7 @@ public class OrderOutboxRepositorySupport {
                 > 0;
     }
 
-    public void insertDeadLetter(OrderOutboxDeadLetter deadLetter) {
+    public void insert(OrderOutboxDeadLetter deadLetter) {
         OrderOutboxDeadLetterDO dataObject = orderOutboxDeadLetterPersistenceAssembler.toDataObject(deadLetter);
         Instant now = Instant.now();
         dataObject.setCreatedAt(dataObject.getCreatedAt() == null ? now : dataObject.getCreatedAt());

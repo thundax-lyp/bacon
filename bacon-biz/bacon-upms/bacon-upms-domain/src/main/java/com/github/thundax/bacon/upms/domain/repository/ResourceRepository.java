@@ -12,10 +12,10 @@ public interface ResourceRepository {
 
     Optional<Resource> findById(ResourceId resourceId);
 
-    List<Resource> pageResources(
+    List<Resource> page(
             ResourceCode code, String name, ResourceType resourceType, ResourceStatus status, int pageNo, int pageSize);
 
-    long countResources(ResourceCode code, String name, ResourceType resourceType, ResourceStatus status);
+    long count(ResourceCode code, String name, ResourceType resourceType, ResourceStatus status);
 
     Resource insert(Resource resource);
 

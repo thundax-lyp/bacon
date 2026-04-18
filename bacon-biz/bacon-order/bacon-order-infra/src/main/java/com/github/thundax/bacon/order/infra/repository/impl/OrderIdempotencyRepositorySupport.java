@@ -30,7 +30,7 @@ public class OrderIdempotencyRepositorySupport {
         this.orderIdempotencyRecordPersistenceAssembler = orderIdempotencyRecordPersistenceAssembler;
     }
 
-    public boolean insertProcessing(OrderIdempotencyRecord record) {
+    public boolean insert(OrderIdempotencyRecord record) {
         OrderIdempotencyRecordDO dataObject = orderIdempotencyRecordPersistenceAssembler.toDataObject(record);
         Instant now = Instant.now();
         dataObject.setStatus(OrderIdempotencyStatus.PROCESSING.value());
@@ -54,7 +54,7 @@ public class OrderIdempotencyRepositorySupport {
         }
     }
 
-    public boolean claimExpiredProcessing(
+    public boolean claimExpired(
             OrderIdempotencyRecordKey key,
             String processingOwner,
             Instant leaseUntil,
@@ -82,7 +82,7 @@ public class OrderIdempotencyRepositorySupport {
                 > 0;
     }
 
-    public Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
+    public Optional<OrderIdempotencyRecord> findByKey(OrderIdempotencyRecordKey key) {
         return Optional.ofNullable(mapper.selectOne(Wrappers.<OrderIdempotencyRecordDO>lambdaQuery()
                         .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
                         .eq(
@@ -136,11 +136,11 @@ public class OrderIdempotencyRepositorySupport {
                 > 0;
     }
 
-    public boolean recoverFromFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
-        return recoverFromFailed(key, null, null, null, updatedAt);
+    public boolean recoverFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
+        return recoverFailed(key, null, null, null, updatedAt);
     }
 
-    public boolean recoverFromFailed(
+    public boolean recoverFailed(
             OrderIdempotencyRecordKey key,
             String processingOwner,
             Instant leaseUntil,
@@ -168,7 +168,7 @@ public class OrderIdempotencyRepositorySupport {
                 > 0;
     }
 
-    public int recoverExpiredProcessing(Instant now, String recoverMessage) {
+    public int recoverExpired(Instant now, String recoverMessage) {
         // 过期恢复不会直接改成 SUCCESS，而是统一转 FAILED，交回应用层决定是否再次重试。
         return mapper.update(
                 null,

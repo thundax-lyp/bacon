@@ -100,7 +100,7 @@ public class UpmsProviderController {
 
     @Operation(summary = "批量查询部门")
     @GetMapping("/departments")
-    public List<DepartmentDTO> listDepartmentsByIds(@RequestParam("departmentIds") Set<String> departmentIds) {
+    public List<DepartmentDTO> listByIds(@RequestParam("departmentIds") Set<String> departmentIds) {
         Set<DepartmentId> resolvedDepartmentIds = departmentIds == null
                 ? Set.of()
                 : departmentIds.stream()
@@ -109,7 +109,7 @@ public class UpmsProviderController {
                         .map(Long::parseLong)
                         .map(DepartmentId::of)
                         .collect(Collectors.toSet());
-        return departmentApplicationService.listDepartmentsByIds(resolvedDepartmentIds);
+        return departmentApplicationService.listByIds(resolvedDepartmentIds);
     }
 
     @Operation(summary = "按角色 ID 查询角色")
@@ -126,14 +126,14 @@ public class UpmsProviderController {
 
     @Operation(summary = "查询用户菜单树")
     @GetMapping("/permissions/menus")
-    public List<UserMenuTreeDTO> listUserMenuTree(@RequestParam("userId") Long userId) {
-        return permissionQueryService.listUserMenuTree(UserIdCodec.toDomain(userId));
+    public List<UserMenuTreeDTO> listMenuTreeByUserId(@RequestParam("userId") Long userId) {
+        return permissionQueryService.listMenuTreeByUserId(UserIdCodec.toDomain(userId));
     }
 
     @Operation(summary = "查询用户权限码")
     @GetMapping("/permissions/codes")
-    public Set<String> findUserPermissionCodes(@RequestParam("userId") Long userId) {
-        return permissionQueryService.findUserPermissionCodes(UserIdCodec.toDomain(userId));
+    public Set<String> findPermissionCodesByUserId(@RequestParam("userId") Long userId) {
+        return permissionQueryService.findPermissionCodesByUserId(UserIdCodec.toDomain(userId));
     }
 
     @Operation(summary = "查询用户数据权限范围")

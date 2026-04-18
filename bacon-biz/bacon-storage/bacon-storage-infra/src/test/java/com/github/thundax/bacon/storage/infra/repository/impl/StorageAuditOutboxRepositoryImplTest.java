@@ -38,7 +38,7 @@ class StorageAuditOutboxRepositoryImplTest {
                 buildOutboxDO(101L, StorageAuditOutboxStatus.NEW.value(), retryBefore.minusSeconds(60));
         when(storageAuditOutboxMapper.selectList(any(Wrapper.class))).thenReturn(List.of(outbox));
 
-        List<StorageAuditOutbox> result = storageAuditOutboxRepository.listRetryable(
+        List<StorageAuditOutbox> result = storageAuditOutboxRepository.findRetryable(
                 List.of(StorageAuditOutboxStatus.NEW, StorageAuditOutboxStatus.RETRYING), retryBefore, 50);
 
         verify(storageAuditOutboxMapper).selectList(any(Wrapper.class));
@@ -97,7 +97,7 @@ class StorageAuditOutboxRepositoryImplTest {
                         buildOutboxDO(402L, StorageAuditOutboxStatus.DEAD.value(), updatedBefore.minusSeconds(60))));
         when(storageAuditOutboxMapper.deleteByIds(List.of(401L, 402L))).thenReturn(2);
 
-        int deleted = storageAuditOutboxRepository.deleteExpiredDead(updatedBefore, 20);
+        int deleted = storageAuditOutboxRepository.deleteExpired(updatedBefore, 20);
 
         verify(storageAuditOutboxMapper).selectList(any(Wrapper.class));
         verify(storageAuditOutboxMapper).deleteByIds(List.of(401L, 402L));
@@ -108,7 +108,7 @@ class StorageAuditOutboxRepositoryImplTest {
     void shouldSkipDeleteWhenNoExpiredDeadOutboxFound() {
         when(storageAuditOutboxMapper.selectList(any(Wrapper.class))).thenReturn(List.of());
 
-        int deleted = storageAuditOutboxRepository.deleteExpiredDead(Instant.parse("2026-03-27T10:00:00Z"), 20);
+        int deleted = storageAuditOutboxRepository.deleteExpired(Instant.parse("2026-03-27T10:00:00Z"), 20);
 
         assertThat(deleted).isZero();
         verify(storageAuditOutboxMapper, never()).deleteByIds(any());

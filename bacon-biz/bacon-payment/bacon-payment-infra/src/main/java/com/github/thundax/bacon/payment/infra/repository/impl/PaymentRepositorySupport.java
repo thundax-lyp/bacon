@@ -75,14 +75,14 @@ public class PaymentRepositorySupport {
         return paymentOrderPersistenceAssembler.toDomain(dataObject);
     }
 
-    public Optional<PaymentOrder> findOrderByPaymentNo(String paymentNo) {
+    public Optional<PaymentOrder> findByPaymentNo(String paymentNo) {
         BaconContextHolder.requireTenantId();
         return Optional.ofNullable(paymentOrderMapper.selectOne(
                         Wrappers.<PaymentOrderDO>lambdaQuery().eq(PaymentOrderDO::getPaymentNo, paymentNo)))
                 .map(paymentOrderPersistenceAssembler::toDomain);
     }
 
-    public Optional<PaymentOrder> findOrderByOrderNo(String orderNo) {
+    public Optional<PaymentOrder> findByOrderNo(String orderNo) {
         BaconContextHolder.requireTenantId();
         return Optional.ofNullable(paymentOrderMapper.selectOne(
                         Wrappers.<PaymentOrderDO>lambdaQuery().eq(PaymentOrderDO::getOrderNo, orderNo)))
@@ -99,7 +99,7 @@ public class PaymentRepositorySupport {
         return paymentCallbackRecordPersistenceAssembler.toDomain(dataObject);
     }
 
-    public Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(String paymentNo) {
+    public Optional<PaymentCallbackRecord> findLatestByPaymentNo(String paymentNo) {
         BaconContextHolder.requireTenantId();
         // “最新回调”按 receivedAt + id 倒序取一条，用于查询兜底补全，而不是主单最终状态来源。
         return paymentCallbackRecordMapper
@@ -112,7 +112,7 @@ public class PaymentRepositorySupport {
                 .map(paymentCallbackRecordPersistenceAssembler::toDomain);
     }
 
-    public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(
+    public Optional<PaymentCallbackRecord> findByChannelTransactionNo(
             String channelCode, String channelTransactionNo) {
         BaconContextHolder.requireTenantId();
         return Optional.ofNullable(paymentCallbackRecordMapper.selectOne(Wrappers.<PaymentCallbackRecordDO>lambdaQuery()
@@ -121,7 +121,7 @@ public class PaymentRepositorySupport {
                 .map(paymentCallbackRecordPersistenceAssembler::toDomain);
     }
 
-    public List<PaymentCallbackRecord> findCallbacksByPaymentNo(String paymentNo) {
+    public List<PaymentCallbackRecord> listByPaymentNo(String paymentNo) {
         BaconContextHolder.requireTenantId();
         return paymentCallbackRecordMapper
                 .selectList(Wrappers.<PaymentCallbackRecordDO>lambdaQuery()
@@ -141,7 +141,7 @@ public class PaymentRepositorySupport {
         paymentAuditLogMapper.insert(dataObject);
     }
 
-    public List<PaymentAuditLog> findAuditLogsByPaymentNo(String paymentNo) {
+    public List<PaymentAuditLog> listAuditLogsByPaymentNo(String paymentNo) {
         BaconContextHolder.requireTenantId();
         return paymentAuditLogMapper
                 .selectList(Wrappers.<PaymentAuditLogDO>lambdaQuery()

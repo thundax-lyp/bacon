@@ -36,7 +36,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     private final AtomicLong idGenerator = new AtomicLong(1000L);
 
     @Override
-    public Order insertOrder(Order order) {
+    public Order insert(Order order) {
         order.setId(OrderId.of(idGenerator.getAndIncrement()));
         storage.put(toOrderIdValue(order), order);
         orderTenantStorage.put(toOrderIdValue(order), currentTenantId());
@@ -44,7 +44,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Order updateOrder(Order order) {
+    public Order update(Order order) {
         storage.put(toOrderIdValue(order), order);
         orderTenantStorage.put(toOrderIdValue(order), currentTenantId());
         return order;
@@ -73,7 +73,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<OrderItem> findItemsByOrderId(Long orderId) {
+    public List<OrderItem> listItemsByOrderId(Long orderId) {
         if (!isTenantMatched(itemTenantStorage.get(orderId))) {
             return List.of();
         }
@@ -81,21 +81,21 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void insertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
+    public void insertPayment(OrderPaymentSnapshot snapshot) {
         Long orderId = toOrderIdValue(snapshot.getOrderId());
         paymentSnapshotStorage.put(orderId, snapshot);
         paymentSnapshotTenantStorage.put(orderId, currentTenantId());
     }
 
     @Override
-    public void updatePaymentSnapshot(OrderPaymentSnapshot snapshot) {
+    public void updatePayment(OrderPaymentSnapshot snapshot) {
         Long orderId = toOrderIdValue(snapshot.getOrderId());
         paymentSnapshotStorage.put(orderId, snapshot);
         paymentSnapshotTenantStorage.put(orderId, currentTenantId());
     }
 
     @Override
-    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId) {
+    public Optional<OrderPaymentSnapshot> findPaymentByOrderId(Long orderId) {
         OrderPaymentSnapshot snapshot = paymentSnapshotStorage.get(orderId);
         if (snapshot == null || !isTenantMatched(paymentSnapshotTenantStorage.get(orderId))) {
             return Optional.empty();
@@ -104,21 +104,21 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void insertInventorySnapshot(OrderInventorySnapshot snapshot) {
+    public void insertInventory(OrderInventorySnapshot snapshot) {
         String orderNo = toOrderNoValue(snapshot.getOrderNo());
         inventorySnapshotStorage.put(orderNo, snapshot);
         inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
     }
 
     @Override
-    public void updateInventorySnapshot(OrderInventorySnapshot snapshot) {
+    public void updateInventory(OrderInventorySnapshot snapshot) {
         String orderNo = toOrderNoValue(snapshot.getOrderNo());
         inventorySnapshotStorage.put(orderNo, snapshot);
         inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
     }
 
     @Override
-    public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(String orderNo) {
+    public Optional<OrderInventorySnapshot> findInventoryByOrderNo(String orderNo) {
         OrderInventorySnapshot snapshot = inventorySnapshotStorage.get(orderNo);
         if (snapshot == null || !isTenantMatched(inventorySnapshotTenantStorage.get(orderNo))) {
             return Optional.empty();
@@ -127,7 +127,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void insertAuditLog(OrderAuditLog auditLog) {
+    public void insertLog(OrderAuditLog auditLog) {
         String key = currentTenantId() + ":" + toOrderNoValue(auditLog.getOrderNo());
         auditLogStorage
                 .computeIfAbsent(key, unused -> new java.util.ArrayList<>())
@@ -135,12 +135,12 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<OrderAuditLog> findAuditLogs(String orderNo) {
+    public List<OrderAuditLog> listLogs(String orderNo) {
         return List.copyOf(auditLogStorage.getOrDefault(currentTenantId() + ":" + orderNo, List.of()));
     }
 
     @Override
-    public long countOrders(
+    public long count(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -153,7 +153,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<Order> pageOrders(
+    public List<Order> page(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -197,7 +197,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<Order> findAll() {
+    public List<Order> list() {
         return storage.values().stream().toList();
     }
 

@@ -20,7 +20,7 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
     }
 
     @Override
-    public boolean saveIfAbsent(StoredObjectReference storedObjectReference) {
+    public boolean insert(StoredObjectReference storedObjectReference) {
         StoredObjectReferenceDO dataObject =
                 StoredObjectReferencePersistenceAssembler.toDataObject(storedObjectReference);
         try {
@@ -32,7 +32,7 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
     }
 
     @Override
-    public boolean deleteByObjectIdAndOwner(StoredObjectId objectId, String ownerType, String ownerId) {
+    public boolean delete(StoredObjectId objectId, String ownerType, String ownerId) {
         return storedObjectReferenceMapper.delete(Wrappers.<StoredObjectReferenceDO>lambdaQuery()
                         .eq(StoredObjectReferenceDO::getObjectId, objectId)
                         .eq(StoredObjectReferenceDO::getOwnerType, ownerType)
@@ -41,7 +41,7 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
     }
 
     @Override
-    public boolean existsByObjectIdAndOwner(StoredObjectId objectId, String ownerType, String ownerId) {
+    public boolean exists(StoredObjectId objectId, String ownerType, String ownerId) {
         return storedObjectReferenceMapper.selectCount(Wrappers.<StoredObjectReferenceDO>lambdaQuery()
                         .eq(StoredObjectReferenceDO::getObjectId, objectId)
                         .eq(StoredObjectReferenceDO::getOwnerType, ownerType)
@@ -50,7 +50,7 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
     }
 
     @Override
-    public boolean existsByObjectId(StoredObjectId objectId) {
+    public boolean exists(StoredObjectId objectId) {
         return storedObjectReferenceMapper.selectCount(Wrappers.<StoredObjectReferenceDO>lambdaQuery()
                         .eq(StoredObjectReferenceDO::getObjectId, objectId))
                 > 0;

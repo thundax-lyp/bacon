@@ -26,44 +26,44 @@ public class InMemoryInventoryAuditReplayTaskRepositoryImpl implements Inventory
     }
 
     @Override
-    public InventoryAuditReplayTask insertAuditReplayTask(InventoryAuditReplayTask task) {
-        return support.insertAuditReplayTask(task);
+    public InventoryAuditReplayTask insert(InventoryAuditReplayTask task) {
+        return support.insert(task);
     }
 
     @Override
-    public void insertAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
-        support.insertAuditReplayTaskItems(items);
+    public void insertItems(List<InventoryAuditReplayTaskItem> items) {
+        support.insertItems(items);
     }
 
     @Override
-    public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
-        return support.findAuditReplayTaskById(taskId);
+    public Optional<InventoryAuditReplayTask> findById(TaskId taskId) {
+        return support.findById(taskId);
     }
 
     @Override
-    public Long findAuditReplayTaskTenantId(TaskId taskId) {
-        return support.findAuditReplayTaskTenantId(taskId);
+    public Long findTenantIdById(TaskId taskId) {
+        return support.findTenantIdById(taskId);
     }
 
     @Override
-    public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(
+    public List<InventoryAuditReplayTask> claim(
             Instant now, int limit, String processingOwner, Instant leaseUntil) {
-        return support.claimRunnableAuditReplayTasks(now, limit, processingOwner, leaseUntil);
+        return support.claim(now, limit, processingOwner, leaseUntil);
     }
 
     @Override
-    public void renewAuditReplayTaskLease(
+    public void renew(
             TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
-        support.renewAuditReplayTaskLease(taskId, processingOwner, leaseUntil, updatedAt);
+        support.renew(taskId, processingOwner, leaseUntil, updatedAt);
     }
 
     @Override
-    public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(TaskId taskId, int limit) {
-        return support.findPendingAuditReplayTaskItems(taskId, limit);
+    public List<InventoryAuditReplayTaskItem> listPendingItems(TaskId taskId, int limit) {
+        return support.listPendingItems(taskId, limit);
     }
 
     @Override
-    public void markAuditReplayTaskItemResult(
+    public void markItemResult(
             Long itemId,
             InventoryAuditReplayTaskItemStatus itemStatus,
             InventoryAuditReplayStatus replayStatus,
@@ -71,35 +71,35 @@ public class InMemoryInventoryAuditReplayTaskRepositoryImpl implements Inventory
             String resultMessage,
             Instant startedAt,
             Instant finishedAt) {
-        support.markAuditReplayTaskItemResult(
+        support.markItemResult(
                 itemId, itemStatus, replayStatus, replayKey, resultMessage, startedAt, finishedAt);
     }
 
     @Override
-    public void updateAuditReplayTaskProgress(
+    public void updateProgress(
             TaskId taskId,
             String processingOwner,
             int processedDelta,
             int successDelta,
             int failedDelta,
             Instant updatedAt) {
-        support.updateAuditReplayTaskProgress(
+        support.updateProgress(
                 taskId, processingOwner, processedDelta, successDelta, failedDelta, updatedAt);
     }
 
     @Override
-    public void markAuditReplayTaskFinished(
+    public void markFinished(
             TaskId taskId, String processingOwner, String status, String lastError, Instant finishedAt) {
-        support.markAuditReplayTaskFinished(taskId, processingOwner, status, lastError, finishedAt);
+        support.markFinished(taskId, processingOwner, status, lastError, finishedAt);
     }
 
     @Override
-    public boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
-        return support.pauseAuditReplayTask(taskId, operatorId, pausedAt);
+    public boolean pause(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
+        return support.pause(taskId, operatorId, pausedAt);
     }
 
     @Override
-    public boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
-        return support.resumeAuditReplayTask(taskId, operatorId, updatedAt);
+    public boolean resume(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
+        return support.resume(taskId, operatorId, updatedAt);
     }
 }

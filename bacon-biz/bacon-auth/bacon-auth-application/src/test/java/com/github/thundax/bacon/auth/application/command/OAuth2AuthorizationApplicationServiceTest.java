@@ -21,7 +21,7 @@ class OAuth2AuthorizationApplicationServiceTest {
     void shouldAcceptHashedClientSecretInStrictRepositoryMode() {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         OAuthAuthorizationRepository authorizationRepository = mock(OAuthAuthorizationRepository.class);
-        when(authorizationRepository.findOAuthRefreshTokenByHash("hash-refresh"))
+        when(authorizationRepository.findByHash("hash-refresh"))
                 .thenReturn(Optional.empty());
         OAuth2AuthorizationApplicationService service = new OAuth2AuthorizationApplicationService(
                 oauthClientRepository(new OAuthClient(

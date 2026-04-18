@@ -27,7 +27,7 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
     }
 
     @Override
-    public AuthSession saveSession(AuthSession authSession) {
+    public AuthSession update(AuthSession authSession) {
         String sessionKey = AuthRedisKeyHelper.session(authSession.getSessionId());
         redisTemplate
                 .opsForValue()
@@ -57,23 +57,23 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
     }
 
     @Override
-    public Optional<AuthSession> findSessionBySessionId(String sessionId) {
+    public Optional<AuthSession> findBySessionId(String sessionId) {
         return readValue(AuthRedisKeyHelper.session(sessionId), SessionSnapshot.class)
                 .map(SessionSnapshot::toDomain);
     }
 
     @Override
-    public List<AuthSession> findSessionsByTenantIdAndUserId(Long tenantId, Long userId) {
+    public List<AuthSession> listByTenantIdAndUserId(Long tenantId, Long userId) {
         return loadSessionsByIndex(AuthRedisKeyHelper.userSessions(tenantId, userId));
     }
 
     @Override
-    public List<AuthSession> findSessionsByTenantId(Long tenantId) {
+    public List<AuthSession> listByTenantId(Long tenantId) {
         return loadSessionsByIndex(AuthRedisKeyHelper.tenantSessions(tenantId));
     }
 
     @Override
-    public RefreshTokenSession saveRefreshToken(RefreshTokenSession refreshTokenSession) {
+    public RefreshTokenSession update(RefreshTokenSession refreshTokenSession) {
         String tokenKey = AuthRedisKeyHelper.refreshToken(refreshTokenSession.getRefreshTokenHash());
         redisTemplate
                 .opsForValue()
@@ -93,21 +93,21 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
     }
 
     @Override
-    public Optional<RefreshTokenSession> findRefreshTokenByHash(String refreshTokenHash) {
+    public Optional<RefreshTokenSession> findByHash(String refreshTokenHash) {
         return readValue(AuthRedisKeyHelper.refreshToken(refreshTokenHash), RefreshTokenSnapshot.class)
                 .map(RefreshTokenSnapshot::toDomain);
     }
 
     @Override
-    public void invalidateRefreshTokensBySessionId(String sessionId) {
+    public void markInvalidBySessionId(String sessionId) {
         Set<Object> tokenHashes = redisTemplate.opsForSet().members(AuthRedisKeyHelper.sessionRefreshTokens(sessionId));
         if (tokenHashes == null || tokenHashes.isEmpty()) {
             return;
         }
-        tokenHashes.stream().map(String::valueOf).forEach(hash -> findRefreshTokenByHash(hash)
+        tokenHashes.stream().map(String::valueOf).forEach(hash -> findByHash(hash)
                 .ifPresent(token -> {
                     token.invalidate();
-                    saveRefreshToken(token);
+                    update(token);
                 }));
     }
 
@@ -118,7 +118,7 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
         }
         return sessionIds.stream()
                 .map(String::valueOf)
-                .map(this::findSessionBySessionId)
+                .map(this::findBySessionId)
                 .flatMap(Optional::stream)
                 .toList();
     }

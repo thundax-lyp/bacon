@@ -42,8 +42,8 @@ public class ResourceController {
     @HasPermission("sys:resource:view")
     @SysLog(module = "UPMS", action = "分页查询资源", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public ResourcePageResponse pageResources(@Valid @ModelAttribute ResourcePageRequest request) {
-        return ResourcePageResponse.from(resourceApplicationService.pageResources(
+    public ResourcePageResponse page(@Valid @ModelAttribute ResourcePageRequest request) {
+        return ResourcePageResponse.from(resourceApplicationService.page(
                 request.getCode(),
                 request.getName(),
                 request.getResourceType() == null ? null : ResourceType.from(request.getResourceType()),

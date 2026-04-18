@@ -15,19 +15,19 @@ import java.util.Set;
 
 public interface RoleRepository {
 
-    Optional<Role> findRoleById(RoleId roleId);
+    Optional<Role> findById(RoleId roleId);
 
-    List<Role> findRolesByUserId(UserId userId);
+    List<Role> findByUserId(UserId userId);
 
-    List<Role> pageRoles(RoleCode code, String name, RoleType roleType, RoleStatus status, int pageNo, int pageSize);
+    List<Role> page(RoleCode code, String name, RoleType roleType, RoleStatus status, int pageNo, int pageSize);
 
-    long countRoles(RoleCode code, String name, RoleType roleType, RoleStatus status);
+    long count(RoleCode code, String name, RoleType roleType, RoleStatus status);
 
     Role insert(Role role);
 
     Role update(Role role);
 
-    void deleteRole(RoleId roleId);
+    void delete(RoleId roleId);
 
     Set<MenuId> findMenuIds(RoleId roleId);
 

@@ -23,13 +23,13 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Order insertOrder(Order order) {
-        return support.insertOrder(order);
+    public Order insert(Order order) {
+        return support.insert(order);
     }
 
     @Override
-    public Order updateOrder(Order order) {
-        return support.updateOrder(order);
+    public Order update(Order order) {
+        return support.update(order);
     }
 
     @Override
@@ -48,52 +48,52 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<OrderItem> findItemsByOrderId(Long orderId) {
-        return support.findItemsByOrderId(orderId);
+    public List<OrderItem> listItemsByOrderId(Long orderId) {
+        return support.listItemsByOrderId(orderId);
     }
 
     @Override
-    public void insertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
-        support.insertPaymentSnapshot(snapshot);
+    public void insertPayment(OrderPaymentSnapshot snapshot) {
+        support.insertPayment(snapshot);
     }
 
     @Override
-    public void updatePaymentSnapshot(OrderPaymentSnapshot snapshot) {
-        support.updatePaymentSnapshot(snapshot);
+    public void updatePayment(OrderPaymentSnapshot snapshot) {
+        support.updatePayment(snapshot);
     }
 
     @Override
-    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId) {
-        return support.findPaymentSnapshotByOrderId(orderId);
+    public Optional<OrderPaymentSnapshot> findPaymentByOrderId(Long orderId) {
+        return support.findPaymentByOrderId(orderId);
     }
 
     @Override
-    public void insertInventorySnapshot(OrderInventorySnapshot snapshot) {
-        support.insertInventorySnapshot(snapshot);
+    public void insertInventory(OrderInventorySnapshot snapshot) {
+        support.insertInventory(snapshot);
     }
 
     @Override
-    public void updateInventorySnapshot(OrderInventorySnapshot snapshot) {
-        support.updateInventorySnapshot(snapshot);
+    public void updateInventory(OrderInventorySnapshot snapshot) {
+        support.updateInventory(snapshot);
     }
 
     @Override
-    public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(String orderNo) {
-        return support.findInventorySnapshotByOrderNo(orderNo);
+    public Optional<OrderInventorySnapshot> findInventoryByOrderNo(String orderNo) {
+        return support.findInventoryByOrderNo(orderNo);
     }
 
     @Override
-    public void insertAuditLog(OrderAuditLog auditLog) {
-        support.insertAuditLog(auditLog);
+    public void insertLog(OrderAuditLog auditLog) {
+        support.insertLog(auditLog);
     }
 
     @Override
-    public List<OrderAuditLog> findAuditLogs(String orderNo) {
-        return support.findAuditLogs(orderNo);
+    public List<OrderAuditLog> listLogs(String orderNo) {
+        return support.listLogs(orderNo);
     }
 
     @Override
-    public long countOrders(
+    public long count(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -101,12 +101,12 @@ public class OrderRepositoryImpl implements OrderRepository {
             String inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo) {
-        return support.countOrders(
+        return support.count(
                 userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo);
     }
 
     @Override
-    public List<Order> pageOrders(
+    public List<Order> page(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -116,12 +116,12 @@ public class OrderRepositoryImpl implements OrderRepository {
             Instant createdAtTo,
             int pageNo,
             int pageSize) {
-        return support.pageOrders(
+        return support.page(
                 userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo, pageNo, pageSize);
     }
 
     @Override
-    public List<Order> findAll() {
-        return support.findAll();
+    public List<Order> list() {
+        return support.list();
     }
 }

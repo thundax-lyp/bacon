@@ -69,7 +69,7 @@ public class InventoryReleaseApplicationService {
 
     private InventoryReservationResult releaseReservedStockOnce(OrderNo orderNo, InventoryReleaseReason reason) {
         InventoryReservation reservation =
-                inventoryReservationRepository.findReservation(orderNo).orElse(null);
+                inventoryReservationRepository.findByOrderNo(orderNo).orElse(null);
         if (reservation == null) {
             return InventoryReservationResultAssembler.failed(
                     OrderNoCodec.toValue(orderNo), InventoryErrorCode.RESERVATION_NOT_FOUND.code());
@@ -83,17 +83,17 @@ public class InventoryReleaseApplicationService {
             releaseStockOnce(item.getSkuId(), item.getQuantity(), releasedAt);
         });
         reservation.release(reason, releasedAt);
-        inventoryReservationRepository.updateReservation(reservation);
+        inventoryReservationRepository.update(reservation);
         inventoryOperationLogService.recordReleaseSuccess(reservation, releasedAt);
         return InventoryReservationResultAssembler.fromReservation(reservation);
     }
 
     private void releaseStockOnce(SkuId skuId, int quantity, Instant operatedAt) {
         Inventory inventory = inventoryStockRepository
-                .findInventory(skuId)
+                .findBySkuId(skuId)
                 .orElseThrow(() ->
                         new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(skuId)));
         inventory.release(quantity);
-        inventoryStockRepository.updateInventory(inventory);
+        inventoryStockRepository.update(inventory);
     }
 }

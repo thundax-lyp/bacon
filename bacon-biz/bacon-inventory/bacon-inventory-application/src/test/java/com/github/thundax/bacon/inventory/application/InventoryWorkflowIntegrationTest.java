@@ -106,7 +106,7 @@ class InventoryWorkflowIntegrationTest {
             assertEquals(InventoryReservationStatus.RESERVED.value(), firstResult.getReservationStatus());
             assertEquals(InventoryReservationStatus.RESERVED.value(), secondResult.getReservationStatus());
 
-            Inventory inventory = repository.findInventory(SkuId.of(101L)).orElseThrow();
+            Inventory inventory = repository.findBySkuId(SkuId.of(101L)).orElseThrow();
             assertEquals(80, inventory.getReservedQuantity().value());
             assertEquals(20, inventory.availableQuantity().value());
             assertTrue(inventory.getVersion().value() >= 2);
@@ -114,11 +114,11 @@ class InventoryWorkflowIntegrationTest {
             BaconContextHolder.runWithTenantId(
                     1001L,
                     () -> assertNotNull(
-                            repository.findReservation(OrderNo.of("ORDER-C1")).orElse(null)));
+                            repository.findByOrderNo(OrderNo.of("ORDER-C1")).orElse(null)));
             BaconContextHolder.runWithTenantId(
                     1001L,
                     () -> assertNotNull(
-                            repository.findReservation(OrderNo.of("ORDER-C2")).orElse(null)));
+                            repository.findByOrderNo(OrderNo.of("ORDER-C2")).orElse(null)));
         } finally {
             pool.shutdownNow();
         }
@@ -138,7 +138,7 @@ class InventoryWorkflowIntegrationTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.insertAuditOutbox(InventoryAuditOutbox.create(
+                () -> repository.insert(InventoryAuditOutbox.create(
                         OutboxId.of(1001L),
                         null,
                         OrderNo.of("ORDER-DEAD"),
@@ -162,7 +162,7 @@ class InventoryWorkflowIntegrationTest {
 
         assertEquals(1, repository.deadLetterCount());
         assertTrue(repository
-                .findRetryableAuditOutbox(Instant.now().plusSeconds(3600), 10)
+                .findRetryable(Instant.now().plusSeconds(3600), 10)
                 .isEmpty());
     }
 
@@ -180,7 +180,7 @@ class InventoryWorkflowIntegrationTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.insertAuditOutbox(InventoryAuditOutbox.create(
+                () -> repository.insert(InventoryAuditOutbox.create(
                         OutboxId.of(1002L),
                         null,
                         OrderNo.of("ORDER-OK"),
@@ -203,7 +203,7 @@ class InventoryWorkflowIntegrationTest {
         retryService.retryAuditOutbox();
 
         assertTrue(repository
-                .findRetryableAuditOutbox(Instant.now().plusSeconds(3600), 10)
+                .findRetryable(Instant.now().plusSeconds(3600), 10)
                 .isEmpty());
         assertEquals(0, repository.deadLetterCount());
     }
@@ -255,7 +255,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public Optional<Inventory> findInventory(SkuId skuId) {
+        public Optional<Inventory> findBySkuId(SkuId skuId) {
             return Optional.ofNullable(inventories.values().stream()
                             .filter(item -> java.util.Objects.equals(item.getSkuId(), skuId))
                             .findFirst()
@@ -264,21 +264,21 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public List<Inventory> findInventories() {
+        public List<Inventory> list() {
             return inventories.values().stream().map(this::copy).toList();
         }
 
         @Override
-        public List<Inventory> findInventories(Set<SkuId> skuIds) {
+        public List<Inventory> listBySkuIds(Set<SkuId> skuIds) {
             return skuIds.stream()
-                    .map(this::findInventory)
+                    .map(this::findBySkuId)
                     .flatMap(Optional::stream)
                     .toList();
         }
 
         @Override
-        public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
-            return findInventories().stream()
+        public List<Inventory> page(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+            return list().stream()
                     .filter(item -> skuId == null || java.util.Objects.equals(item.getSkuId(), skuId))
                     .filter(item -> status == null || status.equals(item.getStatus()))
                     .skip((long) (pageNo - 1) * pageSize)
@@ -287,12 +287,12 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public long countInventories(SkuId skuId, InventoryStatus status) {
-            return pageInventories(skuId, status, 1, Integer.MAX_VALUE).size();
+        public long count(SkuId skuId, InventoryStatus status) {
+            return page(skuId, status, 1, Integer.MAX_VALUE).size();
         }
 
         @Override
-        public synchronized Inventory insertInventory(Inventory inventory) {
+        public synchronized Inventory insert(Inventory inventory) {
             Inventory persisted = copy(inventory);
             persisted.markPersisted(new Version(0L));
             inventories.put(
@@ -306,7 +306,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public synchronized Inventory updateInventory(Inventory inventory) {
+        public synchronized Inventory update(Inventory inventory) {
             Inventory current = inventories.get(key(
                     1001L,
                     inventory.getSkuId() == null ? null : inventory.getSkuId().value()));
@@ -339,7 +339,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public InventoryReservation insertReservation(InventoryReservation reservation) {
+        public InventoryReservation insert(InventoryReservation reservation) {
             String key = reservationKey(
                     BaconContextHolder.currentTenantId(),
                     reservation.getOrderNo() == null
@@ -354,7 +354,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public InventoryReservation updateReservation(InventoryReservation reservation) {
+        public InventoryReservation update(InventoryReservation reservation) {
             String key = reservationKey(
                     BaconContextHolder.currentTenantId(),
                     reservation.getOrderNo() == null
@@ -369,7 +369,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
+        public Optional<InventoryReservation> findByOrderNo(OrderNo orderNo) {
             return Optional.ofNullable(reservations.get(
                     reservationKey(BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value())));
         }
@@ -387,14 +387,14 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public List<InventoryLedger> findLedgers(OrderNo orderNo) {
+        public List<InventoryLedger> listLedgers(OrderNo orderNo) {
             return List.copyOf(ledgers.getOrDefault(
                     reservationKey(BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value()),
                     List.of()));
         }
 
         @Override
-        public void insertAuditLog(InventoryAuditLog auditLog) {
+        public void insertLog(InventoryAuditLog auditLog) {
             if (failAuditPersist) {
                 throw new RuntimeException("force-fail-audit");
             }
@@ -410,14 +410,14 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
+        public List<InventoryAuditLog> listLogs(OrderNo orderNo) {
             return List.copyOf(auditLogs.getOrDefault(
                     reservationKey(BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value()),
                     List.of()));
         }
 
         @Override
-        public void insertAuditOutbox(InventoryAuditOutbox outbox) {
+        public void insert(InventoryAuditOutbox outbox) {
             if (outbox.getId() == null) {
                 throw new IllegalArgumentException("outbox.id must not be null");
             }
@@ -432,7 +432,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {
+        public List<InventoryAuditOutbox> findRetryable(Instant now, int limit) {
             return outboxMap.values().stream()
                     .filter(item -> InventoryAuditOutboxStatus.NEW.equals(item.getStatus())
                             || InventoryAuditOutboxStatus.RETRYING.equals(item.getStatus()))
@@ -446,10 +446,10 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public List<TenantScopedAuditOutbox> claimRetryableAuditOutbox(
+        public List<TenantScopedAuditOutbox> claimRetryable(
                 Instant now, int limit, String processingOwner, Instant leaseUntil) {
             List<TenantScopedAuditOutbox> claimed = new ArrayList<>();
-            for (InventoryAuditOutbox item : findRetryableAuditOutbox(now, Math.max(limit * 3, limit))) {
+            for (InventoryAuditOutbox item : findRetryable(now, Math.max(limit * 3, limit))) {
                 if (claimed.size() >= limit) {
                     break;
                 }
@@ -465,7 +465,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public int releaseExpiredAuditOutboxLease(Instant now) {
+        public int releaseExpiredLease(Instant now) {
             int released = 0;
             for (InventoryAuditOutbox item : outboxMap.values()) {
                 if (!InventoryAuditOutboxStatus.PROCESSING.equals(item.getStatus())) {
@@ -481,7 +481,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public void updateAuditOutboxForRetry(
+        public void updateForRetry(
                 OutboxId outboxId, int retryCount, Instant nextRetryAt, String errorMessage, Instant updatedAt) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox != null) {
@@ -490,7 +490,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public boolean updateAuditOutboxForRetryClaimed(
+        public boolean updateForRetryClaimed(
                 OutboxId outboxId,
                 String processingOwner,
                 int retryCount,
@@ -508,7 +508,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public void markAuditOutboxDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {
+        public void markDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox != null) {
                 outbox.markDead(retryCount, deadReason, updatedAt);
@@ -516,7 +516,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public boolean markAuditOutboxDeadClaimed(
+        public boolean markDeadClaimed(
                 OutboxId outboxId, String processingOwner, int retryCount, String deadReason, Instant updatedAt) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox == null
@@ -529,12 +529,12 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public void deleteAuditOutbox(OutboxId outboxId) {
+        public void delete(OutboxId outboxId) {
             outboxMap.remove(outboxId);
         }
 
         @Override
-        public boolean deleteAuditOutboxClaimed(OutboxId outboxId, String processingOwner) {
+        public boolean deleteClaimed(OutboxId outboxId, String processingOwner) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox == null
                     || !InventoryAuditOutboxStatus.PROCESSING.equals(outbox.getStatus())
@@ -546,7 +546,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
+        public void insert(InventoryAuditDeadLetter deadLetter) {
             deadLetterMap.put(deadLetter.getOutboxId(), deadLetter);
         }
 

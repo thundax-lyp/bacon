@@ -9,9 +9,9 @@ public interface StorageAuditOutboxRepository {
 
     void insert(StorageAuditOutbox storageAuditOutbox);
 
-    List<StorageAuditOutbox> listRetryable(List<StorageAuditOutboxStatus> statuses, Instant retryBefore, int limit);
+    List<StorageAuditOutbox> findRetryable(List<StorageAuditOutboxStatus> statuses, Instant retryBefore, int limit);
 
-    boolean claimForProcessing(
+    boolean claim(
             Long id, List<StorageAuditOutboxStatus> statuses, Instant retryBefore, Instant updatedAt);
 
     void deleteById(Long id);
@@ -26,5 +26,5 @@ public interface StorageAuditOutboxRepository {
 
     void markDead(Long id, int retryCount, String errorMessage, Instant updatedAt);
 
-    int deleteExpiredDead(Instant updatedBefore, int limit);
+    int deleteExpired(Instant updatedBefore, int limit);
 }

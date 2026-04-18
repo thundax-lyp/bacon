@@ -64,7 +64,7 @@ class StoredObjectDeletionRetryServiceTest {
     @Test
     void shouldRetryDeletingObjectsAndMarkDeleted() {
         StoredObject storedObject = deletingObject(100L, "attachment/a.bin");
-        when(storedObjectRepository.listByObjectStatus(StoredObjectStatus.DELETING, 10))
+        when(storedObjectRepository.listByStatus(StoredObjectStatus.DELETING, 10))
                 .thenReturn(List.of(storedObject));
 
         int completed = service.retryDeletingObjects();
@@ -83,7 +83,7 @@ class StoredObjectDeletionRetryServiceTest {
     @Test
     void shouldKeepDeletingObjectForNextRetryWhenPhysicalDeleteFails() {
         StoredObject storedObject = deletingObject(101L, "attachment/b.bin");
-        when(storedObjectRepository.listByObjectStatus(StoredObjectStatus.DELETING, 10))
+        when(storedObjectRepository.listByStatus(StoredObjectStatus.DELETING, 10))
                 .thenReturn(List.of(storedObject));
         doThrow(new IllegalStateException("delete-fail"))
                 .when(storedObjectStorageRepository)
@@ -108,7 +108,7 @@ class StoredObjectDeletionRetryServiceTest {
         int completed = service.retryDeletingObjects();
 
         assertEquals(0, completed);
-        verify(storedObjectRepository, never()).listByObjectStatus(eq(StoredObjectStatus.DELETING), anyInt());
+        verify(storedObjectRepository, never()).listByStatus(eq(StoredObjectStatus.DELETING), anyInt());
     }
 
     private StoredObject deletingObject(Long id, String objectKey) {

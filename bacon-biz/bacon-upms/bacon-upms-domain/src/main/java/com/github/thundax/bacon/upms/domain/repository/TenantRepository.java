@@ -13,9 +13,9 @@ public interface TenantRepository {
 
     Optional<Tenant> findByCode(TenantCode tenantCode);
 
-    List<Tenant> pageTenants(String name, TenantStatus status, int pageNo, int pageSize);
+    List<Tenant> page(String name, TenantStatus status, int pageNo, int pageSize);
 
-    long countTenants(String name, TenantStatus status);
+    long count(String name, TenantStatus status);
 
     Tenant insert(Tenant tenant);
 

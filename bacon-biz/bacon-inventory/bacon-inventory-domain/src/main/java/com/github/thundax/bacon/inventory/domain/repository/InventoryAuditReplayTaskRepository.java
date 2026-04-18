@@ -12,33 +12,33 @@ import java.util.Optional;
 
 public interface InventoryAuditReplayTaskRepository {
 
-    default InventoryAuditReplayTask insertAuditReplayTask(InventoryAuditReplayTask task) {
+    default InventoryAuditReplayTask insert(InventoryAuditReplayTask task) {
         return task;
     }
 
-    default void insertAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {}
+    default void insertItems(List<InventoryAuditReplayTaskItem> items) {}
 
-    default Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
+    default Optional<InventoryAuditReplayTask> findById(TaskId taskId) {
         return Optional.empty();
     }
 
-    default Long findAuditReplayTaskTenantId(TaskId taskId) {
+    default Long findTenantIdById(TaskId taskId) {
         return null;
     }
 
-    default List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(
+    default List<InventoryAuditReplayTask> claim(
             Instant now, int limit, String processingOwner, Instant leaseUntil) {
         return List.of();
     }
 
-    default void renewAuditReplayTaskLease(
+    default void renew(
             TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {}
 
-    default List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(TaskId taskId, int limit) {
+    default List<InventoryAuditReplayTaskItem> listPendingItems(TaskId taskId, int limit) {
         return List.of();
     }
 
-    default void markAuditReplayTaskItemResult(
+    default void markItemResult(
             Long itemId,
             InventoryAuditReplayTaskItemStatus itemStatus,
             InventoryAuditReplayStatus replayStatus,
@@ -47,7 +47,7 @@ public interface InventoryAuditReplayTaskRepository {
             Instant startedAt,
             Instant finishedAt) {}
 
-    default void updateAuditReplayTaskProgress(
+    default void updateProgress(
             TaskId taskId,
             String processingOwner,
             int processedDelta,
@@ -55,14 +55,14 @@ public interface InventoryAuditReplayTaskRepository {
             int failedDelta,
             Instant updatedAt) {}
 
-    default void markAuditReplayTaskFinished(
+    default void markFinished(
             TaskId taskId, String processingOwner, String status, String lastError, Instant finishedAt) {}
 
-    default boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
+    default boolean pause(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
         return false;
     }
 
-    default boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
+    default boolean resume(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
         return false;
     }
 }

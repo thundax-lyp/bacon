@@ -38,7 +38,7 @@ public class StoredObjectDeletionTransactionService {
         if (storedObject.isDeleted() || storedObject.isDeleting()) {
             return storedObject;
         }
-        if (storedObjectReferenceRepository.existsByObjectId(objectId)) {
+        if (storedObjectReferenceRepository.exists(objectId)) {
             throw new ConflictException("Stored object is still referenced: " + objectId);
         }
         storedObject.markDeleting();

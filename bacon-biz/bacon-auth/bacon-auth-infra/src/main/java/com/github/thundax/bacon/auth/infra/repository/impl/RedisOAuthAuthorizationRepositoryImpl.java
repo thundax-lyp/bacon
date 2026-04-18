@@ -26,7 +26,7 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
     }
 
     @Override
-    public OAuthAuthorizationRequest saveAuthorizationRequest(OAuthAuthorizationRequest authorizationRequest) {
+    public OAuthAuthorizationRequest update(OAuthAuthorizationRequest authorizationRequest) {
         redisTemplate
                 .opsForValue()
                 .set(
@@ -37,7 +37,7 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
     }
 
     @Override
-    public Optional<OAuthAuthorizationRequest> findAuthorizationRequestById(String authorizationRequestId) {
+    public Optional<OAuthAuthorizationRequest> findById(String authorizationRequestId) {
         return readValue(
                         AuthRedisKeyHelper.authorizationRequest(authorizationRequestId),
                         AuthorizationRequestSnapshot.class)
@@ -45,7 +45,7 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
     }
 
     @Override
-    public void saveAuthorizationCode(String authorizationCode, OAuthAuthorizationRequest authorizationRequest) {
+    public void insertCode(String authorizationCode, OAuthAuthorizationRequest authorizationRequest) {
         redisTemplate
                 .opsForValue()
                 .set(
@@ -55,13 +55,13 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
     }
 
     @Override
-    public Optional<OAuthAuthorizationRequest> findAuthorizationRequestByCode(String authorizationCode) {
+    public Optional<OAuthAuthorizationRequest> findByCode(String authorizationCode) {
         return readValue(AuthRedisKeyHelper.authorizationCode(authorizationCode), AuthorizationRequestSnapshot.class)
                 .map(AuthorizationRequestSnapshot::toDomain);
     }
 
     @Override
-    public OAuthAccessToken saveAccessToken(OAuthAccessToken accessToken) {
+    public OAuthAccessToken update(OAuthAccessToken accessToken) {
         redisTemplate
                 .opsForValue()
                 .set(
@@ -72,13 +72,13 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
     }
 
     @Override
-    public Optional<OAuthAccessToken> findAccessTokenByHash(String tokenHash) {
+    public Optional<OAuthAccessToken> findAccessByHash(String tokenHash) {
         return readValue(AuthRedisKeyHelper.accessToken(tokenHash), AccessTokenSnapshot.class)
                 .map(AccessTokenSnapshot::toDomain);
     }
 
     @Override
-    public OAuthRefreshToken saveOAuthRefreshToken(OAuthRefreshToken refreshToken) {
+    public OAuthRefreshToken update(OAuthRefreshToken refreshToken) {
         redisTemplate
                 .opsForValue()
                 .set(
@@ -89,7 +89,7 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
     }
 
     @Override
-    public Optional<OAuthRefreshToken> findOAuthRefreshTokenByHash(String tokenHash) {
+    public Optional<OAuthRefreshToken> findByHash(String tokenHash) {
         return readValue(AuthRedisKeyHelper.refreshOAuthToken(tokenHash), RefreshTokenSnapshot.class)
                 .map(RefreshTokenSnapshot::toDomain);
     }

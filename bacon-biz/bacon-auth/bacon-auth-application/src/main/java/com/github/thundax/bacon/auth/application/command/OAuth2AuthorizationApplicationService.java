@@ -70,7 +70,7 @@ public class OAuth2AuthorizationApplicationService {
 
         // authorize 阶段只落授权请求，不直接发 code；真正的授权决定由后续 approve/reject 明确给出。
         String authorizationRequestId = UUID.randomUUID().toString();
-        oAuthAuthorizationRepository.saveAuthorizationRequest(new OAuthAuthorizationRequest(
+        oAuthAuthorizationRepository.update(new OAuthAuthorizationRequest(
                 authorizationRequestId,
                 clientId,
                 redirectUri,
@@ -87,7 +87,7 @@ public class OAuth2AuthorizationApplicationService {
 
     public AuthorizationDecisionResult decide(String authorizationRequestId, String decision) {
         OAuthAuthorizationRequest authorizationRequest = oAuthAuthorizationRepository
-                .findAuthorizationRequestById(authorizationRequestId)
+                .findById(authorizationRequestId)
                 .filter(request -> !request.isUsed())
                 .filter(request -> request.getExpireAt().isAfter(Instant.now()))
                 .orElseThrow(() -> new IllegalArgumentException("Authorization request invalid"));
@@ -95,7 +95,7 @@ public class OAuth2AuthorizationApplicationService {
             throw new IllegalArgumentException("Decision invalid");
         }
         authorizationRequest.markUsed();
-        oAuthAuthorizationRepository.saveAuthorizationRequest(authorizationRequest);
+        oAuthAuthorizationRepository.update(authorizationRequest);
         if ("REJECT".equalsIgnoreCase(decision)) {
             return new AuthorizationDecisionResult(
                     authorizationRequest.getRedirectUri() + "?error=access_denied&state="
@@ -105,7 +105,7 @@ public class OAuth2AuthorizationApplicationService {
 
         // 授权请求一旦 APPROVE 就立即标记已使用，避免同一个 request 被重复换出多个 authorization code。
         String authorizationCode = tokenCodec.randomToken();
-        oAuthAuthorizationRepository.saveAuthorizationCode(authorizationCode, authorizationRequest);
+        oAuthAuthorizationRepository.insertCode(authorizationCode, authorizationRequest);
         return new AuthorizationDecisionResult(
                 authorizationRequest.getRedirectUri() + "?code=" + authorizationCode + "&state="
                         + authorizationRequest.getState(),
@@ -124,7 +124,7 @@ public class OAuth2AuthorizationApplicationService {
         if ("authorization_code".equals(grantType)) {
             // authorization_code 交换时复用授权请求里固化的 tenant/user/scopes，避免由客户端自行提交这些敏感上下文。
             OAuthAuthorizationRequest request = oAuthAuthorizationRepository
-                    .findAuthorizationRequestByCode(code)
+                    .findByCode(code)
                     .orElseThrow(() -> new IllegalArgumentException("Authorization code invalid"));
             if (!request.getRedirectUri().equals(redirectUri)) {
                 throw new IllegalArgumentException("Redirect uri invalid");
@@ -137,14 +137,14 @@ public class OAuth2AuthorizationApplicationService {
         }
         if ("refresh_token".equals(grantType)) {
             OAuthRefreshToken currentRefreshToken = oAuthAuthorizationRepository
-                    .findOAuthRefreshTokenByHash(tokenCodec.sha256(refreshToken))
+                    .findByHash(tokenCodec.sha256(refreshToken))
                     .filter(token -> "ACTIVE".equals(token.getTokenStatus()))
                     .orElseThrow(() -> new IllegalArgumentException("OAuth refresh token invalid"));
             // refresh_token 换新采用轮转模式：旧 refresh token 标记 USED，再签发新的 access/refresh 对。
             currentRefreshToken.markUsed();
-            oAuthAuthorizationRepository.saveOAuthRefreshToken(currentRefreshToken);
+            oAuthAuthorizationRepository.update(currentRefreshToken);
             Optional<OAuthAccessToken> accessToken =
-                    oAuthAuthorizationRepository.findAccessTokenByHash(currentRefreshToken.getAccessTokenId());
+                    oAuthAuthorizationRepository.findAccessByHash(currentRefreshToken.getAccessTokenId());
             Set<String> scopes = accessToken.map(OAuthAccessToken::getScopes).orElseGet(LinkedHashSet::new);
             return issueOAuthTokens(
                     client,
@@ -160,7 +160,7 @@ public class OAuth2AuthorizationApplicationService {
     public OAuth2IntrospectionDTO introspect(String token, String clientId, String clientSecret) {
         validateClient(clientId, clientSecret);
         return oAuthAuthorizationRepository
-                .findAccessTokenByHash(tokenCodec.sha256(token))
+                .findAccessByHash(tokenCodec.sha256(token))
                 .filter(OAuthAccessToken::isActive)
                 .filter(accessToken -> accessToken.getExpireAt().isAfter(Instant.now()))
                 .map(accessToken -> new OAuth2IntrospectionDTO(
@@ -179,22 +179,22 @@ public class OAuth2AuthorizationApplicationService {
     public void revoke(String token, String clientId, String clientSecret) {
         validateClient(clientId, clientSecret);
         oAuthAuthorizationRepository
-                .findAccessTokenByHash(tokenCodec.sha256(token))
+                .findAccessByHash(tokenCodec.sha256(token))
                 .ifPresent(accessToken -> {
                     accessToken.revoke();
-                    oAuthAuthorizationRepository.saveAccessToken(accessToken);
+                    oAuthAuthorizationRepository.update(accessToken);
                 });
         oAuthAuthorizationRepository
-                .findOAuthRefreshTokenByHash(tokenCodec.sha256(token))
+                .findByHash(tokenCodec.sha256(token))
                 .ifPresent(refreshToken -> {
                     refreshToken.revoke();
-                    oAuthAuthorizationRepository.saveOAuthRefreshToken(refreshToken);
+                    oAuthAuthorizationRepository.update(refreshToken);
                 });
     }
 
     public OAuth2UserinfoDTO userinfo(String accessToken) {
         OAuthAccessToken token = oAuthAuthorizationRepository
-                .findAccessTokenByHash(tokenCodec.sha256(accessToken))
+                .findAccessByHash(tokenCodec.sha256(accessToken))
                 .filter(OAuthAccessToken::isActive)
                 .orElseThrow(() -> new IllegalArgumentException("OAuth access token invalid"));
         Long userId = token.getUserId() == null ? null : token.getUserId().value();
@@ -216,7 +216,7 @@ public class OAuth2AuthorizationApplicationService {
                 new ArrayList<>(scopes),
                 now,
                 now.plusSeconds(client.getAccessTokenTtlSeconds()));
-        oAuthAuthorizationRepository.saveAccessToken(accessToken);
+        oAuthAuthorizationRepository.update(accessToken);
 
         String refreshTokenValue = tokenCodec.randomToken();
         String refreshTokenHash = tokenCodec.sha256(refreshTokenValue);
@@ -229,7 +229,7 @@ public class OAuth2AuthorizationApplicationService {
                 userId,
                 now,
                 now.plusSeconds(client.getRefreshTokenTtlSeconds()));
-        oAuthAuthorizationRepository.saveOAuthRefreshToken(refreshToken);
+        oAuthAuthorizationRepository.update(refreshToken);
 
         return new OAuth2TokenDTO(
                 accessTokenValue,

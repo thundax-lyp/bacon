@@ -148,7 +148,7 @@ class OrderCreateApplicationServiceTest {
             Order paidOrder = repository.findByOrderNo(paid.getOrderNo()).orElseThrow();
             paidOrder.markInventoryReserved(ReservationNo.of("RSV-" + paid.getOrderNo()), WarehouseCode.of("1"));
             paidOrder.markPendingPayment(PaymentNo.of("PAY-" + paid.getOrderNo()), "MOCK");
-            repository.updateOrder(paidOrder);
+            repository.update(paidOrder);
             paymentResultService.markPaid(
                     OrderNo.of(paid.getOrderNo()),
                     PaymentNo.of("PAY-1"),
@@ -160,7 +160,7 @@ class OrderCreateApplicationServiceTest {
         OrderPageResult page = runWithContext(
                 1001L,
                 2001L,
-                () -> queryService.pageOrders(UserId.of(2001L), null, null, PayStatus.UNPAID, null, null, null, 1, 10));
+                () -> queryService.page(UserId.of(2001L), null, null, PayStatus.UNPAID, null, null, null, 1, 10));
 
         assertEquals(1, page.getTotal());
         assertEquals(1, page.getRecords().size());
@@ -280,7 +280,7 @@ class OrderCreateApplicationServiceTest {
     private static final class TestOrderOutboxRepository implements OrderOutboxRepository {
 
         @Override
-        public void insertOutboxEvent(OrderOutboxEvent event) {
+        public void insert(OrderOutboxEvent event) {
             // no-op for unit tests
         }
     }
@@ -290,7 +290,7 @@ class OrderCreateApplicationServiceTest {
         private final Map<String, OrderIdempotencyRecord> storage = new ConcurrentHashMap<>();
 
         @Override
-        public boolean insertProcessing(OrderIdempotencyRecord record) {
+        public boolean insert(OrderIdempotencyRecord record) {
             String key = keyOf(valueOf(record.getOrderNo()), record.getEventType());
             OrderIdempotencyRecord value = OrderIdempotencyRecord.reconstruct(
                     com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey.of(
@@ -307,7 +307,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public Optional<OrderIdempotencyRecord> findByBusinessKey(
+        public Optional<OrderIdempotencyRecord> findByKey(
                 com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey key) {
             return Optional.ofNullable(storage.get(keyOf(key.orderNo().value(), key.eventType())));
         }
@@ -358,7 +358,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public boolean recoverFromFailed(
+        public boolean recoverFailed(
                 com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey key,
                 String processingOwner,
                 Instant leaseUntil,
@@ -384,7 +384,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public boolean claimExpiredProcessing(
+        public boolean claimExpired(
                 com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey key,
                 String processingOwner,
                 Instant leaseUntil,
@@ -453,7 +453,7 @@ class OrderCreateApplicationServiceTest {
         private final AtomicLong idGenerator = new AtomicLong(1000L);
 
         @Override
-        public Order insertOrder(Order order) {
+        public Order insert(Order order) {
             order.setId(OrderId.of(idGenerator.getAndIncrement()));
             storage.put(toOrderIdValue(order), order);
             orderTenantStorage.put(toOrderIdValue(order), currentTenantId());
@@ -461,7 +461,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public Order updateOrder(Order order) {
+        public Order update(Order order) {
             storage.put(toOrderIdValue(order), order);
             orderTenantStorage.put(toOrderIdValue(order), currentTenantId());
             return order;
@@ -490,7 +490,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public List<OrderItem> findItemsByOrderId(Long orderId) {
+        public List<OrderItem> listItemsByOrderId(Long orderId) {
             if (!isTenantMatched(itemTenantStorage.get(orderId))) {
                 return List.of();
             }
@@ -498,21 +498,21 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public void insertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
+        public void insertPayment(OrderPaymentSnapshot snapshot) {
             Long orderId = toOrderIdValue(snapshot.getOrderId());
             paymentSnapshots.put(orderId, snapshot);
             paymentSnapshotTenantStorage.put(orderId, currentTenantId());
         }
 
         @Override
-        public void updatePaymentSnapshot(OrderPaymentSnapshot snapshot) {
+        public void updatePayment(OrderPaymentSnapshot snapshot) {
             Long orderId = toOrderIdValue(snapshot.getOrderId());
             paymentSnapshots.put(orderId, snapshot);
             paymentSnapshotTenantStorage.put(orderId, currentTenantId());
         }
 
         @Override
-        public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId) {
+        public Optional<OrderPaymentSnapshot> findPaymentByOrderId(Long orderId) {
             OrderPaymentSnapshot snapshot = paymentSnapshots.get(orderId);
             if (snapshot == null || !isTenantMatched(paymentSnapshotTenantStorage.get(orderId))) {
                 return Optional.empty();
@@ -521,21 +521,21 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public void insertInventorySnapshot(OrderInventorySnapshot snapshot) {
+        public void insertInventory(OrderInventorySnapshot snapshot) {
             String orderNo = toOrderNoValue(snapshot.getOrderNo());
             inventorySnapshots.put(orderNo, snapshot);
             inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
         }
 
         @Override
-        public void updateInventorySnapshot(OrderInventorySnapshot snapshot) {
+        public void updateInventory(OrderInventorySnapshot snapshot) {
             String orderNo = toOrderNoValue(snapshot.getOrderNo());
             inventorySnapshots.put(orderNo, snapshot);
             inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
         }
 
         @Override
-        public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(String orderNo) {
+        public Optional<OrderInventorySnapshot> findInventoryByOrderNo(String orderNo) {
             OrderInventorySnapshot snapshot = inventorySnapshots.get(orderNo);
             if (snapshot == null || !isTenantMatched(inventorySnapshotTenantStorage.get(orderNo))) {
                 return Optional.empty();
@@ -544,7 +544,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public void insertAuditLog(OrderAuditLog auditLog) {
+        public void insertLog(OrderAuditLog auditLog) {
             String key = currentTenantId() + ":" + toOrderNoValue(auditLog.getOrderNo());
             auditLogs
                     .computeIfAbsent(key, unused -> new java.util.ArrayList<>())
@@ -552,12 +552,12 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public List<OrderAuditLog> findAuditLogs(String orderNo) {
+        public List<OrderAuditLog> listLogs(String orderNo) {
             return List.copyOf(auditLogs.getOrDefault(currentTenantId() + ":" + orderNo, List.of()));
         }
 
         @Override
-        public long countOrders(
+        public long count(
                 Long userId,
                 String orderNo,
                 String orderStatus,
@@ -570,7 +570,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public List<Order> pageOrders(
+        public List<Order> page(
                 Long userId,
                 String orderNo,
                 String orderStatus,
@@ -617,7 +617,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public List<Order> findAll() {
+        public List<Order> list() {
             return storage.values().stream().toList();
         }
 

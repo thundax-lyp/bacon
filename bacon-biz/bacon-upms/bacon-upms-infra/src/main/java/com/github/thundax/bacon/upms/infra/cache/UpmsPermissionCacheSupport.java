@@ -99,7 +99,7 @@ public class UpmsPermissionCacheSupport {
         return copyMenus(loadedMenus);
     }
 
-    public List<Menu> listUserMenuTree(TenantId tenantId, UserId userId, Supplier<List<Menu>> loader) {
+    public List<Menu> listMenuTreeByUserId(TenantId tenantId, UserId userId, Supplier<List<Menu>> loader) {
         String cacheKey = buildUserCacheKey(tenantId, userId);
         List<Menu> cachedMenus = userMenuTreeCache.get(cacheKey);
         if (cachedMenus != null) {
@@ -110,7 +110,7 @@ public class UpmsPermissionCacheSupport {
         return copyMenus(loadedMenus);
     }
 
-    public Set<String> findUserPermissionCodes(TenantId tenantId, UserId userId, Supplier<Set<String>> loader) {
+    public Set<String> findPermissionCodesByUserId(TenantId tenantId, UserId userId, Supplier<Set<String>> loader) {
         String cacheKey = buildUserCacheKey(tenantId, userId);
         Set<String> cachedCodes = userPermissionCodeCache.get(cacheKey);
         if (cachedCodes != null) {
@@ -121,7 +121,7 @@ public class UpmsPermissionCacheSupport {
         return loadedCodes;
     }
 
-    public Set<DepartmentId> findUserDepartmentIds(
+    public Set<DepartmentId> findDepartmentIdsByUserId(
             TenantId tenantId, UserId userId, Supplier<Set<DepartmentId>> loader) {
         String cacheKey = buildUserCacheKey(tenantId, userId);
         Set<DepartmentId> cachedDepartmentIds = userDepartmentIdsCache.get(cacheKey);
@@ -133,7 +133,7 @@ public class UpmsPermissionCacheSupport {
         return loadedDepartmentIds;
     }
 
-    public Set<String> findUserScopeTypes(TenantId tenantId, UserId userId, Supplier<Set<String>> loader) {
+    public Set<String> findScopeTypesByUserId(TenantId tenantId, UserId userId, Supplier<Set<String>> loader) {
         String cacheKey = buildUserCacheKey(tenantId, userId);
         Set<String> cachedScopeTypes = userScopeTypesCache.get(cacheKey);
         if (cachedScopeTypes != null) {

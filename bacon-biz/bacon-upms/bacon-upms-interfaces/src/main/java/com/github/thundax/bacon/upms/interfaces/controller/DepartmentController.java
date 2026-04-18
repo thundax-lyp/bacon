@@ -86,11 +86,11 @@ public class DepartmentController {
     @HasPermission("sys:department:view")
     @SysLog(module = "UPMS", action = "批量查询部门", eventType = LogEventType.QUERY)
     @GetMapping
-    public List<DepartmentResponse> listDepartmentsByIds(@ModelAttribute DepartmentBatchQueryRequest request) {
+    public List<DepartmentResponse> listByIds(@ModelAttribute DepartmentBatchQueryRequest request) {
         Set<DepartmentId> departmentIds = request.getDepartmentIds() == null
                 ? Set.of()
                 : request.getDepartmentIds().stream().map(DepartmentId::of).collect(Collectors.toSet());
-        return departmentApplicationService.listDepartmentsByIds(departmentIds).stream()
+        return departmentApplicationService.listByIds(departmentIds).stream()
                 .map(DepartmentResponse::from)
                 .toList();
     }
@@ -124,8 +124,8 @@ public class DepartmentController {
     @HasPermission("sys:department:delete")
     @SysLog(module = "UPMS", action = "删除部门", eventType = LogEventType.DELETE)
     @DeleteMapping("/{departmentId}")
-    public void deleteDepartment(@PathVariable("departmentId") Long departmentId) {
-        departmentApplicationService.deleteDepartment(DepartmentId.of(departmentId));
+    public void delete(@PathVariable("departmentId") Long departmentId) {
+        departmentApplicationService.delete(DepartmentId.of(departmentId));
     }
 
     private String trimPreservingNull(String value) {

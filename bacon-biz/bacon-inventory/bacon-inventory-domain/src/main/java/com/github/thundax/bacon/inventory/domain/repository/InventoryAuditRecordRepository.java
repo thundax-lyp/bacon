@@ -9,9 +9,9 @@ public interface InventoryAuditRecordRepository {
 
     void insertLedger(InventoryLedger ledger);
 
-    List<InventoryLedger> findLedgers(OrderNo orderNo);
+    List<InventoryLedger> listLedgers(OrderNo orderNo);
 
-    void insertAuditLog(InventoryAuditLog auditLog);
+    void insertLog(InventoryAuditLog auditLog);
 
-    List<InventoryAuditLog> findAuditLogs(OrderNo orderNo);
+    List<InventoryAuditLog> listLogs(OrderNo orderNo);
 }

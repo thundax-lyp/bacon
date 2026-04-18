@@ -17,17 +17,22 @@ public class PaymentOrderRepositoryImpl implements PaymentOrderRepository {
     }
 
     @Override
-    public PaymentOrder save(PaymentOrder paymentOrder) {
+    public PaymentOrder insert(PaymentOrder paymentOrder) {
         return support.saveOrder(paymentOrder);
     }
 
     @Override
-    public Optional<PaymentOrder> findOrderByPaymentNo(String paymentNo) {
-        return support.findOrderByPaymentNo(paymentNo);
+    public PaymentOrder update(PaymentOrder paymentOrder) {
+        return support.saveOrder(paymentOrder);
     }
 
     @Override
-    public Optional<PaymentOrder> findOrderByOrderNo(String orderNo) {
-        return support.findOrderByOrderNo(orderNo);
+    public Optional<PaymentOrder> findByPaymentNo(String paymentNo) {
+        return support.findByPaymentNo(paymentNo);
+    }
+
+    @Override
+    public Optional<PaymentOrder> findByOrderNo(String orderNo) {
+        return support.findByOrderNo(orderNo);
     }
 }

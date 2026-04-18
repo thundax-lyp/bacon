@@ -209,10 +209,10 @@ class PaymentRepositorySupportTest {
                 new PaymentAuditLogPersistenceAssembler());
 
         BaconContextHolder.set(new BaconContext(1001L, 2003L));
-        PaymentOrder paymentOrder = support.findOrderByPaymentNo("PAY-10003").orElseThrow();
+        PaymentOrder paymentOrder = support.findByPaymentNo("PAY-10003").orElseThrow();
         PaymentCallbackRecord latestCallback =
-                support.findLatestCallbackByPaymentNo("PAY-10003").orElseThrow();
-        List<PaymentAuditLog> auditLogs = support.findAuditLogsByPaymentNo("PAY-10003");
+                support.findLatestByPaymentNo("PAY-10003").orElseThrow();
+        List<PaymentAuditLog> auditLogs = support.listAuditLogsByPaymentNo("PAY-10003");
 
         assertEquals(PaymentStatus.PAID.value(), paymentOrder.getPaymentStatus().value());
         assertEquals("TXN-10003", latestCallback.getChannelTransactionNo());

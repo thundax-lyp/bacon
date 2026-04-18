@@ -45,8 +45,7 @@ public class PaymentCreateApplicationService {
             String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
         BaconContextHolder.requireTenantId();
         validateCreateRequest(amount, channelCode, expiredAt);
-        PaymentOrder existing =
-                paymentOrderRepository.findOrderByOrderNo(orderNo).orElse(null);
+        PaymentOrder existing = paymentOrderRepository.findByOrderNo(orderNo).orElse(null);
         // 按 orderNo 保证创建幂等；同一订单重复创建时直接返回已存在支付单，而不是重新生成 paymentNo。
         if (existing != null) {
             return toCreateResult(existing, buildPayload(existing), null);
@@ -68,7 +67,7 @@ public class PaymentCreateApplicationService {
                 Instant.now());
         // 创建后立即进入 PAYING，表示渠道拉起参数已经准备好，后续只等待回调或显式关闭。
         paymentOrder.markPaying();
-        PaymentOrder persistedOrder = paymentOrderRepository.save(paymentOrder);
+        PaymentOrder persistedOrder = paymentOrderRepository.insert(paymentOrder);
         paymentOperationLogSupport.recordCreate(
                 paymentNo.value(), paymentOrder.getPaymentStatus().value(), persistedOrder.getCreatedAt());
         return toCreateResult(persistedOrder, buildPayload(persistedOrder), null);

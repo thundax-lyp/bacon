@@ -38,7 +38,7 @@ public class InventoryAuditCompensationApplicationService {
             DeadLetterId deadLetterId, String replayKey, OperatorId operatorId) {
         requireTenantContext();
         InventoryAuditDeadLetter deadLetter = inventoryAuditDeadLetterRepository
-                .findAuditDeadLetterById(deadLetterId)
+                .findById(deadLetterId)
                 .orElseThrow(() -> new InventoryDomainException(
                         InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND, "dead-letter-not-found:" + deadLetterId));
         if (InventoryAuditReplayStatus.SUCCEEDED.equals(deadLetter.getReplayStatus())) {
@@ -53,7 +53,7 @@ public class InventoryAuditCompensationApplicationService {
         String resolvedReplayKey = resolveReplayKey(deadLetter, replayKey);
         Instant replayAt = Instant.now();
         // 回放前先认领死信，确保同一条死信在人工操作和后台任务并发时只会有一个执行者真正进入事务。
-        boolean claimed = inventoryAuditDeadLetterRepository.claimAuditDeadLetterForReplay(
+        boolean claimed = inventoryAuditDeadLetterRepository.claimForReplay(
                 deadLetterId, resolvedReplayKey, REPLAY_OPERATOR_TYPE, operatorId, replayAt);
         if (!claimed) {
             return new InventoryAuditReplayResult(

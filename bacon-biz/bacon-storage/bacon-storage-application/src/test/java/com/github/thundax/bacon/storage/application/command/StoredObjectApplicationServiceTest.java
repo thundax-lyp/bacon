@@ -131,7 +131,7 @@ class StoredObjectApplicationServiceTest {
         assertThrows(
                 NotFoundException.class,
                 () -> service.markObjectReferenced("storage-20260327100000-000102", "GENERIC_ATTACHMENT", "owner-1"));
-        verify(storedObjectReferenceRepository, never()).saveIfAbsent(org.mockito.ArgumentMatchers.any());
+        verify(storedObjectReferenceRepository, never()).insert(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
@@ -148,14 +148,14 @@ class StoredObjectApplicationServiceTest {
                 "/files/d.bin");
         when(storedObjectRepository.findByNo(StoredObjectNo.of("storage-20260327100000-000103")))
                 .thenReturn(Optional.of(storedObject));
-        when(storedObjectReferenceRepository.saveIfAbsent(any())).thenReturn(false);
-        when(storedObjectReferenceRepository.existsByObjectId(StoredObjectId.of(103L)))
+        when(storedObjectReferenceRepository.insert(any())).thenReturn(false);
+        when(storedObjectReferenceRepository.exists(StoredObjectId.of(103L)))
                 .thenReturn(true);
         when(storedObjectRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.markObjectReferenced("storage-20260327100000-000103", "GENERIC_ATTACHMENT", "owner-1");
 
-        verify(storedObjectReferenceRepository).saveIfAbsent(any());
+        verify(storedObjectReferenceRepository).insert(any());
         verify(storedObjectRepository).update(any());
         verify(storageAuditApplicationService, never()).record(any(), any(), any(), any(), any(), any(), any());
     }
@@ -175,10 +175,10 @@ class StoredObjectApplicationServiceTest {
         storedObject.markReferenced();
         when(storedObjectRepository.findByNo(StoredObjectNo.of("storage-20260327100000-000104")))
                 .thenReturn(Optional.of(storedObject));
-        when(storedObjectReferenceRepository.deleteByObjectIdAndOwner(
+        when(storedObjectReferenceRepository.delete(
                         StoredObjectId.of(104L), "GENERIC_ATTACHMENT", "owner-2"))
                 .thenReturn(false);
-        when(storedObjectReferenceRepository.existsByObjectId(StoredObjectId.of(104L)))
+        when(storedObjectReferenceRepository.exists(StoredObjectId.of(104L)))
                 .thenReturn(true);
 
         service.clearObjectReference("storage-20260327100000-000104", "GENERIC_ATTACHMENT", "owner-2");
@@ -200,8 +200,8 @@ class StoredObjectApplicationServiceTest {
                 "/files/f.bin");
         when(storedObjectRepository.findByNo(StoredObjectNo.of("storage-20260327100000-000105")))
                 .thenReturn(Optional.of(storedObject));
-        when(storedObjectReferenceRepository.saveIfAbsent(any())).thenReturn(false);
-        when(storedObjectReferenceRepository.existsByObjectId(StoredObjectId.of(105L)))
+        when(storedObjectReferenceRepository.insert(any())).thenReturn(false);
+        when(storedObjectReferenceRepository.exists(StoredObjectId.of(105L)))
                 .thenReturn(true);
         when(storedObjectRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -226,10 +226,10 @@ class StoredObjectApplicationServiceTest {
         storedObject.markReferenced();
         when(storedObjectRepository.findByNo(StoredObjectNo.of("storage-20260327100000-000106")))
                 .thenReturn(Optional.of(storedObject));
-        when(storedObjectReferenceRepository.deleteByObjectIdAndOwner(
+        when(storedObjectReferenceRepository.delete(
                         StoredObjectId.of(106L), "GENERIC_ATTACHMENT", "owner-4"))
                 .thenReturn(false);
-        when(storedObjectReferenceRepository.existsByObjectId(StoredObjectId.of(106L)))
+        when(storedObjectReferenceRepository.exists(StoredObjectId.of(106L)))
                 .thenReturn(false);
         when(storedObjectRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 

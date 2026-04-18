@@ -95,7 +95,7 @@ public class InventoryReservationApplicationService {
 
     private InventoryReservationResult reserveStockOnce(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
         InventoryReservation existingReservation =
-                inventoryReservationRepository.findReservation(orderNo).orElse(null);
+                inventoryReservationRepository.findByOrderNo(orderNo).orElse(null);
         if (existingReservation != null) {
             if (InventoryReservationStatus.CREATED.equals(existingReservation.getReservationStatus())) {
                 return completeCreatedReservation(existingReservation);
@@ -135,7 +135,7 @@ public class InventoryReservationApplicationService {
         }
 
         InventoryReservation existing =
-                inventoryReservationRepository.findReservation(orderNo).orElse(null);
+                inventoryReservationRepository.findByOrderNo(orderNo).orElse(null);
         if (existing != null) {
             return InventoryReservationResultAssembler.fromReservation(existing);
         }
@@ -153,7 +153,7 @@ public class InventoryReservationApplicationService {
             reserveStockOnce(item, operatedAt, inventoryBySku);
         }
         reservation.reserve();
-        reservation = inventoryReservationRepository.updateReservation(reservation);
+        reservation = inventoryReservationRepository.update(reservation);
         inventoryOperationLogService.recordReserveSuccess(reservation, operatedAt);
         return InventoryReservationResultAssembler.fromReservation(reservation);
     }
@@ -181,7 +181,7 @@ public class InventoryReservationApplicationService {
                 .collect(Collectors.toSet());
         Map<Long, Inventory> inventoryBySku =
                 inventoryStockRepository
-                        .findInventories(
+                        .listBySkuIds(
                                 skuIds.stream().map(SkuIdCodec::toDomain).collect(Collectors.toSet()))
                         .stream()
                         .collect(Collectors.toMap(
@@ -216,10 +216,10 @@ public class InventoryReservationApplicationService {
 
     private InventoryReservation saveReservationWithIdempotentFallback(InventoryReservation reservation) {
         try {
-            return inventoryReservationRepository.insertReservation(reservation);
+            return inventoryReservationRepository.insert(reservation);
         } catch (DuplicateKeyException ex) {
             return inventoryReservationRepository
-                    .findReservation(reservation.getOrderNo())
+                    .findByOrderNo(reservation.getOrderNo())
                     .orElseThrow(() -> ex);
         }
     }
@@ -230,14 +230,14 @@ public class InventoryReservationApplicationService {
         Inventory inventory = inventoryBySku.get(skuId);
         if (inventory == null) {
             inventory = inventoryStockRepository
-                    .findInventory(item.getSkuId())
+                    .findBySkuId(item.getSkuId())
                     .orElseThrow(() -> new InventoryDomainException(
                             InventoryErrorCode.INVENTORY_NOT_FOUND,
                             String.valueOf(SkuIdCodec.toValue(item.getSkuId()))));
             inventoryBySku.put(skuId, inventory);
         }
         inventory.reserve(item.getQuantity());
-        Inventory persistedInventory = inventoryStockRepository.updateInventory(inventory);
+        Inventory persistedInventory = inventoryStockRepository.update(inventory);
         inventoryBySku.put(skuId, persistedInventory);
     }
 
@@ -247,7 +247,7 @@ public class InventoryReservationApplicationService {
         String failureReason = validationResult.failureReason();
         if (failureReason != null) {
             reservation.fail(failureReason);
-            InventoryReservation persisted = inventoryReservationRepository.updateReservation(reservation);
+            InventoryReservation persisted = inventoryReservationRepository.update(reservation);
             inventoryOperationLogService.recordReserveFailed(persisted, Instant.now());
             return InventoryReservationResultAssembler.fromReservation(persisted);
         }
@@ -257,7 +257,7 @@ public class InventoryReservationApplicationService {
             reserveStockOnce(item, operatedAt, inventoryBySku);
         }
         reservation.reserve();
-        InventoryReservation persisted = inventoryReservationRepository.updateReservation(reservation);
+        InventoryReservation persisted = inventoryReservationRepository.update(reservation);
         inventoryOperationLogService.recordReserveSuccess(persisted, operatedAt);
         return InventoryReservationResultAssembler.fromReservation(persisted);
     }

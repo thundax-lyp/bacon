@@ -37,7 +37,7 @@ class InventoryQueryApplicationServiceTest {
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         InventoryPageResult result = BaconContextHolder.callWithTenantId(
-                1001L, () -> service.pageInventories(null, InventoryStatus.ENABLED, 1, 2));
+                1001L, () -> service.page(null, InventoryStatus.ENABLED, 1, 2));
 
         assertEquals(2, result.getRecords().size());
         assertEquals(3, result.getTotal());
@@ -52,7 +52,7 @@ class InventoryQueryApplicationServiceTest {
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         InventoryPageResult result =
-                BaconContextHolder.callWithTenantId(1001L, () -> service.pageInventories(SkuId.of(104L), null, 0, 0));
+                BaconContextHolder.callWithTenantId(1001L, () -> service.page(SkuId.of(104L), null, 0, 0));
 
         assertEquals(1, result.getRecords().size());
         assertEquals(1, result.getTotal());
@@ -113,7 +113,7 @@ class InventoryQueryApplicationServiceTest {
         }
 
         @Override
-        public Optional<Inventory> findInventory(SkuId skuId) {
+        public Optional<Inventory> findBySkuId(SkuId skuId) {
             return Optional.ofNullable(inventories.values().stream()
                     .filter(inventory -> java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .findFirst()
@@ -121,7 +121,7 @@ class InventoryQueryApplicationServiceTest {
         }
 
         @Override
-        public List<Inventory> findInventories() {
+        public List<Inventory> list() {
             return inventories.values().stream()
                     .sorted(java.util.Comparator.comparing(inventory -> inventory.getSkuId() == null
                             ? null
@@ -130,16 +130,16 @@ class InventoryQueryApplicationServiceTest {
         }
 
         @Override
-        public List<Inventory> findInventories(Set<SkuId> skuIds) {
+        public List<Inventory> listBySkuIds(Set<SkuId> skuIds) {
             return skuIds.stream()
-                    .map(this::findInventory)
+                    .map(this::findBySkuId)
                     .flatMap(Optional::stream)
                     .toList();
         }
 
         @Override
-        public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
-            return findInventories().stream()
+        public List<Inventory> page(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+            return list().stream()
                     .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus()))
                     .skip((long) (pageNo - 1) * pageSize)
@@ -148,15 +148,15 @@ class InventoryQueryApplicationServiceTest {
         }
 
         @Override
-        public long countInventories(SkuId skuId, InventoryStatus status) {
-            return findInventories().stream()
+        public long count(SkuId skuId, InventoryStatus status) {
+            return list().stream()
                     .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus()))
                     .count();
         }
 
         @Override
-        public Inventory insertInventory(Inventory inventory) {
+        public Inventory insert(Inventory inventory) {
             Version version = inventory.getVersion() == null
                     ? new Version(0L)
                     : inventory.getVersion().next();
@@ -172,7 +172,7 @@ class InventoryQueryApplicationServiceTest {
         }
 
         @Override
-        public Inventory updateInventory(Inventory inventory) {
+        public Inventory update(Inventory inventory) {
             Version version = inventory.getVersion() == null
                     ? new Version(0L)
                     : inventory.getVersion().next();
@@ -188,17 +188,17 @@ class InventoryQueryApplicationServiceTest {
         }
 
         @Override
-        public InventoryReservation insertReservation(InventoryReservation reservation) {
+        public InventoryReservation insert(InventoryReservation reservation) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public InventoryReservation updateReservation(InventoryReservation reservation) {
+        public InventoryReservation update(InventoryReservation reservation) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
+        public Optional<InventoryReservation> findByOrderNo(OrderNo orderNo) {
             return Optional.empty();
         }
 
@@ -206,15 +206,15 @@ class InventoryQueryApplicationServiceTest {
         public void insertLedger(InventoryLedger ledger) {}
 
         @Override
-        public List<InventoryLedger> findLedgers(OrderNo orderNo) {
+        public List<InventoryLedger> listLedgers(OrderNo orderNo) {
             return List.of();
         }
 
         @Override
-        public void insertAuditLog(InventoryAuditLog auditLog) {}
+        public void insertLog(InventoryAuditLog auditLog) {}
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
+        public List<InventoryAuditLog> listLogs(OrderNo orderNo) {
             return List.of();
         }
 

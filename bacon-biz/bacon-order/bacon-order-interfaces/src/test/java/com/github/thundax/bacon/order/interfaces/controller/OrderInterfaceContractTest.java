@@ -266,7 +266,7 @@ class OrderInterfaceContractTest {
         }
 
         @Override
-        public OrderPageResult pageOrders(
+        public OrderPageResult page(
                 UserId userId,
                 OrderNo orderNo,
                 OrderStatus orderStatus,

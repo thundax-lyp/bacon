@@ -40,7 +40,7 @@ public class MenuApplicationService {
 
     public List<MenuTreeDTO> getMenuTree() {
         // 菜单树读取直接复用权限仓储结果，避免命令侧和权限侧各维护一套树装配逻辑。
-        return permissionRepository.listMenus().stream()
+        return permissionRepository.list().stream()
                 .map(MenuAssembler::toTreeDto)
                 .toList();
     }
@@ -78,7 +78,7 @@ public class MenuApplicationService {
             Integer sort,
             String permissionCode) {
         Menu currentMenu = menuRepository
-                .findMenuById(menuId)
+                .findById(menuId)
                 .orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
         validateParent(parentId);
         currentMenu.retypeAs(menuType.value());
@@ -95,14 +95,14 @@ public class MenuApplicationService {
     }
 
     @Transactional
-    public void deleteMenu(MenuId menuId) {
+    public void delete(MenuId menuId) {
         menuRepository
-                .findMenuById(menuId)
+                .findById(menuId)
                 .orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
-        if (menuRepository.existsChildMenu(menuId)) {
+        if (menuRepository.existsChild(menuId)) {
             throw new ConflictException("Menu has child menus: " + menuId);
         }
-        menuRepository.deleteMenu(menuId);
+        menuRepository.delete(menuId);
     }
 
     @Transactional
@@ -110,7 +110,10 @@ public class MenuApplicationService {
         if (sort == null) {
             throw new BadRequestException("sort must not be null");
         }
-        return toTreeDto(menuRepository.updateSort(menuId, sort));
+        Menu currentMenu =
+                menuRepository.findById(menuId).orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
+        currentMenu.sort(sort);
+        return toTreeDto(menuRepository.update(currentMenu));
     }
 
     private MenuTreeDTO toTreeDto(Menu menu) {
@@ -123,7 +126,7 @@ public class MenuApplicationService {
             return;
         }
         menuRepository
-                .findMenuById(parentId)
+                .findById(parentId)
                 .orElseThrow(() -> new NotFoundException("Parent menu not found: " + parentId));
     }
 }

@@ -7,11 +7,11 @@ import java.util.Optional;
 
 public interface OrderIdempotencyRepository {
 
-    default boolean insertProcessing(OrderIdempotencyRecord record) {
+    default boolean insert(OrderIdempotencyRecord record) {
         return false;
     }
 
-    default boolean claimExpiredProcessing(
+    default boolean claimExpired(
             OrderIdempotencyRecordKey key,
             String processingOwner,
             Instant leaseUntil,
@@ -20,7 +20,7 @@ public interface OrderIdempotencyRepository {
         return false;
     }
 
-    default Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
+    default Optional<OrderIdempotencyRecord> findByKey(OrderIdempotencyRecordKey key) {
         return Optional.empty();
     }
 
@@ -32,11 +32,11 @@ public interface OrderIdempotencyRepository {
         return false;
     }
 
-    default boolean recoverFromFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
+    default boolean recoverFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
         return false;
     }
 
-    default boolean recoverFromFailed(
+    default boolean recoverFailed(
             OrderIdempotencyRecordKey key,
             String processingOwner,
             Instant leaseUntil,
@@ -45,7 +45,7 @@ public interface OrderIdempotencyRepository {
         return false;
     }
 
-    default int recoverExpiredProcessing(Instant now, String recoverMessage) {
+    default int recoverExpired(Instant now, String recoverMessage) {
         return 0;
     }
 }

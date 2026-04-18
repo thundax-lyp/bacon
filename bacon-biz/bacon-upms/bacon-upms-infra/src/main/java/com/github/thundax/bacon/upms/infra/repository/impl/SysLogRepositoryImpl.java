@@ -57,14 +57,14 @@ public class SysLogRepositoryImpl implements SysLogRepository {
     }
 
     @Override
-    public List<SysLogRecord> pageLogs(
+    public List<SysLogRecord> page(
             String module, String eventType, String result, String operatorName, int pageNo, int pageSize) {
         return support.listSysLogs(module, eventType, result, operatorName, pageNo, pageSize);
     }
 
     @Override
-    public long countLogs(String module, String eventType, String result, String operatorName) {
-        return support.countSysLogs(module, eventType, result, operatorName);
+    public long count(String module, String eventType, String result, String operatorName) {
+        return support.count(module, eventType, result, operatorName);
     }
 
     private String formatLine(SysLogRecord sysLogRecord) {

@@ -7,17 +7,17 @@ import java.util.Optional;
 
 public interface AuthSessionRepository {
 
-    AuthSession saveSession(AuthSession authSession);
+    AuthSession update(AuthSession authSession);
 
-    Optional<AuthSession> findSessionBySessionId(String sessionId);
+    Optional<AuthSession> findBySessionId(String sessionId);
 
-    List<AuthSession> findSessionsByTenantIdAndUserId(Long tenantId, Long userId);
+    List<AuthSession> listByTenantIdAndUserId(Long tenantId, Long userId);
 
-    List<AuthSession> findSessionsByTenantId(Long tenantId);
+    List<AuthSession> listByTenantId(Long tenantId);
 
-    RefreshTokenSession saveRefreshToken(RefreshTokenSession refreshTokenSession);
+    RefreshTokenSession update(RefreshTokenSession refreshTokenSession);
 
-    Optional<RefreshTokenSession> findRefreshTokenByHash(String refreshTokenHash);
+    Optional<RefreshTokenSession> findByHash(String refreshTokenHash);
 
-    void invalidateRefreshTokensBySessionId(String sessionId);
+    void markInvalidBySessionId(String sessionId);
 }

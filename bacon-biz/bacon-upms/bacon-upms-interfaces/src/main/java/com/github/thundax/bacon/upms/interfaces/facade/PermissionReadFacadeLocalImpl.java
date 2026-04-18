@@ -22,16 +22,16 @@ public class PermissionReadFacadeLocalImpl implements PermissionReadFacade {
     }
 
     @Override
-    public UserMenuTreeFacadeResponse listUserMenuTree(UserPermissionGetFacadeRequest request) {
+    public UserMenuTreeFacadeResponse listMenuTreeByUserId(UserPermissionGetFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        return UserMenuTreeFacadeResponse.from(permissionQueryService.listUserMenuTree(UserId.of(request.getUserId())));
+        return UserMenuTreeFacadeResponse.from(permissionQueryService.listMenuTreeByUserId(UserId.of(request.getUserId())));
     }
 
     @Override
-    public UserPermissionCodeFacadeResponse findUserPermissionCodes(UserPermissionGetFacadeRequest request) {
+    public UserPermissionCodeFacadeResponse findPermissionCodesByUserId(UserPermissionGetFacadeRequest request) {
         BaconContextHolder.requireTenantId();
         return UserPermissionCodeFacadeResponse.from(
-                permissionQueryService.findUserPermissionCodes(UserId.of(request.getUserId())));
+                permissionQueryService.findPermissionCodesByUserId(UserId.of(request.getUserId())));
     }
 
     @Override

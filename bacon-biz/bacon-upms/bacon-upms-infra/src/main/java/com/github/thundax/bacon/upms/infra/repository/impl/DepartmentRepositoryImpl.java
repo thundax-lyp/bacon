@@ -23,23 +23,23 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public Optional<Department> findDepartmentById(DepartmentId departmentId) {
-        return support.findDepartmentById(departmentId);
+    public Optional<Department> findById(DepartmentId departmentId) {
+        return support.findById(departmentId);
     }
 
     @Override
-    public Optional<Department> findDepartmentByCode(DepartmentCode departmentCode) {
-        return support.findDepartmentByCode(departmentCode);
+    public Optional<Department> findByCode(DepartmentCode departmentCode) {
+        return support.findByCode(departmentCode);
     }
 
     @Override
-    public List<Department> listDepartmentsByIds(Set<DepartmentId> departmentIds) {
-        return support.listDepartmentsByIds(departmentIds);
+    public List<Department> listByIds(Set<DepartmentId> departmentIds) {
+        return support.listByIds(departmentIds);
     }
 
     @Override
-    public List<Department> listDepartmentTree() {
-        return support.listDepartmentTree();
+    public List<Department> listTree() {
+        return support.listTree();
     }
 
     @Override
@@ -53,22 +53,17 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public Department updateSort(DepartmentId departmentId, Integer sort) {
-        return support.updateDepartmentSort(departmentId, sort);
+    public void delete(DepartmentId departmentId) {
+        support.delete(departmentId);
     }
 
     @Override
-    public void deleteDepartment(DepartmentId departmentId) {
-        support.deleteDepartment(departmentId);
+    public boolean existsChild(DepartmentId departmentId) {
+        return support.existsChild(departmentId);
     }
 
     @Override
-    public boolean existsChildDepartment(DepartmentId departmentId) {
-        return support.existsChildDepartment(departmentId);
-    }
-
-    @Override
-    public boolean existsUserInDepartment(DepartmentId departmentId) {
+    public boolean existsUser(DepartmentId departmentId) {
         return userRepository.hasActiveUserInDepartment(departmentId);
     }
 }

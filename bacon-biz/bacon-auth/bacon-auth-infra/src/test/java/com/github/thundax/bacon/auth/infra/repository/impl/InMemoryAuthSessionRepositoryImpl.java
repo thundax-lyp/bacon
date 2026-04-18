@@ -19,18 +19,18 @@ public class InMemoryAuthSessionRepositoryImpl implements AuthSessionRepository 
     }
 
     @Override
-    public AuthSession saveSession(AuthSession authSession) {
+    public AuthSession update(AuthSession authSession) {
         authStore.getSessions().put(authSession.getSessionId(), authSession);
         return authSession;
     }
 
     @Override
-    public Optional<AuthSession> findSessionBySessionId(String sessionId) {
+    public Optional<AuthSession> findBySessionId(String sessionId) {
         return Optional.ofNullable(authStore.getSessions().get(sessionId));
     }
 
     @Override
-    public List<AuthSession> findSessionsByTenantIdAndUserId(Long tenantId, Long userId) {
+    public List<AuthSession> listByTenantIdAndUserId(Long tenantId, Long userId) {
         return authStore.getSessions().values().stream()
                 .filter(session -> tenantId.equals(session.getTenantIdValue()))
                 .filter(session -> session.getUserId() != null
@@ -39,25 +39,25 @@ public class InMemoryAuthSessionRepositoryImpl implements AuthSessionRepository 
     }
 
     @Override
-    public List<AuthSession> findSessionsByTenantId(Long tenantId) {
+    public List<AuthSession> listByTenantId(Long tenantId) {
         return authStore.getSessions().values().stream()
                 .filter(session -> tenantId.equals(session.getTenantIdValue()))
                 .toList();
     }
 
     @Override
-    public RefreshTokenSession saveRefreshToken(RefreshTokenSession refreshTokenSession) {
+    public RefreshTokenSession update(RefreshTokenSession refreshTokenSession) {
         authStore.getRefreshTokenSessions().put(refreshTokenSession.getRefreshTokenHash(), refreshTokenSession);
         return refreshTokenSession;
     }
 
     @Override
-    public Optional<RefreshTokenSession> findRefreshTokenByHash(String refreshTokenHash) {
+    public Optional<RefreshTokenSession> findByHash(String refreshTokenHash) {
         return Optional.ofNullable(authStore.getRefreshTokenSessions().get(refreshTokenHash));
     }
 
     @Override
-    public void invalidateRefreshTokensBySessionId(String sessionId) {
+    public void markInvalidBySessionId(String sessionId) {
         authStore.getRefreshTokenSessions().values().stream()
                 .filter(token -> sessionId.equals(token.getSessionIdValue()))
                 .forEach(RefreshTokenSession::invalidate);

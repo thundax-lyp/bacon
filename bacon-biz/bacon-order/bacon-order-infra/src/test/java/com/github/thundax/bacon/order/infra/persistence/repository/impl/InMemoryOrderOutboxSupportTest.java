@@ -31,8 +31,8 @@ class InMemoryOrderOutboxSupportTest {
                 Instant.now(),
                 Instant.now());
 
-        support.insertOutboxEvent(event);
-        List<OrderOutboxEvent> claimed = support.claimRetryableOutbox(
+        support.insert(event);
+        List<OrderOutboxEvent> claimed = support.claimRetryable(
                 Instant.now(), 10, "test-owner", Instant.now().plusSeconds(60));
 
         assertNotNull(event.getId());

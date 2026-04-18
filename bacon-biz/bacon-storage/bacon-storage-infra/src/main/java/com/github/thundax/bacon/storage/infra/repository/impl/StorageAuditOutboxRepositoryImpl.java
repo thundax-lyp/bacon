@@ -27,7 +27,7 @@ public class StorageAuditOutboxRepositoryImpl implements StorageAuditOutboxRepos
     }
 
     @Override
-    public List<StorageAuditOutbox> listRetryable(
+    public List<StorageAuditOutbox> findRetryable(
             List<StorageAuditOutboxStatus> statuses, Instant retryBefore, int limit) {
         return storageAuditOutboxMapper
                 .selectList(Wrappers.<StorageAuditOutboxDO>lambdaQuery()
@@ -41,7 +41,7 @@ public class StorageAuditOutboxRepositoryImpl implements StorageAuditOutboxRepos
     }
 
     @Override
-    public boolean claimForProcessing(
+    public boolean claim(
             Long id, List<StorageAuditOutboxStatus> statuses, Instant retryBefore, Instant updatedAt) {
         StorageAuditOutboxDO update = new StorageAuditOutboxDO();
         update.setStatus(StorageAuditOutboxStatus.PROCESSING.value());
@@ -90,7 +90,7 @@ public class StorageAuditOutboxRepositoryImpl implements StorageAuditOutboxRepos
     }
 
     @Override
-    public int deleteExpiredDead(Instant updatedBefore, int limit) {
+    public int deleteExpired(Instant updatedBefore, int limit) {
         List<Long> ids = storageAuditOutboxMapper
                 .selectList(Wrappers.<StorageAuditOutboxDO>lambdaQuery()
                         .eq(StorageAuditOutboxDO::getStatus, StorageAuditOutboxStatus.DEAD.value())

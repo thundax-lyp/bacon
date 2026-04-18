@@ -28,7 +28,7 @@ class InMemoryInventoryRepositorySupportTest {
 
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.insertAuditOutbox(InventoryAuditOutbox.create(
+                () -> repository.insert(InventoryAuditOutbox.create(
                         OutboxId.of(3001L),
                         null,
                         OrderNo.of("ORDER-1"),
@@ -48,23 +48,23 @@ class InMemoryInventoryRepositorySupportTest {
                         now,
                         now)));
 
-        List<InventoryAuditOutbox> retryable = repository.findRetryableAuditOutbox(now.plusSeconds(1), 10);
+        List<InventoryAuditOutbox> retryable = repository.findRetryable(now.plusSeconds(1), 10);
         assertEquals(1, retryable.size());
         OutboxId outboxId = retryable.get(0).getId();
 
         Instant nextRetryAt = now.plusSeconds(300);
-        repository.updateAuditOutboxForRetry(outboxId, 1, nextRetryAt, "RETRY_FAIL", now.plusSeconds(5));
+        repository.updateForRetry(outboxId, 1, nextRetryAt, "RETRY_FAIL", now.plusSeconds(5));
 
-        assertTrue(repository.findRetryableAuditOutbox(now.plusSeconds(200), 10).isEmpty());
+        assertTrue(repository.findRetryable(now.plusSeconds(200), 10).isEmpty());
         assertEquals(
-                1, repository.findRetryableAuditOutbox(now.plusSeconds(301), 10).size());
+                1, repository.findRetryable(now.plusSeconds(301), 10).size());
 
-        repository.markAuditOutboxDead(outboxId, 6, "MAX_RETRIES_EXCEEDED", now.plusSeconds(600));
-        assertTrue(repository.findRetryableAuditOutbox(now.plusSeconds(601), 10).isEmpty());
+        repository.markDead(outboxId, 6, "MAX_RETRIES_EXCEEDED", now.plusSeconds(600));
+        assertTrue(repository.findRetryable(now.plusSeconds(601), 10).isEmpty());
 
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.insertAuditDeadLetter(InventoryAuditDeadLetter.create(
+                () -> repository.insert(InventoryAuditDeadLetter.create(
                         DeadLetterId.of(2001L),
                         outboxId,
                         retryable.get(0).getEventCode(),
@@ -79,9 +79,9 @@ class InMemoryInventoryRepositorySupportTest {
                         "MAX_RETRIES_EXCEEDED",
                         now.plusSeconds(600))));
 
-        repository.deleteAuditOutbox(outboxId);
+        repository.delete(outboxId);
         assertTrue(
-                repository.findRetryableAuditOutbox(now.plusSeconds(1000), 10).isEmpty());
+                repository.findRetryable(now.plusSeconds(1000), 10).isEmpty());
     }
 
     @Test
@@ -90,7 +90,7 @@ class InMemoryInventoryRepositorySupportTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.insertAuditOutbox(InventoryAuditOutbox.create(
+                () -> repository.insert(InventoryAuditOutbox.create(
                         OutboxId.of(3002L),
                         null,
                         OrderNo.of("ORDER-2"),
@@ -111,16 +111,16 @@ class InMemoryInventoryRepositorySupportTest {
                         now)));
 
         List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> firstClaim =
-                repository.claimRetryableAuditOutbox(now, 10, "owner-a", now.plusSeconds(30));
+                repository.claimRetryable(now, 10, "owner-a", now.plusSeconds(30));
         List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> secondClaim =
-                repository.claimRetryableAuditOutbox(now, 10, "owner-b", now.plusSeconds(30));
+                repository.claimRetryable(now, 10, "owner-b", now.plusSeconds(30));
 
         assertEquals(1, firstClaim.size());
         assertTrue(secondClaim.isEmpty());
-        assertEquals(0, repository.releaseExpiredAuditOutboxLease(now.plusSeconds(10)));
-        assertEquals(1, repository.releaseExpiredAuditOutboxLease(now.plusSeconds(31)));
+        assertEquals(0, repository.releaseExpiredLease(now.plusSeconds(10)));
+        assertEquals(1, repository.releaseExpiredLease(now.plusSeconds(31)));
         assertEquals(
-                1, repository.findRetryableAuditOutbox(now.plusSeconds(31), 10).size());
+                1, repository.findRetryable(now.plusSeconds(31), 10).size());
     }
 
     @Test
@@ -129,7 +129,7 @@ class InMemoryInventoryRepositorySupportTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.insertAuditOutbox(InventoryAuditOutbox.create(
+                () -> repository.insert(InventoryAuditOutbox.create(
                         OutboxId.of(3003L),
                         null,
                         OrderNo.of("ORDER-3"),
@@ -150,11 +150,11 @@ class InMemoryInventoryRepositorySupportTest {
                         now)));
 
         List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> claimed =
-                repository.claimRetryableAuditOutbox(now, 1, "owner-a", now.plusSeconds(30));
+                repository.claimRetryable(now, 1, "owner-a", now.plusSeconds(30));
         OutboxId outboxId = claimed.get(0).outbox().getId();
-        boolean wrongOwnerUpdated = repository.updateAuditOutboxForRetryClaimed(
+        boolean wrongOwnerUpdated = repository.updateForRetryClaimed(
                 outboxId, "owner-b", 1, now.plusSeconds(60), "ERR", now.plusSeconds(5));
-        boolean rightOwnerUpdated = repository.updateAuditOutboxForRetryClaimed(
+        boolean rightOwnerUpdated = repository.updateForRetryClaimed(
                 outboxId, "owner-a", 1, now.plusSeconds(60), "ERR", now.plusSeconds(5));
 
         assertFalse(wrongOwnerUpdated);

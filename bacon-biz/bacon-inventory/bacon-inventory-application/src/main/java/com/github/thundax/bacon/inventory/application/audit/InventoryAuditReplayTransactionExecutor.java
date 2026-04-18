@@ -57,14 +57,14 @@ public class InventoryAuditReplayTransactionExecutor {
             String error) {
         // 如果主回放事务直接失败，这里用补偿事务把死信状态显式改成 FAILED，并补一条失败审计日志。
         inventoryTransactionExecutor.executeInNewTransaction(() -> {
-            inventoryAuditDeadLetterRepository.markAuditDeadLetterReplayFailed(
+            inventoryAuditDeadLetterRepository.markReplayFailed(
                     DeadLetterId.of(OutboxIdCodec.toValue(deadLetter.getOutboxId())),
                     replayKey,
                     operatorType,
                     operatorId,
                     error,
                     replayAt);
-            inventoryAuditRecordRepository.insertAuditLog(InventoryAuditLog.create(
+            inventoryAuditRecordRepository.insertLog(InventoryAuditLog.create(
                     idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
                     deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(),
@@ -84,7 +84,7 @@ public class InventoryAuditReplayTransactionExecutor {
             Instant replayAt) {
         try {
             // 回放不是重放原业务动作，而是补写丢失的审计日志，并把死信改成已回放成功。
-            inventoryAuditRecordRepository.insertAuditLog(InventoryAuditLog.create(
+            inventoryAuditRecordRepository.insertLog(InventoryAuditLog.create(
                     idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
                     deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(),
@@ -92,13 +92,13 @@ public class InventoryAuditReplayTransactionExecutor {
                     deadLetter.getOperatorType(),
                     deadLetter.getOperatorId() == null ? null : OperatorId.of(deadLetter.getOperatorId()),
                     deadLetter.getOccurredAt()));
-            inventoryAuditDeadLetterRepository.markAuditDeadLetterReplaySuccess(
+            inventoryAuditDeadLetterRepository.markReplaySuccess(
                     DeadLetterId.of(OutboxIdCodec.toValue(deadLetter.getOutboxId())),
                     replayKey,
                     operatorType,
                     operatorId,
                     replayAt);
-            inventoryAuditRecordRepository.insertAuditLog(InventoryAuditLog.create(
+            inventoryAuditRecordRepository.insertLog(InventoryAuditLog.create(
                     idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
                     deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(),
@@ -113,14 +113,14 @@ public class InventoryAuditReplayTransactionExecutor {
                     "ok");
         } catch (RuntimeException ex) {
             // 主事务内部已知失败也会就地写回 FAILED，保证调用方拿到失败结果时仓储状态已经一致。
-            inventoryAuditDeadLetterRepository.markAuditDeadLetterReplayFailed(
+            inventoryAuditDeadLetterRepository.markReplayFailed(
                     DeadLetterId.of(OutboxIdCodec.toValue(deadLetter.getOutboxId())),
                     replayKey,
                     operatorType,
                     operatorId,
                     truncateError(ex.getMessage()),
                     replayAt);
-            inventoryAuditRecordRepository.insertAuditLog(InventoryAuditLog.create(
+            inventoryAuditRecordRepository.insertLog(InventoryAuditLog.create(
                     idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
                     deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(),

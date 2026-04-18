@@ -36,7 +36,7 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
     }
 
     @Override
-    public OrderPageFacadeResponse pageOrders(OrderPageFacadeRequest request) {
+    public OrderPageFacadeResponse page(OrderPageFacadeRequest request) {
         // 分页查询只透传当前 provider 实际支持的条件；其余筛选条件应先在契约层明确后再下沉到这里。
         return restClient
                 .get()

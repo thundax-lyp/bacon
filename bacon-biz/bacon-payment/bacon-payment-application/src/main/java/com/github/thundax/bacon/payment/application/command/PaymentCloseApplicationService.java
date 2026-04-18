@@ -30,7 +30,7 @@ public class PaymentCloseApplicationService {
             throw new PaymentDomainException(PaymentErrorCode.INVALID_CLOSE_REASON, reason);
         }
         PaymentOrder paymentOrder = paymentOrderRepository
-                .findOrderByPaymentNo(paymentNo)
+                .findByPaymentNo(paymentNo)
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo));
         // 已关闭视为幂等成功；已支付和已失败则显式拒绝关闭，避免把终态单误判成可关闭状态。
         if (PaymentStatus.CLOSED == paymentOrder.getPaymentStatus()) {
@@ -63,7 +63,7 @@ public class PaymentCloseApplicationService {
         String beforeStatus = paymentOrder.getPaymentStatus().value();
         Instant closedAt = Instant.now();
         paymentOrder.close(closedAt);
-        paymentOrderRepository.save(paymentOrder);
+        paymentOrderRepository.update(paymentOrder);
         paymentOperationLogSupport.recordClose(
                 paymentNo, beforeStatus, paymentOrder.getPaymentStatus().value(), closedAt);
         return new PaymentCloseResult(

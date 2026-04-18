@@ -34,8 +34,8 @@ public class OrderReadFacadeLocalImpl implements OrderReadFacade {
     }
 
     @Override
-    public OrderPageFacadeResponse pageOrders(OrderPageFacadeRequest request) {
-        return OrderFacadeResponseAssembler.fromPageDto(orderQueryService.pageOrders(
+    public OrderPageFacadeResponse page(OrderPageFacadeRequest request) {
+        return OrderFacadeResponseAssembler.fromPageDto(orderQueryService.page(
                 UserIdCodec.toDomain(request.getUserId()),
                 OrderNoCodec.toDomain(request.getOrderNo()),
                 request.getOrderStatus() == null ? null : OrderStatus.from(request.getOrderStatus()),

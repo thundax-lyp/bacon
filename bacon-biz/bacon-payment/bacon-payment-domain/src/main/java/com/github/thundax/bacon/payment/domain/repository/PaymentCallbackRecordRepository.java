@@ -6,11 +6,11 @@ import java.util.Optional;
 
 public interface PaymentCallbackRecordRepository {
 
-    PaymentCallbackRecord save(PaymentCallbackRecord callbackRecord);
+    PaymentCallbackRecord insert(PaymentCallbackRecord callbackRecord);
 
-    Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(String paymentNo);
+    Optional<PaymentCallbackRecord> findLatestByPaymentNo(String paymentNo);
 
-    Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(String channelCode, String channelTransactionNo);
+    Optional<PaymentCallbackRecord> findByChannelTransactionNo(String channelCode, String channelTransactionNo);
 
-    List<PaymentCallbackRecord> findCallbacksByPaymentNo(String paymentNo);
+    List<PaymentCallbackRecord> listByPaymentNo(String paymentNo);
 }

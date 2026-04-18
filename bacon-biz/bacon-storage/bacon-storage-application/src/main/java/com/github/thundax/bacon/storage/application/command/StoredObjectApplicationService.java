@@ -61,7 +61,7 @@ public class StoredObjectApplicationService {
     @Transactional
     public StoredObjectDTO uploadObject(UploadObjectCommand command) {
         storageUploadLimitValidator.validateSingleUpload(command.getSize());
-        StoredObjectStorageResult storageResult = storedObjectStorageRepository.upload(
+        StoredObjectStorageResult storageResult = storedObjectStorageRepository.insert(
                 command.getCategory(),
                 command.getOriginalFilename(),
                 command.getContentType(),
@@ -99,9 +99,9 @@ public class StoredObjectApplicationService {
         ensureAvailable(storedObject, storedObjectNo);
         String beforeStatus = storedObject.getReferenceStatus().value();
         StoredObjectReference reference = StoredObjectReference.create(storedObjectId, ownerType, ownerId);
-        boolean created = storedObjectReferenceRepository.saveIfAbsent(reference);
+        boolean created = storedObjectReferenceRepository.insert(reference);
         StoredObject savedObject =
-                syncReferenceStatus(storedObject, storedObjectReferenceRepository.existsByObjectId(storedObjectId));
+                syncReferenceStatus(storedObject, storedObjectReferenceRepository.exists(storedObjectId));
         if (!created) {
             return;
         }
@@ -123,9 +123,9 @@ public class StoredObjectApplicationService {
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + storedObjectNo));
         StoredObjectId storedObjectId = storedObject.getId();
         String beforeStatus = storedObject.getReferenceStatus().value();
-        boolean deleted = storedObjectReferenceRepository.deleteByObjectIdAndOwner(storedObjectId, ownerType, ownerId);
+        boolean deleted = storedObjectReferenceRepository.delete(storedObjectId, ownerType, ownerId);
         StoredObject savedObject =
-                syncReferenceStatus(storedObject, storedObjectReferenceRepository.existsByObjectId(storedObjectId));
+                syncReferenceStatus(storedObject, storedObjectReferenceRepository.exists(storedObjectId));
         if (!deleted) {
             return;
         }

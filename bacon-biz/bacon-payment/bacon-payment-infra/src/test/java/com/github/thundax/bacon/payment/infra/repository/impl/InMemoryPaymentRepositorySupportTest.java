@@ -57,14 +57,14 @@ class InMemoryPaymentRepositorySupportTest {
         assertEquals(
                 "PAY-10001",
                 repository
-                        .findOrderByPaymentNo("PAY-10001")
+                        .findByPaymentNo("PAY-10001")
                         .orElseThrow()
                         .getPaymentNo()
                         .value());
         assertEquals(
                 "ORD-10001",
                 repository
-                        .findOrderByOrderNo("ORD-10001")
+                        .findByOrderNo("ORD-10001")
                         .orElseThrow()
                         .getOrderNo()
                         .value());
@@ -115,9 +115,9 @@ class InMemoryPaymentRepositorySupportTest {
                 second));
 
         PaymentCallbackRecord latest =
-                repository.findLatestCallbackByPaymentNo("PAY-10002").orElseThrow();
-        List<PaymentCallbackRecord> callbacks = repository.findCallbacksByPaymentNo("PAY-10002");
-        List<PaymentAuditLog> auditLogs = repository.findAuditLogsByPaymentNo("PAY-10002");
+                repository.findLatestByPaymentNo("PAY-10002").orElseThrow();
+        List<PaymentCallbackRecord> callbacks = repository.listByPaymentNo("PAY-10002");
+        List<PaymentAuditLog> auditLogs = repository.listAuditLogsByPaymentNo("PAY-10002");
 
         assertEquals("TXN-2", latest.getChannelTransactionNo());
         assertEquals(2, callbacks.size());
@@ -140,7 +140,7 @@ class InMemoryPaymentRepositorySupportTest {
                 Instant.parse("2026-03-27T10:03:00Z")));
 
         PaymentCallbackRecord callbackRecord = repository
-                .findCallbackByChannelTransactionNo("MOCK", "TXN-30001")
+                .findByChannelTransactionNo("MOCK", "TXN-30001")
                 .orElseThrow();
 
         assertEquals("PAY-10003", callbackRecord.getPaymentNo().value());

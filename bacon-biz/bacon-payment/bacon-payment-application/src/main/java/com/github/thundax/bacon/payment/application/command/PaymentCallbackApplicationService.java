@@ -54,14 +54,14 @@ public class PaymentCallbackApplicationService {
         validateChannel(channelCode);
         validateSuccessCallbackPayload(channelTransactionNo, channelStatus, rawPayload);
         PaymentOrder paymentOrder = paymentOrderRepository
-                .findOrderByPaymentNo(paymentNo)
+                .findByPaymentNo(paymentNo)
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo));
         PaymentCallbackRecord existing = paymentCallbackRecordRepository
-                .findCallbackByChannelTransactionNo(channelCode, channelTransactionNo)
+                .findByChannelTransactionNo(channelCode, channelTransactionNo)
                 .orElse(null);
         // 成功回调先按渠道交易号落幂等记录，再驱动主单状态；这样即使后续编排失败，也不会丢失渠道侧证据。
         PaymentCallbackRecord callbackRecord = existing == null
-                ? paymentCallbackRecordRepository.save(PaymentCallbackRecord.create(
+                ? paymentCallbackRecordRepository.insert(PaymentCallbackRecord.create(
                         idGenerator.nextId(PAYMENT_CALLBACK_RECORD_ID_BIZ_TAG),
                         PaymentNo.of(paymentNo),
                         paymentOrder.getOrderNo(),
@@ -100,7 +100,7 @@ public class PaymentCallbackApplicationService {
                 callbackRecord.getChannelTransactionNo(),
                 callbackRecord.getChannelStatus(),
                 callbackRecord.summarize());
-        paymentOrderRepository.save(paymentOrder);
+        paymentOrderRepository.update(paymentOrder);
         paymentOperationLogSupport.recordCallback(
                 PaymentAuditActionType.CALLBACK_PAID,
                 paymentNo,
@@ -121,16 +121,16 @@ public class PaymentCallbackApplicationService {
         validateChannel(channelCode);
         validateFailedCallbackPayload(channelStatus, rawPayload, reason);
         PaymentOrder paymentOrder = paymentOrderRepository
-                .findOrderByPaymentNo(paymentNo)
+                .findByPaymentNo(paymentNo)
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo));
         PaymentCallbackRecord latestRecord = paymentCallbackRecordRepository
-                .findLatestCallbackByPaymentNo(paymentNo)
+                .findLatestByPaymentNo(paymentNo)
                 .orElse(null);
         // 失败回调没有稳定的渠道交易号时，只能按“最近一条内容是否相同”去重，避免同一失败通知被无限累积。
         if (latestRecord == null
                 || !channelStatus.equals(latestRecord.getChannelStatus().value())
                 || !rawPayload.equals(latestRecord.getRawPayload())) {
-            paymentCallbackRecordRepository.save(PaymentCallbackRecord.create(
+            paymentCallbackRecordRepository.insert(PaymentCallbackRecord.create(
                     idGenerator.nextId(PAYMENT_CALLBACK_RECORD_ID_BIZ_TAG),
                     PaymentNo.of(paymentNo),
                     paymentOrder.getOrderNo(),
@@ -166,7 +166,7 @@ public class PaymentCallbackApplicationService {
         paymentOrder.markFailed(
                 PaymentChannelStatus.fromValue(channelStatus),
                 rawPayload.length() <= 255 ? rawPayload : rawPayload.substring(0, 255));
-        paymentOrderRepository.save(paymentOrder);
+        paymentOrderRepository.update(paymentOrder);
         paymentOperationLogSupport.recordCallback(
                 PaymentAuditActionType.CALLBACK_FAILED,
                 paymentNo,

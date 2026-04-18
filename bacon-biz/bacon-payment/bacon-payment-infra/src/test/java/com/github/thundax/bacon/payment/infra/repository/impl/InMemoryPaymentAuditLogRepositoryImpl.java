@@ -19,12 +19,12 @@ public class InMemoryPaymentAuditLogRepositoryImpl implements PaymentAuditLogRep
     }
 
     @Override
-    public void save(PaymentAuditLog auditLog) {
+    public void insert(PaymentAuditLog auditLog) {
         support.saveAuditLog(auditLog);
     }
 
     @Override
-    public List<PaymentAuditLog> findAuditLogsByPaymentNo(String paymentNo) {
-        return support.findAuditLogsByPaymentNo(paymentNo);
+    public List<PaymentAuditLog> listLogsByPaymentNo(String paymentNo) {
+        return support.listAuditLogsByPaymentNo(paymentNo);
     }
 }

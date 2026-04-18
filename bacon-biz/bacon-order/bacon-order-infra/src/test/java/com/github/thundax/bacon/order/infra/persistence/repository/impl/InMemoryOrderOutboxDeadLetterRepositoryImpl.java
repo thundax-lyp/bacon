@@ -18,7 +18,7 @@ public class InMemoryOrderOutboxDeadLetterRepositoryImpl implements OrderOutboxD
     }
 
     @Override
-    public void insertDeadLetter(OrderOutboxDeadLetter deadLetter) {
-        support.insertDeadLetter(deadLetter);
+    public void insert(OrderOutboxDeadLetter deadLetter) {
+        support.insert(deadLetter);
     }
 }

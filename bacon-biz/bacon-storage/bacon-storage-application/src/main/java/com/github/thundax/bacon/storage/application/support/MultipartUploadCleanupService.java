@@ -43,7 +43,7 @@ public class MultipartUploadCleanupService {
             return 0;
         }
         Instant expireBefore = Instant.now().minusSeconds(properties.getTimeoutSeconds());
-        List<MultipartUploadSession> expiredSessions = multipartUploadSessionRepository.listExpiredSessions(
+        List<MultipartUploadSession> expiredSessions = multipartUploadSessionRepository.listExpired(
                 EXPIRED_UPLOAD_STATUSES, expireBefore, properties.getBatchSize());
         int cleanedCount = 0;
         for (MultipartUploadSession session : expiredSessions) {
@@ -74,7 +74,7 @@ public class MultipartUploadCleanupService {
     }
 
     protected void cleanupSingleSession(MultipartUploadSession session) {
-        storedObjectStorageRepository.abortMultipartUpload(session);
+        storedObjectStorageRepository.delete(session);
         multipartUploadPartRepository.deleteByUploadId(session.getUploadId());
         if (!session.isAborted()) {
             session.markAborted();

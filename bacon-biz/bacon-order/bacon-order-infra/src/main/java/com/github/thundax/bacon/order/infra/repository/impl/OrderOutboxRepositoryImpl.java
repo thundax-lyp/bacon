@@ -19,14 +19,14 @@ public class OrderOutboxRepositoryImpl implements OrderOutboxRepository {
     }
 
     @Override
-    public void insertOutboxEvent(OrderOutboxEvent event) {
-        support.insertOutboxEvent(event);
+    public void insert(OrderOutboxEvent event) {
+        support.insert(event);
     }
 
     @Override
-    public List<OrderOutboxEvent> claimRetryableOutbox(
+    public List<OrderOutboxEvent> claimRetryable(
             Instant now, int limit, String processingOwner, Instant leaseUntil) {
-        return support.claimRetryableOutbox(now, limit, processingOwner, leaseUntil);
+        return support.claimRetryable(now, limit, processingOwner, leaseUntil);
     }
 
     @Override

@@ -32,7 +32,7 @@ public class InMemoryOrderOutboxSupport {
     private final Map<OutboxId, OrderOutboxEvent> outboxStorage = new ConcurrentHashMap<>();
     private final Map<Long, OrderOutboxDeadLetter> deadLetterStorage = new ConcurrentHashMap<>();
 
-    public synchronized void insertOutboxEvent(OrderOutboxEvent event) {
+    public synchronized void insert(OrderOutboxEvent event) {
         Instant now = Instant.now();
         if (event.getId() == null) {
             event.setId(OutboxId.of(outboxIdGenerator.getAndIncrement()));
@@ -53,7 +53,7 @@ public class InMemoryOrderOutboxSupport {
         outboxStorage.put(event.getId(), copy(event));
     }
 
-    public synchronized List<OrderOutboxEvent> claimRetryableOutbox(
+    public synchronized List<OrderOutboxEvent> claimRetryable(
             Instant now, int limit, String processingOwner, Instant leaseUntil) {
         List<OrderOutboxEvent> candidates = outboxStorage.values().stream()
                 .filter(event ->
@@ -160,7 +160,7 @@ public class InMemoryOrderOutboxSupport {
         return true;
     }
 
-    public synchronized void insertDeadLetter(OrderOutboxDeadLetter deadLetter) {
+    public synchronized void insert(OrderOutboxDeadLetter deadLetter) {
         Instant now = Instant.now();
         if (deadLetter.getReplayStatus() == null) {
             deadLetter.setReplayStatus(OrderOutboxReplayStatus.PENDING);

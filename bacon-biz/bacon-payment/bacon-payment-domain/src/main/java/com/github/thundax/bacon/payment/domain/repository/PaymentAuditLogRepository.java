@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface PaymentAuditLogRepository {
 
-    void save(PaymentAuditLog auditLog);
+    void insert(PaymentAuditLog auditLog);
 
-    List<PaymentAuditLog> findAuditLogsByPaymentNo(String paymentNo);
+    List<PaymentAuditLog> listLogsByPaymentNo(String paymentNo);
 }

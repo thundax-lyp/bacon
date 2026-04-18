@@ -44,7 +44,7 @@ public class MultipartUploadSessionRepositoryImpl implements MultipartUploadSess
     }
 
     @Override
-    public List<MultipartUploadSession> listExpiredSessions(
+    public List<MultipartUploadSession> listExpired(
             List<UploadStatus> uploadStatuses, Instant expireBefore, int limit) {
         return multipartUploadSessionMapper
                 .selectList(Wrappers.<MultipartUploadSessionDO>lambdaQuery()

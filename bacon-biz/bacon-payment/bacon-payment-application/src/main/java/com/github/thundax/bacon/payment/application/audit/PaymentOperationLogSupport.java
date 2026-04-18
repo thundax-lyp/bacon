@@ -28,7 +28,7 @@ public class PaymentOperationLogSupport {
 
     public void saveSafely(PaymentAuditLog auditLog) {
         try {
-            paymentAuditLogRepository.save(auditLog);
+            paymentAuditLogRepository.insert(auditLog);
         } catch (RuntimeException ex) {
             log.error(
                     "ALERT payment audit write failed, paymentNo={}, actionType={}",

@@ -82,7 +82,7 @@ public class OrderRepositorySupport {
         log.info("Using MyBatis-Plus order repository");
     }
 
-    public Order insertOrder(Order order) {
+    public Order insert(Order order) {
         OrderDO dataObject = orderPersistenceAssembler.toDataObject(order);
         dataObject.setUpdatedAt(Instant.now());
         dataObject.setId(idGenerator.nextId(ORDER_ID_BIZ_TAG));
@@ -91,7 +91,7 @@ public class OrderRepositorySupport {
         return order;
     }
 
-    public Order updateOrder(Order order) {
+    public Order update(Order order) {
         OrderDO dataObject = orderPersistenceAssembler.toDataObject(order);
         dataObject.setUpdatedAt(Instant.now());
         // 订单主表只承载主单核心字段；支付和库存侧派生信息不直接塞回主表，而是走快照表分开维护。
@@ -122,7 +122,7 @@ public class OrderRepositorySupport {
         }
     }
 
-    public List<OrderItem> findItemsByOrderId(Long orderId) {
+    public List<OrderItem> listItemsByOrderId(Long orderId) {
         BaconContextHolder.requireTenantId();
         return orderItemMapper
                 .selectList(Wrappers.<OrderItemDO>lambdaQuery()
@@ -133,7 +133,7 @@ public class OrderRepositorySupport {
                 .toList();
     }
 
-    public void insertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
+    public void insertPayment(OrderPaymentSnapshot snapshot) {
         BaconContextHolder.requireTenantId();
         OrderPaymentSnapshotDO dataObject = orderPaymentSnapshotPersistenceAssembler.toDataObject(snapshot);
         dataObject.setId(idGenerator.nextId(PAYMENT_SNAPSHOT_ID_BIZ_TAG));
@@ -141,7 +141,7 @@ public class OrderRepositorySupport {
         orderPaymentSnapshotMapper.insert(dataObject);
     }
 
-    public void updatePaymentSnapshot(OrderPaymentSnapshot snapshot) {
+    public void updatePayment(OrderPaymentSnapshot snapshot) {
         BaconContextHolder.requireTenantId();
         OrderPaymentSnapshotDO existing =
                 orderPaymentSnapshotMapper.selectOne(Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
@@ -157,21 +157,21 @@ public class OrderRepositorySupport {
         orderPaymentSnapshotMapper.updateById(dataObject);
     }
 
-    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId) {
+    public Optional<OrderPaymentSnapshot> findPaymentByOrderId(Long orderId) {
         BaconContextHolder.requireTenantId();
         return Optional.ofNullable(orderPaymentSnapshotMapper.selectOne(
                         Wrappers.<OrderPaymentSnapshotDO>lambdaQuery().eq(OrderPaymentSnapshotDO::getOrderId, orderId)))
                 .map(orderPaymentSnapshotPersistenceAssembler::toDomain);
     }
 
-    public void insertInventorySnapshot(OrderInventorySnapshot snapshot) {
+    public void insertInventory(OrderInventorySnapshot snapshot) {
         BaconContextHolder.requireTenantId();
         OrderInventorySnapshotDO dataObject = orderInventorySnapshotPersistenceAssembler.toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
         orderInventorySnapshotMapper.insert(dataObject);
     }
 
-    public void updateInventorySnapshot(OrderInventorySnapshot snapshot) {
+    public void updateInventory(OrderInventorySnapshot snapshot) {
         BaconContextHolder.requireTenantId();
         OrderInventorySnapshotDO existing =
                 orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
@@ -187,7 +187,7 @@ public class OrderRepositorySupport {
         orderInventorySnapshotMapper.updateById(dataObject);
     }
 
-    public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(String orderNo) {
+    public Optional<OrderInventorySnapshot> findInventoryByOrderNo(String orderNo) {
         BaconContextHolder.requireTenantId();
         return Optional.ofNullable(
                         orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
@@ -195,7 +195,7 @@ public class OrderRepositorySupport {
                 .map(orderInventorySnapshotPersistenceAssembler::toDomain);
     }
 
-    public void insertAuditLog(OrderAuditLog auditLog) {
+    public void insertLog(OrderAuditLog auditLog) {
         OrderAuditLogDO dataObject = orderAuditLogPersistenceAssembler.toDataObject(auditLog);
         if (dataObject.getId() == null) {
             dataObject.setId(idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG));
@@ -203,7 +203,7 @@ public class OrderRepositorySupport {
         orderAuditLogMapper.insert(dataObject);
     }
 
-    public List<OrderAuditLog> findAuditLogs(String orderNo) {
+    public List<OrderAuditLog> listLogs(String orderNo) {
         BaconContextHolder.requireTenantId();
         return orderAuditLogMapper
                 .selectList(Wrappers.<OrderAuditLogDO>lambdaQuery()
@@ -214,7 +214,7 @@ public class OrderRepositorySupport {
                 .toList();
     }
 
-    public long countOrders(
+    public long count(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -228,7 +228,7 @@ public class OrderRepositorySupport {
                 .orElse(0L);
     }
 
-    public List<Order> pageOrders(
+    public List<Order> page(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -242,15 +242,15 @@ public class OrderRepositorySupport {
         int normalizedPageNo = Math.max(pageNo, 1);
         int normalizedPageSize = Math.max(pageSize, 1);
         int offset = Math.max(0, (normalizedPageNo - 1) * normalizedPageSize);
-        List<OrderDO> pageOrders = orderMapper.selectList(
+        List<OrderDO> page = orderMapper.selectList(
                 buildPageQuery(userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
                         .orderByDesc(OrderDO::getCreatedAt, OrderDO::getId)
                         .last("limit " + offset + "," + normalizedPageSize));
-        if (pageOrders.isEmpty()) {
+        if (page.isEmpty()) {
             return List.of();
         }
-        List<String> orderNos = pageOrders.stream().map(OrderDO::getOrderNo).toList();
-        List<Long> orderIds = pageOrders.stream().map(OrderDO::getId).toList();
+        List<String> orderNos = page.stream().map(OrderDO::getOrderNo).toList();
+        List<Long> orderIds = page.stream().map(OrderDO::getId).toList();
         // 分页查询先批量拉主单，再一次性批量拉支付/库存快照，避免逐单 N+1 查询。
         Map<Long, OrderPaymentSnapshotDO> paymentSnapshotMap = orderPaymentSnapshotMapper
                 .selectList(
@@ -264,7 +264,7 @@ public class OrderRepositorySupport {
                 .stream()
                 .collect(Collectors.toMap(
                         OrderInventorySnapshotDO::getOrderNo, Function.identity(), (left, right) -> left));
-        List<Order> records = pageOrders.stream()
+        List<Order> records = page.stream()
                 .map(orderData -> orderPersistenceAssembler.toDomain(
                         orderData,
                         paymentSnapshotMap.get(orderData.getId()),
@@ -273,7 +273,7 @@ public class OrderRepositorySupport {
         return records;
     }
 
-    public List<Order> findAll() {
+    public List<Order> list() {
         return orderMapper
                 .selectList(Wrappers.<OrderDO>lambdaQuery().orderByDesc(OrderDO::getCreatedAt, OrderDO::getId))
                 .stream()

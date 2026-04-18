@@ -23,14 +23,14 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.menuMapper = menuMapper;
     }
 
-    List<Menu> listMenus() {
+    List<Menu> list() {
         requireTenantId();
         return menuMapper.selectList(Wrappers.<MenuDO>lambdaQuery().orderByAsc(MenuDO::getSort, MenuDO::getId)).stream()
                 .map(MenuPersistenceAssembler::toDomain)
                 .toList();
     }
 
-    Optional<Menu> findMenuById(MenuId menuId) {
+    Optional<Menu> findById(MenuId menuId) {
         requireTenantId();
         return Optional.ofNullable(
                         menuMapper.selectOne(Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getId, menuId.value())))
@@ -49,12 +49,12 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return MenuPersistenceAssembler.toDomain(dataObject);
     }
 
-    void deleteMenu(MenuId menuId) {
+    void delete(MenuId menuId) {
         requireTenantId();
         menuMapper.delete(Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getId, menuId.value()));
     }
 
-    boolean existsChildMenu(MenuId menuId) {
+    boolean existsChild(MenuId menuId) {
         requireTenantId();
         return Optional.ofNullable(menuMapper.selectCount(
                                 Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getParentId, menuId.value())))

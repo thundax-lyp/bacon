@@ -44,23 +44,23 @@ public class RoleApplicationService {
 
     public RoleDTO getRoleById(RoleId roleId) {
         return RoleAssembler.toDto(roleRepository
-                .findRoleById(roleId)
+                .findById(roleId)
                 .orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value())));
     }
 
     public List<RoleDTO> getRolesByUserId(UserId userId) {
-        return roleRepository.findRolesByUserId(userId).stream()
+        return roleRepository.findByUserId(userId).stream()
                 .map(RoleAssembler::toDto)
                 .toList();
     }
 
-    public PageResultDTO<RoleDTO> pageRoles(
+    public PageResultDTO<RoleDTO> page(
             String code, String name, RoleType roleType, RoleStatus status, Integer pageNo, Integer pageSize) {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         return new PageResultDTO<>(
                 roleRepository
-                        .pageRoles(
+                        .page(
                                 RoleCodeCodec.toDomain(code),
                                 name,
                                 roleType,
@@ -70,7 +70,7 @@ public class RoleApplicationService {
                         .stream()
                         .map(RoleAssembler::toDto)
                         .toList(),
-                roleRepository.countRoles(RoleCodeCodec.toDomain(code), name, roleType, status),
+                roleRepository.count(RoleCodeCodec.toDomain(code), name, roleType, status),
                 normalizedPageNo,
                 normalizedPageSize);
     }
@@ -92,7 +92,7 @@ public class RoleApplicationService {
     public RoleDTO updateRole(
             RoleId roleId, String code, String name, RoleType roleType, RoleDataScopeType dataScopeType) {
         Role currentRole = roleRepository
-                .findRoleById(roleId)
+                .findById(roleId)
                 .orElseThrow(() -> new NotFoundException("Role not found: " + roleId));
         validateRequired(code, "code");
         validateRequired(name, "name");
@@ -110,7 +110,7 @@ public class RoleApplicationService {
     @Transactional
     public RoleDTO updateRoleStatus(RoleId roleId, RoleStatus status) {
         Role role = roleRepository
-                .findRoleById(roleId)
+                .findById(roleId)
                 .orElseThrow(() -> new NotFoundException("Role not found: " + roleId));
         if (RoleStatus.ACTIVE == status) {
             role.activate();
@@ -121,11 +121,11 @@ public class RoleApplicationService {
     }
 
     @Transactional
-    public void deleteRole(RoleId roleId) {
+    public void delete(RoleId roleId) {
         roleRepository
-                .findRoleById(roleId)
+                .findById(roleId)
                 .orElseThrow(() -> new NotFoundException("Role not found: " + roleId));
-        roleRepository.deleteRole(roleId);
+        roleRepository.delete(roleId);
     }
 
     public Set<String> getMenuIds(RoleId roleId) {

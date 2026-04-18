@@ -66,8 +66,8 @@ class StorageAuditOutboxRetryServiceTest {
     @Test
     void shouldDeleteOutboxWhenRetrySucceeds() {
         StorageAuditOutbox item = outbox(100L, 0);
-        when(storageAuditOutboxRepository.listRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
-        when(storageAuditOutboxRepository.claimForProcessing(eq(100L), any(), any(), any()))
+        when(storageAuditOutboxRepository.findRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
+        when(storageAuditOutboxRepository.claim(eq(100L), any(), any(), any()))
                 .thenReturn(true);
 
         int processed = service.retryOutbox();
@@ -87,8 +87,8 @@ class StorageAuditOutboxRetryServiceTest {
     @Test
     void shouldMarkRetryWhenRetryFailsBelowMaxRetries() {
         StorageAuditOutbox item = outbox(101L, 0);
-        when(storageAuditOutboxRepository.listRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
-        when(storageAuditOutboxRepository.claimForProcessing(eq(101L), any(), any(), any()))
+        when(storageAuditOutboxRepository.findRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
+        when(storageAuditOutboxRepository.claim(eq(101L), any(), any(), any()))
                 .thenReturn(true);
         doThrow(new IllegalStateException("retry-fail"))
                 .when(storageAuditLogRepository)
@@ -110,8 +110,8 @@ class StorageAuditOutboxRetryServiceTest {
     @Test
     void shouldMarkDeadWhenRetryExhausted() {
         StorageAuditOutbox item = outbox(102L, 2);
-        when(storageAuditOutboxRepository.listRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
-        when(storageAuditOutboxRepository.claimForProcessing(eq(102L), any(), any(), any()))
+        when(storageAuditOutboxRepository.findRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
+        when(storageAuditOutboxRepository.claim(eq(102L), any(), any(), any()))
                 .thenReturn(true);
         doThrow(new IllegalStateException("retry-fail"))
                 .when(storageAuditLogRepository)
@@ -131,7 +131,7 @@ class StorageAuditOutboxRetryServiceTest {
 
     @Test
     void shouldCleanupExpiredDeadOutbox() {
-        when(storageAuditOutboxRepository.deleteExpiredDead(any(), eq(100))).thenReturn(2);
+        when(storageAuditOutboxRepository.deleteExpired(any(), eq(100))).thenReturn(2);
 
         int deleted = service.cleanupExpiredDeadOutbox();
 
@@ -147,8 +147,8 @@ class StorageAuditOutboxRetryServiceTest {
     @Test
     void shouldSkipOutboxWhenClaimFails() {
         StorageAuditOutbox item = outbox(103L, 0);
-        when(storageAuditOutboxRepository.listRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
-        when(storageAuditOutboxRepository.claimForProcessing(eq(103L), any(), any(), any()))
+        when(storageAuditOutboxRepository.findRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
+        when(storageAuditOutboxRepository.claim(eq(103L), any(), any(), any()))
                 .thenReturn(false);
 
         int processed = service.retryOutbox();

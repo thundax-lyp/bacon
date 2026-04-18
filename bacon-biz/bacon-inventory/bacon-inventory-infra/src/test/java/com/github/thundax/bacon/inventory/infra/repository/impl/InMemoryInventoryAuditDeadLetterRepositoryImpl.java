@@ -26,54 +26,54 @@ public class InMemoryInventoryAuditDeadLetterRepositoryImpl implements Inventory
     }
 
     @Override
-    public void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
-        support.insertAuditDeadLetter(deadLetter);
+    public void insert(InventoryAuditDeadLetter deadLetter) {
+        support.insert(deadLetter);
     }
 
     @Override
-    public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
+    public List<InventoryAuditDeadLetter> page(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
-        return support.pageAuditDeadLetters(orderNo, replayStatus, pageNo, pageSize);
+        return support.page(orderNo, replayStatus, pageNo, pageSize);
     }
 
     @Override
-    public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
-        return support.countAuditDeadLetters(orderNo, replayStatus);
+    public long count(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+        return support.count(orderNo, replayStatus);
     }
 
     @Override
-    public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
-        return support.findAuditDeadLetterById(id);
+    public Optional<InventoryAuditDeadLetter> findById(DeadLetterId id) {
+        return support.findById(id);
     }
 
     @Override
-    public boolean claimAuditDeadLetterForReplay(
+    public boolean claimForReplay(
             DeadLetterId id,
             String replayKey,
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,
             Instant replayAt) {
-        return support.claimAuditDeadLetterForReplay(id, replayKey, operatorType, operatorId, replayAt);
+        return support.claimForReplay(id, replayKey, operatorType, operatorId, replayAt);
     }
 
     @Override
-    public void markAuditDeadLetterReplaySuccess(
+    public void markReplaySuccess(
             DeadLetterId id,
             String replayKey,
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,
             Instant replayAt) {
-        support.markAuditDeadLetterReplaySuccess(id, replayKey, operatorType, operatorId, replayAt);
+        support.markReplaySuccess(id, replayKey, operatorType, operatorId, replayAt);
     }
 
     @Override
-    public void markAuditDeadLetterReplayFailed(
+    public void markReplayFailed(
             DeadLetterId id,
             String replayKey,
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,
             String replayError,
             Instant replayAt) {
-        support.markAuditDeadLetterReplayFailed(id, replayKey, operatorType, operatorId, replayError, replayAt);
+        support.markReplayFailed(id, replayKey, operatorType, operatorId, replayError, replayAt);
     }
 }

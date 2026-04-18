@@ -25,19 +25,19 @@ public class PaymentQueryApplicationService {
 
     public PaymentDetailDTO getByPaymentNo(String paymentNo) {
         return toDetail(paymentOrderRepository
-                .findOrderByPaymentNo(paymentNo)
+                .findByPaymentNo(paymentNo)
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo)));
     }
 
     public PaymentDetailDTO getByOrderNo(String orderNo) {
         return toDetail(paymentOrderRepository
-                .findOrderByOrderNo(orderNo)
+                .findByOrderNo(orderNo)
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, orderNo)));
     }
 
     private PaymentDetailDTO toDetail(PaymentOrder paymentOrder) {
         PaymentCallbackRecord latestRecord = paymentCallbackRecordRepository
-                .findLatestCallbackByPaymentNo(paymentOrder.getPaymentNo().value())
+                .findLatestByPaymentNo(paymentOrder.getPaymentNo().value())
                 .orElse(null);
         return PaymentOrderAssembler.toDetail(paymentOrder, latestRecord);
     }

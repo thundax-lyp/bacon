@@ -39,7 +39,7 @@ public class OrderIdempotencyExecutor {
         OrderIdempotencyRecordKey key = OrderIdempotencyRecordKeyCodec.toDomain(orderNo, eventType);
         OrderIdempotencyRecord record = OrderIdempotencyRecord.create(key, owner, leaseUntil, now);
         // 先尝试插入 PROCESSING 记录，天然覆盖“首次执行”路径；失败后再分流到重复成功、仍在处理、失败重试三类情况。
-        if (!orderIdempotencyRepository.insertProcessing(record)) {
+        if (!orderIdempotencyRepository.insert(record)) {
             if (skipForDuplicateSuccessOrProcessing(key, now)) {
                 return;
             }
@@ -65,23 +65,23 @@ public class OrderIdempotencyExecutor {
     }
 
     private boolean tryClaim(OrderIdempotencyRecordKey key, String owner, Instant leaseUntil, Instant now) {
-        Optional<OrderIdempotencyRecord> existing = orderIdempotencyRepository.findByBusinessKey(key);
+        Optional<OrderIdempotencyRecord> existing = orderIdempotencyRepository.findByKey(key);
         if (existing.isEmpty()) {
             return false;
         }
         OrderIdempotencyStatus status = existing.get().getStatus();
         // FAILED 允许显式重试重新抢占；PROCESSING 只有租约过期后才允许别的节点接管。
         if (status == OrderIdempotencyStatus.FAILED) {
-            return orderIdempotencyRepository.recoverFromFailed(key, owner, leaseUntil, now, now);
+            return orderIdempotencyRepository.recoverFailed(key, owner, leaseUntil, now, now);
         }
         if (status == OrderIdempotencyStatus.PROCESSING && isLeaseExpired(existing.get(), now)) {
-            return orderIdempotencyRepository.claimExpiredProcessing(key, owner, leaseUntil, now, now);
+            return orderIdempotencyRepository.claimExpired(key, owner, leaseUntil, now, now);
         }
         return false;
     }
 
     private boolean skipForDuplicateSuccessOrProcessing(OrderIdempotencyRecordKey key, Instant now) {
-        Optional<OrderIdempotencyRecord> existing = orderIdempotencyRepository.findByBusinessKey(key);
+        Optional<OrderIdempotencyRecord> existing = orderIdempotencyRepository.findByKey(key);
         if (existing.isEmpty()) {
             return false;
         }

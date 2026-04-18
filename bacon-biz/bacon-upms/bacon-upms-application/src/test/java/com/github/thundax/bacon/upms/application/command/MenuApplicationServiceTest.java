@@ -39,7 +39,7 @@ class MenuApplicationServiceTest {
     @Test
     void shouldRejectMissingParentMenu() {
         MenuId parentId = MenuId.of(11L);
-        when(menuRepository.findMenuById(parentId)).thenReturn(Optional.empty());
+        when(menuRepository.findById(parentId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.createMenu(MenuType.CATALOG, "Catalog", parentId, null, null, null, null))
                 .isInstanceOf(NotFoundException.class)

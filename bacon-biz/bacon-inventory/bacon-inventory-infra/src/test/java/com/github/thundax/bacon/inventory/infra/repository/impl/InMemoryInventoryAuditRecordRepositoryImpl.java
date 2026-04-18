@@ -26,17 +26,17 @@ public class InMemoryInventoryAuditRecordRepositoryImpl implements InventoryAudi
     }
 
     @Override
-    public List<InventoryLedger> findLedgers(OrderNo orderNo) {
-        return support.findLedgers(orderNo);
+    public List<InventoryLedger> listLedgers(OrderNo orderNo) {
+        return support.listLedgers(orderNo);
     }
 
     @Override
-    public void insertAuditLog(InventoryAuditLog auditLog) {
-        support.insertAuditLog(auditLog);
+    public void insertLog(InventoryAuditLog auditLog) {
+        support.insertLog(auditLog);
     }
 
     @Override
-    public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
-        return support.findAuditLogs(orderNo);
+    public List<InventoryAuditLog> listLogs(OrderNo orderNo) {
+        return support.listLogs(orderNo);
     }
 }

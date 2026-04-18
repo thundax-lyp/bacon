@@ -99,7 +99,7 @@ public class InventoryOperationLogSupport {
     private void saveAuditSafely(
             InventoryReservation reservation, InventoryAuditActionType actionType, Instant occurredAt) {
         try {
-            inventoryAuditRecordRepository.insertAuditLog(InventoryAuditLog.create(
+            inventoryAuditRecordRepository.insertLog(InventoryAuditLog.create(
                     idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),
@@ -128,7 +128,7 @@ public class InventoryOperationLogSupport {
             Instant occurredAt,
             RuntimeException ex) {
         try {
-            inventoryAuditOutboxRepository.insertAuditOutbox(InventoryAuditOutbox.create(
+            inventoryAuditOutboxRepository.insert(InventoryAuditOutbox.create(
                     OutboxId.of(idGenerator.nextId(AUDIT_OUTBOX_ID_BIZ_TAG)),
                     null,
                     reservation.getOrderNo(),

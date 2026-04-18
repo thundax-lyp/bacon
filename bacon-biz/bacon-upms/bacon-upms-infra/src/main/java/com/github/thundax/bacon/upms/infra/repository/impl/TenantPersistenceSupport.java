@@ -49,7 +49,7 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countTenants(String name, String status) {
+    long count(String name, String status) {
         return Optional.ofNullable(tenantMapper.selectCount(Wrappers.<TenantDO>lambdaQuery()
                         .like(hasText(name), TenantDO::getName, name)
                         .eq(hasText(status), TenantDO::getStatus, trim(status))))

@@ -81,9 +81,9 @@ public class InventoryController {
     @Operation(summary = "分页查询库存主数据")
     @HasPermission("inventory:stock:view")
     @GetMapping("/page")
-    public InventoryPageResponse pageInventories(@Valid @ModelAttribute InventoryPageRequest request) {
+    public InventoryPageResponse page(@Valid @ModelAttribute InventoryPageRequest request) {
         InventoryStatus status = request.getStatus() == null ? null : InventoryStatus.from(request.getStatus());
-        return InventoryPageResponse.from(inventoryQueryService.pageInventories(
+        return InventoryPageResponse.from(inventoryQueryService.page(
                 SkuIdCodec.toDomain(request.getSkuId()), status, request.getPageNo(), request.getPageSize()));
     }
 

@@ -7,17 +7,15 @@ import java.util.Optional;
 
 public interface MenuRepository {
 
-    List<Menu> listMenus();
+    List<Menu> list();
 
-    Optional<Menu> findMenuById(MenuId menuId);
+    Optional<Menu> findById(MenuId menuId);
 
     Menu insert(Menu menu);
 
     Menu update(Menu menu);
 
-    Menu updateSort(MenuId menuId, Integer sort);
+    void delete(MenuId menuId);
 
-    void deleteMenu(MenuId menuId);
-
-    boolean existsChildMenu(MenuId menuId);
+    boolean existsChild(MenuId menuId);
 }

@@ -155,9 +155,9 @@ class PaymentRepositorySupportIntegrationTest {
                 Instant.parse("2026-03-27T10:00:00Z")));
 
         PaymentOrder reloadedOrder =
-                paymentRepositorySupport.findOrderByPaymentNo("PAY-IT-10001").orElseThrow();
+                paymentRepositorySupport.findByPaymentNo("PAY-IT-10001").orElseThrow();
         PaymentCallbackRecord reloadedCallback = paymentRepositorySupport
-                .findCallbackByChannelTransactionNo("MOCK", "TXN-IT-10001")
+                .findByChannelTransactionNo("MOCK", "TXN-IT-10001")
                 .orElseThrow();
 
         assertNotNull(persistedOrder.getId());
@@ -168,7 +168,7 @@ class PaymentRepositorySupportIntegrationTest {
         assertEquals(
                 1,
                 paymentRepositorySupport
-                        .findAuditLogsByPaymentNo(persistedOrder.getPaymentNo().value())
+                        .listByPaymentNo(persistedOrder.getPaymentNo().value())
                         .size());
     }
 

@@ -17,6 +17,6 @@ public interface MultipartUploadSessionRepository {
 
     Optional<MultipartUploadSession> findByUploadId(String uploadId);
 
-    List<MultipartUploadSession> listExpiredSessions(
+    List<MultipartUploadSession> listExpired(
             List<UploadStatus> uploadStatuses, Instant expireBefore, int limit);
 }

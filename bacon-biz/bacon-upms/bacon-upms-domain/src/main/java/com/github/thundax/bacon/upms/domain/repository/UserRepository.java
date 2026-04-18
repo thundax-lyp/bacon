@@ -16,21 +16,21 @@ import java.util.Optional;
 
 public interface UserRepository {
 
-    Optional<User> findUserById(UserId userId);
+    Optional<User> findById(UserId userId);
 
-    Optional<User> findUserByAccount(String account);
+    Optional<User> findByAccount(String account);
 
-    Optional<UserIdentity> findUserIdentity(UserIdentityType identityType, String identityValue);
+    Optional<UserIdentity> findIdentity(UserIdentityType identityType, String identityValue);
 
-    Optional<UserIdentity> findUserIdentityByUserId(UserId userId, UserIdentityType identityType);
+    Optional<UserIdentity> findIdentityByUserId(UserId userId, UserIdentityType identityType);
 
-    Optional<UserCredential> findUserCredential(UserId userId, UserCredentialType credentialType);
+    Optional<UserCredential> findCredentialByUserId(UserId userId, UserCredentialType credentialType);
 
-    List<User> pageUsers(String account, String name, String phone, UserStatus status, int pageNo, int pageSize);
+    List<User> page(String account, String name, String phone, UserStatus status, int pageNo, int pageSize);
 
-    long countUsers(String account, String name, String phone, UserStatus status);
+    long count(String account, String name, String phone, UserStatus status);
 
-    List<User> listUsers(String account, String name, String phone, UserStatus status);
+    List<User> list(String account, String name, String phone, UserStatus status);
 
     User insert(
             User user,
@@ -53,5 +53,5 @@ public interface UserRepository {
 
     List<Role> updateRoleIds(UserId userId, List<RoleId> roleIds);
 
-    void deleteUser(UserId userId);
+    void delete(UserId userId);
 }

@@ -10,25 +10,25 @@ public interface InventoryAuditOutboxRepository {
 
     record TenantScopedAuditOutbox(TenantId tenantId, InventoryAuditOutbox outbox) {}
 
-    default void insertAuditOutbox(InventoryAuditOutbox outbox) {}
+    default void insert(InventoryAuditOutbox outbox) {}
 
-    default List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {
+    default List<InventoryAuditOutbox> findRetryable(Instant now, int limit) {
         return List.of();
     }
 
-    default List<TenantScopedAuditOutbox> claimRetryableAuditOutbox(
+    default List<TenantScopedAuditOutbox> claimRetryable(
             Instant now, int limit, String processingOwner, Instant leaseUntil) {
         return List.of();
     }
 
-    default int releaseExpiredAuditOutboxLease(Instant now) {
+    default int releaseExpiredLease(Instant now) {
         return 0;
     }
 
-    default void updateAuditOutboxForRetry(
+    default void updateForRetry(
             OutboxId outboxId, int retryCount, Instant nextRetryAt, String errorMessage, Instant updatedAt) {}
 
-    default boolean updateAuditOutboxForRetryClaimed(
+    default boolean updateForRetryClaimed(
             OutboxId outboxId,
             String processingOwner,
             int retryCount,
@@ -38,16 +38,16 @@ public interface InventoryAuditOutboxRepository {
         return false;
     }
 
-    default void markAuditOutboxDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {}
+    default void markDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {}
 
-    default boolean markAuditOutboxDeadClaimed(
+    default boolean markDeadClaimed(
             OutboxId outboxId, String processingOwner, int retryCount, String deadReason, Instant updatedAt) {
         return false;
     }
 
-    default void deleteAuditOutbox(OutboxId outboxId) {}
+    default void delete(OutboxId outboxId) {}
 
-    default boolean deleteAuditOutboxClaimed(OutboxId outboxId, String processingOwner) {
+    default boolean deleteClaimed(OutboxId outboxId, String processingOwner) {
         return false;
     }
 }

@@ -27,7 +27,7 @@ public class ResourceApplicationService {
         this.resourceRepository = resourceRepository;
     }
 
-    public PageResultDTO<ResourceDTO> pageResources(
+    public PageResultDTO<ResourceDTO> page(
             String code,
             String name,
             ResourceType resourceType,
@@ -38,7 +38,7 @@ public class ResourceApplicationService {
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         return new PageResultDTO<>(
                 resourceRepository
-                        .pageResources(
+                        .page(
                                 ResourceCodeCodec.toDomain(code),
                                 name,
                                 resourceType,
@@ -48,7 +48,7 @@ public class ResourceApplicationService {
                         .stream()
                         .map(ResourceAssembler::toDto)
                         .toList(),
-                resourceRepository.countResources(ResourceCodeCodec.toDomain(code), name, resourceType, status),
+                resourceRepository.count(ResourceCodeCodec.toDomain(code), name, resourceType, status),
                 normalizedPageNo,
                 normalizedPageSize);
     }

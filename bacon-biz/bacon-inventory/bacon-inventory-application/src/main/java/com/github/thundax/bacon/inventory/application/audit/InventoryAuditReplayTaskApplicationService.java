@@ -73,8 +73,8 @@ public class InventoryAuditReplayTaskApplicationService {
                 null,
                 null,
                 now);
-        InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.insertAuditReplayTask(task);
-        inventoryAuditReplayTaskRepository.insertAuditReplayTaskItems(deadLetterIds.stream()
+        InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.insert(task);
+        inventoryAuditReplayTaskRepository.insertItems(deadLetterIds.stream()
                 .map(DeadLetterIdCodec::toDomain)
                 .map(deadLetterId -> InventoryAuditReplayTaskItem.create(
                         idGenerator.nextId(REPLAY_TASK_ITEM_ID_BIZ_TAG), saved.getId(), deadLetterId, now))
@@ -97,7 +97,7 @@ public class InventoryAuditReplayTaskApplicationService {
             return InventoryAuditReplayTaskAssembler.toDto(task);
         }
         Instant now = Instant.now();
-        boolean paused = inventoryAuditReplayTaskRepository.pauseAuditReplayTask(taskId, operatorId, now);
+        boolean paused = inventoryAuditReplayTaskRepository.pause(taskId, operatorId, now);
         if (paused) {
             Metrics.counter("bacon.inventory.audit.replay.task.paused.total").increment();
         }
@@ -112,7 +112,7 @@ public class InventoryAuditReplayTaskApplicationService {
             return InventoryAuditReplayTaskAssembler.toDto(task);
         }
         Instant now = Instant.now();
-        boolean resumed = inventoryAuditReplayTaskRepository.resumeAuditReplayTask(taskId, operatorId, now);
+        boolean resumed = inventoryAuditReplayTaskRepository.resume(taskId, operatorId, now);
         if (resumed) {
             Metrics.counter("bacon.inventory.audit.replay.task.resumed.total").increment();
         }
@@ -134,10 +134,10 @@ public class InventoryAuditReplayTaskApplicationService {
         Instant now = Instant.now();
         Long tenantId = Objects.requireNonNull(loadTaskTenantId(task.getId()), "tenantId must not be null");
         // Worker 每轮都会续租任务，确保长批次处理时不会因为租约过期被其他节点重复接管。
-        inventoryAuditReplayTaskRepository.renewAuditReplayTaskLease(
+        inventoryAuditReplayTaskRepository.renew(
                 task.getId(), processingOwner, now.plusSeconds(Math.max(leaseSeconds, 1L)), now);
 
-        List<InventoryAuditReplayTaskItem> items = inventoryAuditReplayTaskRepository.findPendingAuditReplayTaskItems(
+        List<InventoryAuditReplayTaskItem> items = inventoryAuditReplayTaskRepository.listPendingItems(
                 task.getId(), Math.max(batchSize, 1));
         if (items.isEmpty()) {
             finishTask(task.getId(), processingOwner);
@@ -166,7 +166,7 @@ public class InventoryAuditReplayTaskApplicationService {
                     failedDelta++;
                     lastError = result.getMessage();
                 }
-                inventoryAuditReplayTaskRepository.markAuditReplayTaskItemResult(
+                inventoryAuditReplayTaskRepository.markItemResult(
                         item.getId(),
                         itemStatus,
                         replayStatus,
@@ -177,7 +177,7 @@ public class InventoryAuditReplayTaskApplicationService {
             } catch (RuntimeException ex) {
                 failedDelta++;
                 lastError = truncateError(ex.getMessage());
-                inventoryAuditReplayTaskRepository.markAuditReplayTaskItemResult(
+                inventoryAuditReplayTaskRepository.markItemResult(
                         item.getId(),
                         InventoryAuditReplayTaskItemStatus.FAILED,
                         InventoryAuditReplayStatus.FAILED,
@@ -188,7 +188,7 @@ public class InventoryAuditReplayTaskApplicationService {
             }
             processedDelta++;
         }
-        inventoryAuditReplayTaskRepository.updateAuditReplayTaskProgress(
+        inventoryAuditReplayTaskRepository.updateProgress(
                 task.getId(), processingOwner, processedDelta, successDelta, failedDelta, Instant.now());
         if (lastError != null) {
             Metrics.counter("bacon.inventory.audit.replay.task.item.failed.total")
@@ -196,7 +196,7 @@ public class InventoryAuditReplayTaskApplicationService {
         }
 
         List<InventoryAuditReplayTaskItem> remain =
-                inventoryAuditReplayTaskRepository.findPendingAuditReplayTaskItems(task.getId(), 1);
+                inventoryAuditReplayTaskRepository.listPendingItems(task.getId(), 1);
         if (remain.isEmpty()) {
             finishTask(task.getId(), processingOwner);
         }
@@ -208,7 +208,7 @@ public class InventoryAuditReplayTaskApplicationService {
         InventoryAuditReplayTaskStatus status = Integer.valueOf(0).equals(latest.getFailedCount())
                 ? InventoryAuditReplayTaskStatus.SUCCEEDED
                 : InventoryAuditReplayTaskStatus.FAILED;
-        inventoryAuditReplayTaskRepository.markAuditReplayTaskFinished(
+        inventoryAuditReplayTaskRepository.markFinished(
                 taskId, processingOwner, status.value(), latest.getLastError(), Instant.now());
         Metrics.counter("bacon.inventory.audit.replay.task.finished.total", "status", status.value())
                 .increment();
@@ -239,7 +239,7 @@ public class InventoryAuditReplayTaskApplicationService {
 
     private InventoryAuditReplayTask getTaskById(TaskId taskId) {
         return inventoryAuditReplayTaskRepository
-                .findAuditReplayTaskById(taskId)
+                .findById(taskId)
                 .orElseThrow(() -> new InventoryDomainException(
                         InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND,
                         "replay-task-not-found:" + (taskId == null ? null : taskId.value())));
@@ -253,7 +253,7 @@ public class InventoryAuditReplayTaskApplicationService {
     }
 
     private Long loadTaskTenantId(TaskId taskId) {
-        return inventoryAuditReplayTaskRepository.findAuditReplayTaskTenantId(taskId);
+        return inventoryAuditReplayTaskRepository.findTenantIdById(taskId);
     }
 
     private boolean isTerminal(InventoryAuditReplayTaskStatus status) {

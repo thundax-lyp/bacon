@@ -41,7 +41,7 @@ public class LocalFileStoredObjectStorageRepositoryImpl implements StoredObjectS
     }
 
     @Override
-    public StoredObjectStorageResult upload(
+    public StoredObjectStorageResult insert(
             String category, String originalFilename, String contentType, InputStream inputStream) {
         String objectKey = buildObjectKey(category, originalFilename);
         Path targetPath = resolveObjectPath(objectKey);
@@ -56,13 +56,13 @@ public class LocalFileStoredObjectStorageRepositoryImpl implements StoredObjectS
     }
 
     @Override
-    public MultipartUploadStorageSession initMultipartUpload(
+    public MultipartUploadStorageSession insertMultipartUpload(
             String category, String originalFilename, String contentType) {
         return new MultipartUploadStorageSession(buildObjectKey(category, originalFilename), null);
     }
 
     @Override
-    public String uploadPart(MultipartUploadSession session, Integer partNumber, Long size, InputStream inputStream) {
+    public String insertPart(MultipartUploadSession session, Integer partNumber, Long size, InputStream inputStream) {
         Path partPath = resolveMultipartPartPath(session.getUploadId(), partNumber);
         try {
             Files.createDirectories(partPath.getParent());
@@ -74,7 +74,7 @@ public class LocalFileStoredObjectStorageRepositoryImpl implements StoredObjectS
     }
 
     @Override
-    public StoredObjectStorageResult completeMultipartUpload(
+    public StoredObjectStorageResult update(
             MultipartUploadSession session, List<MultipartUploadPart> parts) {
         Path targetPath = resolveObjectPath(session.getObjectKey());
         try {
@@ -99,7 +99,7 @@ public class LocalFileStoredObjectStorageRepositoryImpl implements StoredObjectS
     }
 
     @Override
-    public void abortMultipartUpload(MultipartUploadSession session) {
+    public void delete(MultipartUploadSession session) {
         try {
             deleteMultipartDirectory(session.getUploadId());
         } catch (IOException ex) {

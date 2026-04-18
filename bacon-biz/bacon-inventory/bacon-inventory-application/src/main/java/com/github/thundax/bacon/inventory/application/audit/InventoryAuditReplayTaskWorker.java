@@ -52,7 +52,7 @@ public class InventoryAuditReplayTaskWorker {
         }
         Instant now = Instant.now();
         String owner = applicationName + ":" + ownerSuffix;
-        List<InventoryAuditReplayTask> tasks = inventoryAuditReplayTaskRepository.claimRunnableAuditReplayTasks(
+        List<InventoryAuditReplayTask> tasks = inventoryAuditReplayTaskRepository.claim(
                 now, Math.max(claimSize, 1), owner, now.plusSeconds(Math.max(leaseSeconds, 1L)));
         if (tasks.isEmpty()) {
             return;

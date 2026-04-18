@@ -6,9 +6,9 @@ import java.util.Optional;
 
 public interface InventoryReservationRepository {
 
-    InventoryReservation insertReservation(InventoryReservation reservation);
+    InventoryReservation insert(InventoryReservation reservation);
 
-    InventoryReservation updateReservation(InventoryReservation reservation);
+    InventoryReservation update(InventoryReservation reservation);
 
-    Optional<InventoryReservation> findReservation(OrderNo orderNo);
+    Optional<InventoryReservation> findByOrderNo(OrderNo orderNo);
 }

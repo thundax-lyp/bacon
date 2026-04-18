@@ -72,7 +72,7 @@ public class OrderOutboxRetrier {
         Instant leaseUntil = now.plusSeconds(Math.max(leaseSeconds, 1L));
         String owner = applicationName + ":" + processingOwner;
         List<OrderOutboxEvent> events =
-                orderOutboxRepository.claimRetryableOutbox(now, safeBatchSize, owner, leaseUntil);
+                orderOutboxRepository.claimRetryable(now, safeBatchSize, owner, leaseUntil);
         for (OrderOutboxEvent event : events) {
             retryOne(event, owner, now);
         }
@@ -95,7 +95,7 @@ public class OrderOutboxRetrier {
         if (nextRetryCount > maxRetries) {
             String deadReason = "MAX_RETRIES_EXCEEDED";
             if (orderOutboxRepository.markDeadClaimed(event.getId(), owner, nextRetryCount, deadReason, message, now)) {
-                orderOutboxDeadLetterRepository.insertDeadLetter(OrderOutboxDeadLetter.create(
+                orderOutboxDeadLetterRepository.insert(OrderOutboxDeadLetter.create(
                         idGenerator.nextId(DEAD_LETTER_ID_BIZ_TAG),
                         event.getId() == null ? null : event.getId().value(),
                         event.getEventCode() == null

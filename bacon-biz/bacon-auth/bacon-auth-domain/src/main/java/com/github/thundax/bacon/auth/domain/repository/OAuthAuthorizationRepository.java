@@ -7,19 +7,19 @@ import java.util.Optional;
 
 public interface OAuthAuthorizationRepository {
 
-    OAuthAuthorizationRequest saveAuthorizationRequest(OAuthAuthorizationRequest authorizationRequest);
+    OAuthAuthorizationRequest update(OAuthAuthorizationRequest authorizationRequest);
 
-    Optional<OAuthAuthorizationRequest> findAuthorizationRequestById(String authorizationRequestId);
+    Optional<OAuthAuthorizationRequest> findById(String authorizationRequestId);
 
-    void saveAuthorizationCode(String authorizationCode, OAuthAuthorizationRequest authorizationRequest);
+    void insertCode(String authorizationCode, OAuthAuthorizationRequest authorizationRequest);
 
-    Optional<OAuthAuthorizationRequest> findAuthorizationRequestByCode(String authorizationCode);
+    Optional<OAuthAuthorizationRequest> findByCode(String authorizationCode);
 
-    OAuthAccessToken saveAccessToken(OAuthAccessToken accessToken);
+    OAuthAccessToken update(OAuthAccessToken accessToken);
 
-    Optional<OAuthAccessToken> findAccessTokenByHash(String tokenHash);
+    Optional<OAuthAccessToken> findAccessByHash(String tokenHash);
 
-    OAuthRefreshToken saveOAuthRefreshToken(OAuthRefreshToken refreshToken);
+    OAuthRefreshToken update(OAuthRefreshToken refreshToken);
 
-    Optional<OAuthRefreshToken> findOAuthRefreshTokenByHash(String tokenHash);
+    Optional<OAuthRefreshToken> findByHash(String tokenHash);
 }

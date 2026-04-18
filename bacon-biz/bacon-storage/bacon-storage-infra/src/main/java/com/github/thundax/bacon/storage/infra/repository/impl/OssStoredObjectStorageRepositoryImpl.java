@@ -31,7 +31,7 @@ public class OssStoredObjectStorageRepositoryImpl implements StoredObjectStorage
     }
 
     @Override
-    public StoredObjectStorageResult upload(
+    public StoredObjectStorageResult insert(
             String category, String originalFilename, String contentType, InputStream inputStream) {
         String objectKey = buildObjectKey(category, originalFilename);
         ObjectStorageWriteResult result = objectStorageClient.putObject(objectKey, contentType, inputStream);
@@ -39,7 +39,7 @@ public class OssStoredObjectStorageRepositoryImpl implements StoredObjectStorage
     }
 
     @Override
-    public MultipartUploadStorageSession initMultipartUpload(
+    public MultipartUploadStorageSession insertMultipartUpload(
             String category, String originalFilename, String contentType) {
         String objectKey = buildObjectKey(category, originalFilename);
         String providerUploadId = objectStorageClient.initiateMultipartUpload(objectKey, contentType);
@@ -47,13 +47,13 @@ public class OssStoredObjectStorageRepositoryImpl implements StoredObjectStorage
     }
 
     @Override
-    public String uploadPart(MultipartUploadSession session, Integer partNumber, Long size, InputStream inputStream) {
+    public String insertPart(MultipartUploadSession session, Integer partNumber, Long size, InputStream inputStream) {
         return objectStorageClient.uploadPart(
                 session.getObjectKey(), session.getProviderUploadId(), partNumber, size, inputStream);
     }
 
     @Override
-    public StoredObjectStorageResult completeMultipartUpload(
+    public StoredObjectStorageResult update(
             MultipartUploadSession session, List<MultipartUploadPart> parts) {
         ObjectStorageWriteResult result = objectStorageClient.completeMultipartUpload(
                 session.getObjectKey(),
@@ -65,7 +65,7 @@ public class OssStoredObjectStorageRepositoryImpl implements StoredObjectStorage
     }
 
     @Override
-    public void abortMultipartUpload(MultipartUploadSession session) {
+    public void delete(MultipartUploadSession session) {
         objectStorageClient.abortMultipartUpload(session.getObjectKey(), session.getProviderUploadId());
     }
 

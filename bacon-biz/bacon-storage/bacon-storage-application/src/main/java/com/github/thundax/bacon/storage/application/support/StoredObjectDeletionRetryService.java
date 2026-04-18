@@ -37,7 +37,7 @@ public class StoredObjectDeletionRetryService {
         if (!properties.isEnabled()) {
             return 0;
         }
-        List<StoredObject> deletingObjects = storedObjectRepository.listByObjectStatus(
+        List<StoredObject> deletingObjects = storedObjectRepository.listByStatus(
                 StoredObjectStatus.DELETING, Math.max(properties.getBatchSize(), 1));
         int completedCount = 0;
         for (StoredObject storedObject : deletingObjects) {

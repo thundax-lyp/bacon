@@ -113,7 +113,7 @@ class OrderIdempotencyExecutorTest {
         private final Map<String, OrderIdempotencyRecord> storage = new ConcurrentHashMap<>();
 
         @Override
-        public boolean insertProcessing(OrderIdempotencyRecord record) {
+        public boolean insert(OrderIdempotencyRecord record) {
             String key = keyOf(valueOf(record.getOrderNo()), record.getEventType());
             OrderIdempotencyRecord value = OrderIdempotencyRecord.reconstruct(
                     OrderIdempotencyRecordKey.of(record.getOrderNo(), record.getEventType()),
@@ -129,7 +129,7 @@ class OrderIdempotencyExecutorTest {
         }
 
         @Override
-        public Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
+        public Optional<OrderIdempotencyRecord> findByKey(OrderIdempotencyRecordKey key) {
             return Optional.ofNullable(storage.get(keyOf(key.orderNo().value(), key.eventType())));
         }
 
@@ -172,7 +172,7 @@ class OrderIdempotencyExecutorTest {
         }
 
         @Override
-        public boolean recoverFromFailed(
+        public boolean recoverFailed(
                 OrderIdempotencyRecordKey key,
                 String processingOwner,
                 Instant leaseUntil,
@@ -197,7 +197,7 @@ class OrderIdempotencyExecutorTest {
         }
 
         @Override
-        public boolean claimExpiredProcessing(
+        public boolean claimExpired(
                 OrderIdempotencyRecordKey key,
                 String processingOwner,
                 Instant leaseUntil,
@@ -223,7 +223,7 @@ class OrderIdempotencyExecutorTest {
         }
 
         @Override
-        public int recoverExpiredProcessing(Instant now, String recoverMessage) {
+        public int recoverExpired(Instant now, String recoverMessage) {
             AtomicInteger recovered = new AtomicInteger(0);
             storage.forEach((key, existing) -> {
                 if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {

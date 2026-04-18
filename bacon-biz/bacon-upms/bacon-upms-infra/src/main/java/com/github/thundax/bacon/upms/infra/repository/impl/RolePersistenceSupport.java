@@ -77,14 +77,14 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.idGenerator = idGenerator;
     }
 
-    Optional<Role> findRoleById(RoleId roleId) {
+    Optional<Role> findById(RoleId roleId) {
         requireTenantId();
         return Optional.ofNullable(
                         roleMapper.selectOne(Wrappers.<RoleDO>lambdaQuery().eq(RoleDO::getId, roleId.value())))
                 .map(RolePersistenceAssembler::toDomain);
     }
 
-    List<Role> findRolesByUserId(UserId userId) {
+    List<Role> findByUserId(UserId userId) {
         requireTenantId();
         List<Long> roleIds =
                 userRoleRelMapper
@@ -128,7 +128,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countRoles(RoleCode code, String name, RoleType roleType, RoleStatus status) {
+    long count(RoleCode code, String name, RoleType roleType, RoleStatus status) {
         return Optional.ofNullable(roleMapper.selectCount(Wrappers.<RoleDO>lambdaQuery()
                         .like(code != null, RoleDO::getCode, code == null ? null : code.value())
                         .like(hasText(name), RoleDO::getName, name)
@@ -157,7 +157,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         return RolePersistenceAssembler.toDomain(roleDO);
     }
 
-    void deleteRole(RoleId roleId) {
+    void delete(RoleId roleId) {
         requireTenantId();
         roleMapper.delete(Wrappers.<RoleDO>lambdaQuery().eq(RoleDO::getId, roleId.value()));
         userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery().eq(UserRoleRelDO::getRoleId, roleId.value()));

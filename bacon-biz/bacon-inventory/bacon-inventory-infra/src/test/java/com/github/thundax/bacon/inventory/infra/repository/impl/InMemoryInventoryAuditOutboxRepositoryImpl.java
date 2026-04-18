@@ -21,62 +21,62 @@ public class InMemoryInventoryAuditOutboxRepositoryImpl implements InventoryAudi
     }
 
     @Override
-    public void insertAuditOutbox(InventoryAuditOutbox outbox) {
-        support.insertAuditOutbox(outbox);
+    public void insert(InventoryAuditOutbox outbox) {
+        support.insert(outbox);
     }
 
     @Override
-    public List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {
-        return support.findRetryableAuditOutbox(now, limit);
+    public List<InventoryAuditOutbox> findRetryable(Instant now, int limit) {
+        return support.findRetryable(now, limit);
     }
 
     @Override
-    public List<TenantScopedAuditOutbox> claimRetryableAuditOutbox(
+    public List<TenantScopedAuditOutbox> claimRetryable(
             Instant now, int limit, String processingOwner, Instant leaseUntil) {
-        return support.claimRetryableAuditOutbox(now, limit, processingOwner, leaseUntil);
+        return support.claimRetryable(now, limit, processingOwner, leaseUntil);
     }
 
     @Override
-    public int releaseExpiredAuditOutboxLease(Instant now) {
-        return support.releaseExpiredAuditOutboxLease(now);
+    public int releaseExpiredLease(Instant now) {
+        return support.releaseExpiredLease(now);
     }
 
     @Override
-    public void updateAuditOutboxForRetry(
+    public void updateForRetry(
             OutboxId outboxId, int retryCount, Instant nextRetryAt, String errorMessage, Instant updatedAt) {
-        support.updateAuditOutboxForRetry(outboxId, retryCount, nextRetryAt, errorMessage, updatedAt);
+        support.updateForRetry(outboxId, retryCount, nextRetryAt, errorMessage, updatedAt);
     }
 
     @Override
-    public boolean updateAuditOutboxForRetryClaimed(
+    public boolean updateForRetryClaimed(
             OutboxId outboxId,
             String processingOwner,
             int retryCount,
             Instant nextRetryAt,
             String errorMessage,
             Instant updatedAt) {
-        return support.updateAuditOutboxForRetryClaimed(
+        return support.updateForRetryClaimed(
                 outboxId, processingOwner, retryCount, nextRetryAt, errorMessage, updatedAt);
     }
 
     @Override
-    public void markAuditOutboxDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {
-        support.markAuditOutboxDead(outboxId, retryCount, deadReason, updatedAt);
+    public void markDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {
+        support.markDead(outboxId, retryCount, deadReason, updatedAt);
     }
 
     @Override
-    public boolean markAuditOutboxDeadClaimed(
+    public boolean markDeadClaimed(
             OutboxId outboxId, String processingOwner, int retryCount, String deadReason, Instant updatedAt) {
-        return support.markAuditOutboxDeadClaimed(outboxId, processingOwner, retryCount, deadReason, updatedAt);
+        return support.markDeadClaimed(outboxId, processingOwner, retryCount, deadReason, updatedAt);
     }
 
     @Override
-    public void deleteAuditOutbox(OutboxId outboxId) {
-        support.deleteAuditOutbox(outboxId);
+    public void delete(OutboxId outboxId) {
+        support.delete(outboxId);
     }
 
     @Override
-    public boolean deleteAuditOutboxClaimed(OutboxId outboxId, String processingOwner) {
-        return support.deleteAuditOutboxClaimed(outboxId, processingOwner);
+    public boolean deleteClaimed(OutboxId outboxId, String processingOwner) {
+        return support.deleteClaimed(outboxId, processingOwner);
     }
 }

@@ -71,7 +71,7 @@ class PaymentApplicationServiceTest {
         assertEquals("PAY-20001", result.getPaymentNo());
         assertEquals("ORD-10001", result.getOrderNo());
         assertEquals(PaymentStatus.PAYING.value(), result.getPaymentStatus());
-        assertEquals(1, repository.findAuditLogsByPaymentNo("PAY-20001").size());
+        assertEquals(1, repository.listLogsByPaymentNo("PAY-20001").size());
     }
 
     @Test
@@ -97,8 +97,7 @@ class PaymentApplicationServiceTest {
                 Instant.now().plusSeconds(1800));
 
         assertEquals(first.getPaymentNo(), second.getPaymentNo());
-        assertEquals(
-                1, repository.findAuditLogsByPaymentNo(first.getPaymentNo()).size());
+        assertEquals(1, repository.listLogsByPaymentNo(first.getPaymentNo()).size());
     }
 
     @Test
@@ -164,7 +163,7 @@ class PaymentApplicationServiceTest {
         callbackService.callbackFailed(
                 "MOCK", created.getPaymentNo(), "FAILED", "{\"tradeStatus\":\"FAILED\"}", "CHANNEL_FAIL");
 
-        List<PaymentAuditLog> auditLogs = repository.findAuditLogsByPaymentNo(created.getPaymentNo());
+        List<PaymentAuditLog> auditLogs = repository.listLogsByPaymentNo(created.getPaymentNo());
 
         assertEquals(4, auditLogs.size());
         assertEquals(PaymentAuditActionType.CREATE, auditLogs.get(0).getActionType());
@@ -201,15 +200,14 @@ class PaymentApplicationServiceTest {
         assertEquals("SUCCESS", first.getCloseResult());
         assertEquals("SUCCESS", second.getCloseResult());
         assertEquals(PaymentStatus.CLOSED.value(), second.getPaymentStatus());
-        assertEquals(
-                2, repository.findAuditLogsByPaymentNo(created.getPaymentNo()).size());
+        assertEquals(2, repository.listLogsByPaymentNo(created.getPaymentNo()).size());
     }
 
     @Test
     void createPaymentShouldNotRollbackWhenAuditWriteFails() {
         BaconContextHolder.set(new BaconContext(1001L, 2005L));
         TestPaymentRepository repository = new TestPaymentRepository();
-        repository.failAuditSave = true;
+        repository.failAuditInsert = true;
         PaymentCreateApplicationService service = new PaymentCreateApplicationService(
                 repository, paymentOperationLogSupport(repository), () -> "PAY-20005", idGenerator());
 
@@ -224,8 +222,8 @@ class PaymentApplicationServiceTest {
         assertEquals("PAY-20005", result.getPaymentNo());
         assertEquals(
                 PaymentStatus.PAYING,
-                repository.findOrderByPaymentNo("PAY-20005").orElseThrow().getPaymentStatus());
-        assertEquals(0, repository.findAuditLogsByPaymentNo("PAY-20005").size());
+                repository.findByPaymentNo("PAY-20005").orElseThrow().getPaymentStatus());
+        assertEquals(0, repository.listByPaymentNo("PAY-20005").size());
     }
 
     @Test
@@ -242,14 +240,14 @@ class PaymentApplicationServiceTest {
                 "MOCK",
                 "audit-fail-callback",
                 Instant.now().plusSeconds(1800));
-        repository.failAuditSave = true;
+        repository.failAuditInsert = true;
         PaymentCallbackApplicationService callbackService = new PaymentCallbackApplicationService(
                 repository, repository, paymentOperationLogSupport(repository), orderCommandFacade, idGenerator());
 
         assertDoesNotThrow(() -> callbackService.callbackPaid(
                 "MOCK", "PAY-20006", "TXN-20006", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}"));
 
-        PaymentOrder paymentOrder = repository.findOrderByPaymentNo("PAY-20006").orElseThrow();
+        PaymentOrder paymentOrder = repository.findByPaymentNo("PAY-20006").orElseThrow();
         assertEquals(PaymentStatus.PAID, paymentOrder.getPaymentStatus());
         assertEquals(1, orderCommandFacade.markPaidCount);
     }
@@ -263,10 +261,10 @@ class PaymentApplicationServiceTest {
                 new ConcurrentHashMap<>();
         private final ConcurrentMap<String, PaymentCallbackRecord> callbacksByTxn = new ConcurrentHashMap<>();
         private final ConcurrentMap<String, List<PaymentAuditLog>> auditLogsByPaymentNo = new ConcurrentHashMap<>();
-        private boolean failAuditSave;
+        private boolean failAuditInsert;
 
         @Override
-        public PaymentOrder save(PaymentOrder paymentOrder) {
+        public PaymentOrder insert(PaymentOrder paymentOrder) {
             paymentsByPaymentNo.put(
                     paymentKey(currentTenantId(), paymentOrder.getPaymentNo().value()), paymentOrder);
             paymentsByOrderNo.put(
@@ -275,17 +273,26 @@ class PaymentApplicationServiceTest {
         }
 
         @Override
-        public Optional<PaymentOrder> findOrderByPaymentNo(String paymentNo) {
+        public PaymentOrder update(PaymentOrder paymentOrder) {
+            paymentsByPaymentNo.put(
+                    paymentKey(currentTenantId(), paymentOrder.getPaymentNo().value()), paymentOrder);
+            paymentsByOrderNo.put(
+                    orderKey(currentTenantId(), paymentOrder.getOrderNo().value()), paymentOrder);
+            return paymentOrder;
+        }
+
+        @Override
+        public Optional<PaymentOrder> findByPaymentNo(String paymentNo) {
             return Optional.ofNullable(paymentsByPaymentNo.get(paymentKey(currentTenantId(), paymentNo)));
         }
 
         @Override
-        public Optional<PaymentOrder> findOrderByOrderNo(String orderNo) {
+        public Optional<PaymentOrder> findByOrderNo(String orderNo) {
             return Optional.ofNullable(paymentsByOrderNo.get(orderKey(currentTenantId(), orderNo)));
         }
 
         @Override
-        public PaymentCallbackRecord save(PaymentCallbackRecord callbackRecord) {
+        public PaymentCallbackRecord insert(PaymentCallbackRecord callbackRecord) {
             callbacksByPaymentNo
                     .computeIfAbsent(
                             paymentKey(
@@ -305,27 +312,27 @@ class PaymentApplicationServiceTest {
         }
 
         @Override
-        public Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(String paymentNo) {
-            return findCallbacksByPaymentNo(paymentNo).stream()
+        public Optional<PaymentCallbackRecord> findLatestByPaymentNo(String paymentNo) {
+            return listByPaymentNo(paymentNo).stream()
                     .max(Comparator.comparing(PaymentCallbackRecord::getReceivedAt)
                             .thenComparing(PaymentCallbackRecord::getId));
         }
 
         @Override
-        public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(
+        public Optional<PaymentCallbackRecord> findByChannelTransactionNo(
                 String channelCode, String channelTransactionNo) {
             return Optional.ofNullable(
                     callbacksByTxn.get(txnKey(currentTenantId(), channelCode, channelTransactionNo)));
         }
 
         @Override
-        public List<PaymentCallbackRecord> findCallbacksByPaymentNo(String paymentNo) {
+        public List<PaymentCallbackRecord> listByPaymentNo(String paymentNo) {
             return List.copyOf(callbacksByPaymentNo.getOrDefault(paymentKey(currentTenantId(), paymentNo), List.of()));
         }
 
         @Override
-        public void save(PaymentAuditLog auditLog) {
-            if (failAuditSave) {
+        public void insert(PaymentAuditLog auditLog) {
+            if (failAuditInsert) {
                 throw new IllegalStateException("audit unavailable");
             }
             auditLogsByPaymentNo
@@ -337,7 +344,7 @@ class PaymentApplicationServiceTest {
         }
 
         @Override
-        public List<PaymentAuditLog> findAuditLogsByPaymentNo(String paymentNo) {
+        public List<PaymentAuditLog> listLogsByPaymentNo(String paymentNo) {
             return List.copyOf(auditLogsByPaymentNo.getOrDefault(paymentKey(currentTenantId(), paymentNo), List.of()));
         }
 

@@ -12,5 +12,5 @@ public interface DepartmentReadFacade {
 
     DepartmentFacadeResponse getDepartmentByCode(DepartmentCodeGetFacadeRequest request);
 
-    DepartmentListFacadeResponse listDepartmentsByIds(DepartmentListFacadeRequest request);
+    DepartmentListFacadeResponse listByIds(DepartmentListFacadeRequest request);
 }

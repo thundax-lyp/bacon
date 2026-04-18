@@ -5,9 +5,11 @@ import java.util.Optional;
 
 public interface PaymentOrderRepository {
 
-    PaymentOrder save(PaymentOrder paymentOrder);
+    PaymentOrder insert(PaymentOrder paymentOrder);
 
-    Optional<PaymentOrder> findOrderByPaymentNo(String paymentNo);
+    PaymentOrder update(PaymentOrder paymentOrder);
 
-    Optional<PaymentOrder> findOrderByOrderNo(String orderNo);
+    Optional<PaymentOrder> findByPaymentNo(String paymentNo);
+
+    Optional<PaymentOrder> findByOrderNo(String orderNo);
 }

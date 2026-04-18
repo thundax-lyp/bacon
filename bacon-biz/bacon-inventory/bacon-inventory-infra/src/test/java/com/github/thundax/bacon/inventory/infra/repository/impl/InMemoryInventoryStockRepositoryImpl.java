@@ -25,38 +25,38 @@ public class InMemoryInventoryStockRepositoryImpl implements InventoryStockRepos
     }
 
     @Override
-    public Optional<Inventory> findInventory(SkuId skuId) {
-        return support.findInventory(currentTenantId(), skuId);
+    public Optional<Inventory> findBySkuId(SkuId skuId) {
+        return support.findBySkuId(currentTenantId(), skuId);
     }
 
     @Override
-    public List<Inventory> findInventories() {
-        return support.findInventories(currentTenantId());
+    public List<Inventory> list() {
+        return support.listBySkuIds(currentTenantId());
     }
 
     @Override
-    public List<Inventory> findInventories(Set<SkuId> skuIds) {
-        return support.findInventories(currentTenantId(), skuIds);
+    public List<Inventory> listBySkuIds(Set<SkuId> skuIds) {
+        return support.listBySkuIds(currentTenantId(), skuIds);
     }
 
     @Override
-    public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
-        return support.pageInventories(currentTenantId(), skuId, status, pageNo, pageSize);
+    public List<Inventory> page(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+        return support.page(currentTenantId(), skuId, status, pageNo, pageSize);
     }
 
     @Override
-    public long countInventories(SkuId skuId, InventoryStatus status) {
-        return support.countInventories(currentTenantId(), skuId, status);
+    public long count(SkuId skuId, InventoryStatus status) {
+        return support.count(currentTenantId(), skuId, status);
     }
 
     @Override
-    public Inventory insertInventory(Inventory inventory) {
-        return support.insertInventory(inventory);
+    public Inventory insert(Inventory inventory) {
+        return support.insert(inventory);
     }
 
     @Override
-    public Inventory updateInventory(Inventory inventory) {
-        return support.updateInventory(inventory);
+    public Inventory update(Inventory inventory) {
+        return support.update(inventory);
     }
 
     private TenantId currentTenantId() {

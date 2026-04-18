@@ -19,23 +19,23 @@ public class OrderIdempotencyRepositoryImpl implements OrderIdempotencyRepositor
     }
 
     @Override
-    public boolean insertProcessing(OrderIdempotencyRecord record) {
-        return support.insertProcessing(record);
+    public boolean insert(OrderIdempotencyRecord record) {
+        return support.insert(record);
     }
 
     @Override
-    public boolean claimExpiredProcessing(
+    public boolean claimExpired(
             OrderIdempotencyRecordKey key,
             String processingOwner,
             Instant leaseUntil,
             Instant claimedAt,
             Instant updatedAt) {
-        return support.claimExpiredProcessing(key, processingOwner, leaseUntil, claimedAt, updatedAt);
+        return support.claimExpired(key, processingOwner, leaseUntil, claimedAt, updatedAt);
     }
 
     @Override
-    public Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
-        return support.findByBusinessKey(key);
+    public Optional<OrderIdempotencyRecord> findByKey(OrderIdempotencyRecordKey key) {
+        return support.findByKey(key);
     }
 
     @Override
@@ -49,22 +49,22 @@ public class OrderIdempotencyRepositoryImpl implements OrderIdempotencyRepositor
     }
 
     @Override
-    public boolean recoverFromFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
-        return support.recoverFromFailed(key, updatedAt);
+    public boolean recoverFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
+        return support.recoverFailed(key, updatedAt);
     }
 
     @Override
-    public boolean recoverFromFailed(
+    public boolean recoverFailed(
             OrderIdempotencyRecordKey key,
             String processingOwner,
             Instant leaseUntil,
             Instant claimedAt,
             Instant updatedAt) {
-        return support.recoverFromFailed(key, processingOwner, leaseUntil, claimedAt, updatedAt);
+        return support.recoverFailed(key, processingOwner, leaseUntil, claimedAt, updatedAt);
     }
 
     @Override
-    public int recoverExpiredProcessing(Instant now, String recoverMessage) {
-        return support.recoverExpiredProcessing(now, recoverMessage);
+    public int recoverExpired(Instant now, String recoverMessage) {
+        return support.recoverExpired(now, recoverMessage);
     }
 }

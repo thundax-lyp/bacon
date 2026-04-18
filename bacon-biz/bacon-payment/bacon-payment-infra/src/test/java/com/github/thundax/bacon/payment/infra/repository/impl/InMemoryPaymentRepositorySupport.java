@@ -60,11 +60,11 @@ public class InMemoryPaymentRepositorySupport {
         return persisted;
     }
 
-    public Optional<PaymentOrder> findOrderByPaymentNo(String paymentNo) {
+    public Optional<PaymentOrder> findByPaymentNo(String paymentNo) {
         return Optional.ofNullable(paymentsByPaymentNo.get(paymentKey(currentTenantId(), paymentNo)));
     }
 
-    public Optional<PaymentOrder> findOrderByOrderNo(String orderNo) {
+    public Optional<PaymentOrder> findByOrderNo(String orderNo) {
         return Optional.ofNullable(paymentsByOrderNo.get(orderKey(currentTenantId(), orderNo)));
     }
 
@@ -93,19 +93,19 @@ public class InMemoryPaymentRepositorySupport {
         return persisted;
     }
 
-    public Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(String paymentNo) {
-        return findCallbacksByPaymentNo(paymentNo).stream()
+    public Optional<PaymentCallbackRecord> findLatestByPaymentNo(String paymentNo) {
+        return listByPaymentNo(paymentNo).stream()
                 .max(Comparator.comparing(PaymentCallbackRecord::getReceivedAt)
                         .thenComparing(PaymentCallbackRecord::getId));
     }
 
-    public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(
+    public Optional<PaymentCallbackRecord> findByChannelTransactionNo(
             String channelCode, String channelTransactionNo) {
         return Optional.ofNullable(
                 callbackRecordsByTxn.get(txnKey(currentTenantId(), channelCode, channelTransactionNo)));
     }
 
-    public List<PaymentCallbackRecord> findCallbacksByPaymentNo(String paymentNo) {
+    public List<PaymentCallbackRecord> listByPaymentNo(String paymentNo) {
         return List.copyOf(
                 callbackRecordsByPaymentNo.getOrDefault(paymentKey(currentTenantId(), paymentNo), List.of()));
     }
@@ -128,7 +128,7 @@ public class InMemoryPaymentRepositorySupport {
                 .add(persisted);
     }
 
-    public List<PaymentAuditLog> findAuditLogsByPaymentNo(String paymentNo) {
+    public List<PaymentAuditLog> listAuditLogsByPaymentNo(String paymentNo) {
         return List.copyOf(auditLogsByPaymentNo.getOrDefault(paymentKey(currentTenantId(), paymentNo), List.of()));
     }
 

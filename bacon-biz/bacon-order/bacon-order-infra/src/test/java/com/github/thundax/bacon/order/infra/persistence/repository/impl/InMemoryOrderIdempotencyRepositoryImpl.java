@@ -21,14 +21,14 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
     private final Map<String, OrderIdempotencyRecord> storage = new ConcurrentHashMap<>();
 
     @Override
-    public boolean insertProcessing(OrderIdempotencyRecord record) {
+    public boolean insert(OrderIdempotencyRecord record) {
         String key = businessKey(valueOf(record.getOrderNo()), record.getEventType());
         OrderIdempotencyRecord created = copy(record);
         return storage.putIfAbsent(key, created) == null;
     }
 
     @Override
-    public boolean claimExpiredProcessing(
+    public boolean claimExpired(
             OrderIdempotencyRecordKey key,
             String processingOwner,
             Instant leaseUntil,
@@ -52,7 +52,7 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
     }
 
     @Override
-    public Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
+    public Optional<OrderIdempotencyRecord> findByKey(OrderIdempotencyRecordKey key) {
         return Optional.ofNullable(storage.get(businessKey(key.orderNo().value(), key.eventType())))
                 .map(this::copy);
     }
@@ -68,12 +68,12 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
     }
 
     @Override
-    public boolean recoverFromFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
-        return recoverFromFailed(key, null, null, null, updatedAt);
+    public boolean recoverFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
+        return recoverFailed(key, null, null, null, updatedAt);
     }
 
     @Override
-    public boolean recoverFromFailed(
+    public boolean recoverFailed(
             OrderIdempotencyRecordKey key,
             String processingOwner,
             Instant leaseUntil,
@@ -96,7 +96,7 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
     }
 
     @Override
-    public int recoverExpiredProcessing(Instant now, String recoverMessage) {
+    public int recoverExpired(Instant now, String recoverMessage) {
         int recovered = 0;
         for (OrderIdempotencyRecord record : storage.values()) {
             if (record.getStatus() == OrderIdempotencyStatus.PROCESSING

@@ -42,8 +42,8 @@ public class PostController {
     @HasPermission("sys:post:view")
     @SysLog(module = "UPMS", action = "分页查询岗位", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public PostPageResponse pagePosts(@Valid @ModelAttribute PostPageRequest request) {
-        return PostPageResponse.from(postApplicationService.pagePosts(
+    public PostPageResponse page(@Valid @ModelAttribute PostPageRequest request) {
+        return PostPageResponse.from(postApplicationService.page(
                 request.getCode(),
                 request.getName(),
                 DepartmentIdCodec.toDomain(request.getDepartmentId()),

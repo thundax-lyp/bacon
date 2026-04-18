@@ -11,9 +11,9 @@ import java.util.Optional;
 
 public interface OrderRepository {
 
-    Order insertOrder(Order order);
+    Order insert(Order order);
 
-    Order updateOrder(Order order);
+    Order update(Order order);
 
     Optional<Order> findById(Long id);
 
@@ -21,25 +21,25 @@ public interface OrderRepository {
 
     void updateItems(Long orderId, List<OrderItem> items);
 
-    List<OrderItem> findItemsByOrderId(Long orderId);
+    List<OrderItem> listItemsByOrderId(Long orderId);
 
-    void insertPaymentSnapshot(OrderPaymentSnapshot snapshot);
+    void insertPayment(OrderPaymentSnapshot snapshot);
 
-    void updatePaymentSnapshot(OrderPaymentSnapshot snapshot);
+    void updatePayment(OrderPaymentSnapshot snapshot);
 
-    Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId);
+    Optional<OrderPaymentSnapshot> findPaymentByOrderId(Long orderId);
 
-    void insertInventorySnapshot(OrderInventorySnapshot snapshot);
+    void insertInventory(OrderInventorySnapshot snapshot);
 
-    void updateInventorySnapshot(OrderInventorySnapshot snapshot);
+    void updateInventory(OrderInventorySnapshot snapshot);
 
-    Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(String orderNo);
+    Optional<OrderInventorySnapshot> findInventoryByOrderNo(String orderNo);
 
-    void insertAuditLog(OrderAuditLog auditLog);
+    void insertLog(OrderAuditLog auditLog);
 
-    List<OrderAuditLog> findAuditLogs(String orderNo);
+    List<OrderAuditLog> listLogs(String orderNo);
 
-    long countOrders(
+    long count(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -48,7 +48,7 @@ public interface OrderRepository {
             Instant createdAtFrom,
             Instant createdAtTo);
 
-    List<Order> pageOrders(
+    List<Order> page(
             Long userId,
             String orderNo,
             String orderStatus,
@@ -59,5 +59,5 @@ public interface OrderRepository {
             int pageNo,
             int pageSize);
 
-    List<Order> findAll();
+    List<Order> list();
 }

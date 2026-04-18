@@ -8,15 +8,15 @@ import java.util.Set;
 
 public interface PermissionRepository {
 
-    List<Menu> listMenus();
+    List<Menu> list();
 
-    List<Menu> listUserMenuTree(UserId userId);
+    List<Menu> listMenuTreeByUserId(UserId userId);
 
-    Set<String> findUserPermissionCodes(UserId userId);
+    Set<String> findPermissionCodesByUserId(UserId userId);
 
-    Set<DepartmentId> findUserDepartmentIds(UserId userId);
+    Set<DepartmentId> findDepartmentIdsByUserId(UserId userId);
 
-    Set<String> findUserScopeTypes(UserId userId);
+    Set<String> findScopeTypesByUserId(UserId userId);
 
-    boolean existsUserAllAccess(UserId userId);
+    boolean existsAllAccessByUserId(UserId userId);
 }

@@ -35,7 +35,7 @@ public class PermissionReadFacadeRemoteImpl implements PermissionReadFacade {
     }
 
     @Override
-    public UserMenuTreeFacadeResponse listUserMenuTree(UserPermissionGetFacadeRequest request) {
+    public UserMenuTreeFacadeResponse listMenuTreeByUserId(UserPermissionGetFacadeRequest request) {
         // 菜单树属于已聚合好的读取模型，客户端只透传，不在本地再次做权限裁剪。
         List<UserMenuTreeDTO> menus = restClient
                 .get()
@@ -46,7 +46,7 @@ public class PermissionReadFacadeRemoteImpl implements PermissionReadFacade {
     }
 
     @Override
-    public UserPermissionCodeFacadeResponse findUserPermissionCodes(UserPermissionGetFacadeRequest request) {
+    public UserPermissionCodeFacadeResponse findPermissionCodesByUserId(UserPermissionGetFacadeRequest request) {
         // 权限码集合用于鉴权快速判断，保持去重后的集合返回，避免调用方再做一次归并。
         Set<String> permissionCodes = restClient
                 .get()

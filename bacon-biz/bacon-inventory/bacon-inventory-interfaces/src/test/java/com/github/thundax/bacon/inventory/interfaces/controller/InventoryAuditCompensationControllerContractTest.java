@@ -149,13 +149,13 @@ class InventoryAuditCompensationControllerContractTest {
                 "3001");
 
         @Override
-        public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
+        public List<InventoryAuditDeadLetter> page(
                 OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
             return List.of(deadLetter);
         }
 
         @Override
-        public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+        public long count(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
             return 1L;
         }
     }
@@ -167,7 +167,7 @@ class InventoryAuditCompensationControllerContractTest {
         private final Map<Long, List<InventoryAuditReplayTaskItem>> taskItems = new ConcurrentHashMap<>();
 
         @Override
-        public InventoryAuditReplayTask insertAuditReplayTask(InventoryAuditReplayTask task) {
+        public InventoryAuditReplayTask insert(InventoryAuditReplayTask task) {
             Long taskId = task.getId() == null ? null : task.getId().value();
             tasks.put(taskId, task);
             taskTenants.put(taskId, BaconContextHolder.requireTenantId());
@@ -175,7 +175,7 @@ class InventoryAuditCompensationControllerContractTest {
         }
 
         @Override
-        public void insertAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
+        public void insertItems(List<InventoryAuditReplayTaskItem> items) {
             if (items == null || items.isEmpty()) {
                 return;
             }
@@ -189,19 +189,19 @@ class InventoryAuditCompensationControllerContractTest {
         }
 
         @Override
-        public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
+        public Optional<InventoryAuditReplayTask> findById(TaskId taskId) {
             return Optional.ofNullable(tasks.get(taskId == null ? null : taskId.value()));
         }
 
         @Override
-        public Long findAuditReplayTaskTenantId(TaskId taskId) {
+        public Long findTenantIdById(TaskId taskId) {
             return taskTenants.get(taskId == null ? null : taskId.value());
         }
 
         @Override
-        public boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
+        public boolean pause(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
             Long tenantId = BaconContextHolder.requireTenantId();
-            return findAuditReplayTaskById(taskId)
+            return findById(taskId)
                     .filter(task -> java.util.Objects.equals(
                             tenantId,
                             taskTenants.get(
@@ -216,9 +216,9 @@ class InventoryAuditCompensationControllerContractTest {
         }
 
         @Override
-        public boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
+        public boolean resume(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
             Long tenantId = BaconContextHolder.requireTenantId();
-            return findAuditReplayTaskById(taskId)
+            return findById(taskId)
                     .filter(task -> java.util.Objects.equals(
                             tenantId,
                             taskTenants.get(

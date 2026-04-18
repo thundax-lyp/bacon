@@ -19,7 +19,7 @@ public class InMemoryOAuthAuthorizationRepositoryImpl implements OAuthAuthorizat
     }
 
     @Override
-    public OAuthAuthorizationRequest saveAuthorizationRequest(OAuthAuthorizationRequest authorizationRequest) {
+    public OAuthAuthorizationRequest update(OAuthAuthorizationRequest authorizationRequest) {
         authStore
                 .getAuthorizationRequests()
                 .put(authorizationRequest.getAuthorizationRequestId(), authorizationRequest);
@@ -27,39 +27,39 @@ public class InMemoryOAuthAuthorizationRepositoryImpl implements OAuthAuthorizat
     }
 
     @Override
-    public Optional<OAuthAuthorizationRequest> findAuthorizationRequestById(String authorizationRequestId) {
+    public Optional<OAuthAuthorizationRequest> findById(String authorizationRequestId) {
         return Optional.ofNullable(authStore.getAuthorizationRequests().get(authorizationRequestId));
     }
 
     @Override
-    public void saveAuthorizationCode(String authorizationCode, OAuthAuthorizationRequest authorizationRequest) {
+    public void insertCode(String authorizationCode, OAuthAuthorizationRequest authorizationRequest) {
         authStore.getAuthorizationCodes().put(authorizationCode, authorizationRequest);
     }
 
     @Override
-    public Optional<OAuthAuthorizationRequest> findAuthorizationRequestByCode(String authorizationCode) {
+    public Optional<OAuthAuthorizationRequest> findByCode(String authorizationCode) {
         return Optional.ofNullable(authStore.getAuthorizationCodes().get(authorizationCode));
     }
 
     @Override
-    public OAuthAccessToken saveAccessToken(OAuthAccessToken accessToken) {
+    public OAuthAccessToken update(OAuthAccessToken accessToken) {
         authStore.getAccessTokens().put(accessToken.getTokenHash(), accessToken);
         return accessToken;
     }
 
     @Override
-    public Optional<OAuthAccessToken> findAccessTokenByHash(String tokenHash) {
+    public Optional<OAuthAccessToken> findAccessByHash(String tokenHash) {
         return Optional.ofNullable(authStore.getAccessTokens().get(tokenHash));
     }
 
     @Override
-    public OAuthRefreshToken saveOAuthRefreshToken(OAuthRefreshToken refreshToken) {
+    public OAuthRefreshToken update(OAuthRefreshToken refreshToken) {
         authStore.getOauthRefreshTokens().put(refreshToken.getTokenHash(), refreshToken);
         return refreshToken;
     }
 
     @Override
-    public Optional<OAuthRefreshToken> findOAuthRefreshTokenByHash(String tokenHash) {
+    public Optional<OAuthRefreshToken> findByHash(String tokenHash) {
         return Optional.ofNullable(authStore.getOauthRefreshTokens().get(tokenHash));
     }
 }

@@ -20,17 +20,17 @@ public class InMemoryInventoryReservationRepositoryImpl implements InventoryRese
     }
 
     @Override
-    public InventoryReservation insertReservation(InventoryReservation reservation) {
-        return support.insertReservation(reservation);
+    public InventoryReservation insert(InventoryReservation reservation) {
+        return support.insert(reservation);
     }
 
     @Override
-    public InventoryReservation updateReservation(InventoryReservation reservation) {
-        return support.updateReservation(reservation);
+    public InventoryReservation update(InventoryReservation reservation) {
+        return support.update(reservation);
     }
 
     @Override
-    public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
-        return support.findReservation(orderNo);
+    public Optional<InventoryReservation> findByOrderNo(OrderNo orderNo) {
+        return support.findByOrderNo(orderNo);
     }
 }

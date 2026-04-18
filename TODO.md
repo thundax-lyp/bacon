@@ -217,6 +217,62 @@
 - [ ] 补一条实现规则：跨域写操作默认显式校验租户上下文
   - 重要度：5/10
 
+### P2 - ArchUnit 可落地增强
+
+- [ ] 增加 ArchUnit 规则：`interfaces.controller/provider` 方法签名只使用协议模型
+  - 现状：当前已限制层间依赖方向，但尚未门禁 controller/provider 方法入参和返回值的稳定性
+  - 处理动作：限制 `interfaces.controller/provider` 公共方法入参只允许 `interfaces.request`、基础 Web 注解参数与稳定基础类型；返回值只允许 `interfaces.response`、统一包装或 `void`
+  - 验收点：controller/provider 不再直接暴露 `domain entity`、`DO`、`FacadeResponse`、跨域 `DTO`
+  - 重要度：9/10
+
+- [ ] 增加 ArchUnit 规则：`RepositoryImpl` 必须且只实现本域 `Repository`
+  - 现状：当前只限制了 `infra.repository.impl` 之外不得依赖 `domain.repository`，但尚未门禁实现关系本身
+  - 处理动作：限制 `*RepositoryImpl` 必须实现一个且仅一个本域 `domain.repository.*Repository`，并禁止实现外域 `Repository`
+  - 验收点：仓储实现和领域仓储契约一一对应，避免“工具类伪装成 RepositoryImpl”或“一类多仓储”漂移
+  - 重要度：9/10
+
+- [ ] 增加 ArchUnit 规则：`interfaces` 依赖收敛为白名单
+  - 现状：当前重点禁止依赖 `infra` 和他域 `application/infra`，但对 `domain.repository`、外域散包、历史遗留协议模型仍缺少白名单约束
+  - 处理动作：限制 `interfaces` 只允许依赖本域 `application`、本域 `domain.model`、本域 `interfaces`、外域 `api.facade` 与 `bacon-common`
+  - 验收点：接口层依赖面可预测，不再顺手引用 repository、mapper、外域内部对象
+  - 重要度：9/10
+
+- [ ] 增加 ArchUnit 规则：`application` 跨域调用只允许依赖外域 `api.facade`
+  - 现状：当前已禁止依赖外域 `infra`，但对外域 `api.dto`、其他散包的使用边界还不够明确
+  - 处理动作：限制 `application` 对外域依赖只允许落在 `api.facade`；如需跨域模型转换，固定收敛到指定 assembler/adapter 包
+  - 验收点：跨域编排统一经由 facade 入口，避免外域契约对象渗透进业务流程主体
+  - 重要度：8/10
+
+- [ ] 增加 ArchUnit 规则：协议模型分层隔离
+  - 现状：application 公共方法已禁止直接使用协议模型，但 `domain/infra/api` 对 `interfaces.request/response`、`api.dto` 的反向依赖仍可继续硬化
+  - 处理动作：限制 `domain` 不得依赖 `interfaces.request/response`、`api.dto`；限制 `infra` 不得依赖 `interfaces.request/response`；限制 `api.facade` 不得使用 `interfaces.*` 模型
+  - 验收点：协议对象停留在各自边界层，防止模型职责串层
+  - 重要度：8/10
+
+- [ ] 增加 ArchUnit 规则：注解使用位置白名单扩展
+  - 现状：当前已限制 `@Transactional` 与 `@SysLog` 的位置，但 `@RestController`、`@FeignClient`、`@Mapper`、MyBatis-Plus 注解尚未统一门禁
+  - 处理动作：限制 `@RestController` 仅出现在 `interfaces.controller/provider`，`@FeignClient` 仅出现在 `infra.facade.remote`，`@Mapper` 仅出现在 `infra.persistence.mapper`，`@TableName/@TableField` 仅出现在 `infra.persistence.dataobject`
+  - 验收点：技术注解位置与目录职责一致，异常用法可直接阻断
+  - 重要度：8/10
+
+- [ ] 增加 ArchUnit 规则：`application/infra` 禁止新增 `IllegalArgumentException` 作为业务异常出口
+  - 现状：架构文档已明确异常约定，TODO 里也已有治理项，但尚未形成自动门禁
+  - 处理动作：扫描 `application` 与 `infra.repository.impl/support` 的 `throw new IllegalArgumentException(...)` 和等价调用，要求改为稳定业务异常
+  - 验收点：业务链路异常语义稳定，`IllegalArgumentException` 不再成为默认兜底
+  - 重要度：8/10
+
+- [ ] 增加 ArchUnit 规则：`application.assembler` 独占 DTO/Response 装配职责
+  - 现状：当前仅限制 `ApplicationService` 不得本地 `toDto` 或直接 `new api.dto`，还可以继续扩大到 `interfaces.response` 与跨域 DTO 装配
+  - 处理动作：限制 `application.command/query/audit` 不得直接构造 `api.dto`、`interfaces.response`，DTO/Response 装配统一收敛到 `application.assembler`
+  - 验收点：应用服务只保留编排逻辑，模型装配职责有唯一归属
+  - 重要度：7/10
+
+- [ ] 增加 ArchUnit 规则：目录反向命名校验
+  - 现状：当前大多是“某后缀应该放在哪个目录”，但还缺少“某目录下的类必须使用该后缀”的反向门禁
+  - 处理动作：限制 `interfaces.controller` 目录下类必须以 `Controller` 结尾，`domain.repository` 下接口必须以 `Repository` 结尾，`infra.persistence.mapper` 下类必须以 `Mapper` 结尾，其他关键目录同理
+  - 验收点：目录语义和类名语义双向一致，存量偏差更容易被发现
+  - 重要度：7/10
+
 ### P3 - 持续治理
 
 - [ ] 增加 ArchUnit 或同类检查：`infra.repository.impl` 不承载明显业务编排

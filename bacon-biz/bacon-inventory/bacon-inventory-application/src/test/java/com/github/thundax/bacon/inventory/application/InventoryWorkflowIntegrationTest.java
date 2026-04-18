@@ -292,7 +292,21 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public synchronized Inventory upsertInventory(Inventory inventory) {
+        public synchronized Inventory insertInventory(Inventory inventory) {
+            Inventory persisted = copy(inventory);
+            persisted.markPersisted(new Version(0L));
+            inventories.put(
+                    key(
+                            1001L,
+                            persisted.getSkuId() == null
+                                    ? null
+                                    : persisted.getSkuId().value()),
+                    persisted);
+            return copy(persisted);
+        }
+
+        @Override
+        public synchronized Inventory updateInventory(Inventory inventory) {
             Inventory current = inventories.get(key(
                     1001L,
                     inventory.getSkuId() == null ? null : inventory.getSkuId().value()));
@@ -325,7 +339,22 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public InventoryReservation upsertReservation(InventoryReservation reservation) {
+        public InventoryReservation insertReservation(InventoryReservation reservation) {
+            String key = reservationKey(
+                    BaconContextHolder.currentTenantId(),
+                    reservation.getOrderNo() == null
+                            ? null
+                            : reservation.getOrderNo().value());
+            InventoryReservation existing = reservations.get(key);
+            if (existing != null && !existing.getReservationNo().equals(reservation.getReservationNo())) {
+                throw new DuplicateKeyException("duplicate orderNo");
+            }
+            reservations.put(key, reservation);
+            return reservation;
+        }
+
+        @Override
+        public InventoryReservation updateReservation(InventoryReservation reservation) {
             String key = reservationKey(
                     BaconContextHolder.currentTenantId(),
                     reservation.getOrderNo() == null

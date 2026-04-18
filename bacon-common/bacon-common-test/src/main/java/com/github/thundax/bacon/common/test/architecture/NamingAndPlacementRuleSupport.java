@@ -42,8 +42,7 @@ public final class NamingAndPlacementRuleSupport {
             "recover",
             "delete",
             "insert",
-            "update",
-            "upsert");
+            "update");
 
     private NamingAndPlacementRuleSupport() {}
 

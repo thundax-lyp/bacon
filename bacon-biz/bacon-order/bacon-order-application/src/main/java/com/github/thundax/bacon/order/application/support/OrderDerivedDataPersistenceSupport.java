@@ -31,7 +31,7 @@ public class OrderDerivedDataPersistenceSupport {
     public void persist(Order order, OrderAuditActionType actionType, OrderStatus beforeStatus) {
         Instant now = Instant.now();
         if (order.getPaymentNo() != null && !order.getPaymentNo().value().isBlank()) {
-            orderRepository.upsertPaymentSnapshot(OrderPaymentSnapshot.create(
+            OrderPaymentSnapshot paymentSnapshot = OrderPaymentSnapshot.create(
                     order.getId(),
                     order.getPaymentNo(),
                     order.getPaymentChannelCode(),
@@ -45,18 +45,30 @@ public class OrderDerivedDataPersistenceSupport {
                                     || order.getPaymentChannelStatus().isBlank()
                             ? null
                             : PaymentChannelStatus.from(order.getPaymentChannelStatus()),
-                    now));
+                    now);
+            if (orderRepository
+                    .findPaymentSnapshotByOrderId(order.getId() == null ? null : order.getId().value())
+                    .isPresent()) {
+                orderRepository.updatePaymentSnapshot(paymentSnapshot);
+            } else {
+                orderRepository.insertPaymentSnapshot(paymentSnapshot);
+            }
         }
         if (order.getReservationNo() != null
                 && !order.getReservationNo().value().isBlank()) {
-            orderRepository.upsertInventorySnapshot(OrderInventorySnapshot.create(
+            OrderInventorySnapshot inventorySnapshot = OrderInventorySnapshot.create(
                     idGenerator.nextId(INVENTORY_SNAPSHOT_ID_BIZ_TAG),
                     order.getOrderNo(),
                     order.getReservationNo(),
                     order.getInventoryStatus(),
                     order.getWarehouseCode(),
                     order.getInventoryFailureReason(),
-                    now));
+                    now);
+            if (orderRepository.findInventorySnapshotByOrderNo(order.getOrderNo().value()).isPresent()) {
+                orderRepository.updateInventorySnapshot(inventorySnapshot);
+            } else {
+                orderRepository.insertInventorySnapshot(inventorySnapshot);
+            }
         }
         orderRepository.insertAuditLog(OrderAuditLog.create(
                 order.getOrderNo(),

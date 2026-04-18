@@ -36,10 +36,15 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     private final AtomicLong idGenerator = new AtomicLong(1000L);
 
     @Override
-    public Order upsertOrder(Order order) {
-        if (order.getId() == null) {
-            order.setId(OrderId.of(idGenerator.getAndIncrement()));
-        }
+    public Order insertOrder(Order order) {
+        order.setId(OrderId.of(idGenerator.getAndIncrement()));
+        storage.put(toOrderIdValue(order), order);
+        orderTenantStorage.put(toOrderIdValue(order), currentTenantId());
+        return order;
+    }
+
+    @Override
+    public Order updateOrder(Order order) {
         storage.put(toOrderIdValue(order), order);
         orderTenantStorage.put(toOrderIdValue(order), currentTenantId());
         return order;
@@ -76,7 +81,14 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void upsertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
+    public void insertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
+        Long orderId = toOrderIdValue(snapshot.getOrderId());
+        paymentSnapshotStorage.put(orderId, snapshot);
+        paymentSnapshotTenantStorage.put(orderId, currentTenantId());
+    }
+
+    @Override
+    public void updatePaymentSnapshot(OrderPaymentSnapshot snapshot) {
         Long orderId = toOrderIdValue(snapshot.getOrderId());
         paymentSnapshotStorage.put(orderId, snapshot);
         paymentSnapshotTenantStorage.put(orderId, currentTenantId());
@@ -92,7 +104,14 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void upsertInventorySnapshot(OrderInventorySnapshot snapshot) {
+    public void insertInventorySnapshot(OrderInventorySnapshot snapshot) {
+        String orderNo = toOrderNoValue(snapshot.getOrderNo());
+        inventorySnapshotStorage.put(orderNo, snapshot);
+        inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
+    }
+
+    @Override
+    public void updateInventorySnapshot(OrderInventorySnapshot snapshot) {
         String orderNo = toOrderNoValue(snapshot.getOrderNo());
         inventorySnapshotStorage.put(orderNo, snapshot);
         inventorySnapshotTenantStorage.put(orderNo, currentTenantId());

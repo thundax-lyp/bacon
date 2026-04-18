@@ -23,8 +23,13 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Order upsertOrder(Order order) {
-        return support.saveOrder(order);
+    public Order insertOrder(Order order) {
+        return support.insertOrder(order);
+    }
+
+    @Override
+    public Order updateOrder(Order order) {
+        return support.updateOrder(order);
     }
 
     @Override
@@ -48,8 +53,13 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void upsertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
-        support.upsertPaymentSnapshot(snapshot);
+    public void insertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
+        support.insertPaymentSnapshot(snapshot);
+    }
+
+    @Override
+    public void updatePaymentSnapshot(OrderPaymentSnapshot snapshot) {
+        support.updatePaymentSnapshot(snapshot);
     }
 
     @Override
@@ -58,8 +68,13 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void upsertInventorySnapshot(OrderInventorySnapshot snapshot) {
-        support.upsertInventorySnapshot(snapshot);
+    public void insertInventorySnapshot(OrderInventorySnapshot snapshot) {
+        support.insertInventorySnapshot(snapshot);
+    }
+
+    @Override
+    public void updateInventorySnapshot(OrderInventorySnapshot snapshot) {
+        support.updateInventorySnapshot(snapshot);
     }
 
     @Override

@@ -166,12 +166,22 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public Inventory upsertInventory(Inventory inventory) {
+        public Inventory insertInventory(Inventory inventory) {
             return inventory;
         }
 
         @Override
-        public InventoryReservation upsertReservation(InventoryReservation reservation) {
+        public Inventory updateInventory(Inventory inventory) {
+            return inventory;
+        }
+
+        @Override
+        public InventoryReservation insertReservation(InventoryReservation reservation) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public InventoryReservation updateReservation(InventoryReservation reservation) {
             throw new UnsupportedOperationException();
         }
 

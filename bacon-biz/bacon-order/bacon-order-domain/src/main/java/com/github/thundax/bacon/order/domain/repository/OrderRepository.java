@@ -11,7 +11,9 @@ import java.util.Optional;
 
 public interface OrderRepository {
 
-    Order upsertOrder(Order order);
+    Order insertOrder(Order order);
+
+    Order updateOrder(Order order);
 
     Optional<Order> findById(Long id);
 
@@ -21,11 +23,15 @@ public interface OrderRepository {
 
     List<OrderItem> findItemsByOrderId(Long orderId);
 
-    void upsertPaymentSnapshot(OrderPaymentSnapshot snapshot);
+    void insertPaymentSnapshot(OrderPaymentSnapshot snapshot);
+
+    void updatePaymentSnapshot(OrderPaymentSnapshot snapshot);
 
     Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId);
 
-    void upsertInventorySnapshot(OrderInventorySnapshot snapshot);
+    void insertInventorySnapshot(OrderInventorySnapshot snapshot);
+
+    void updateInventorySnapshot(OrderInventorySnapshot snapshot);
 
     Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(String orderNo);
 

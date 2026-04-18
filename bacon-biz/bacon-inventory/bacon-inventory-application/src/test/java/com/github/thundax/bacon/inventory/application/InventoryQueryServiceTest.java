@@ -156,7 +156,7 @@ class InventoryQueryApplicationServiceTest {
         }
 
         @Override
-        public Inventory upsertInventory(Inventory inventory) {
+        public Inventory insertInventory(Inventory inventory) {
             Version version = inventory.getVersion() == null
                     ? new Version(0L)
                     : inventory.getVersion().next();
@@ -172,7 +172,28 @@ class InventoryQueryApplicationServiceTest {
         }
 
         @Override
-        public InventoryReservation upsertReservation(InventoryReservation reservation) {
+        public Inventory updateInventory(Inventory inventory) {
+            Version version = inventory.getVersion() == null
+                    ? new Version(0L)
+                    : inventory.getVersion().next();
+            inventory.markPersisted(version);
+            inventories.put(
+                    key(
+                            1001L,
+                            inventory.getSkuId() == null
+                                    ? null
+                                    : inventory.getSkuId().value()),
+                    inventory);
+            return inventory;
+        }
+
+        @Override
+        public InventoryReservation insertReservation(InventoryReservation reservation) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public InventoryReservation updateReservation(InventoryReservation reservation) {
             throw new UnsupportedOperationException();
         }
 

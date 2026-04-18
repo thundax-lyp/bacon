@@ -111,19 +111,17 @@ public class InMemoryInventoryRepositorySupport {
                 .count();
     }
 
-    public Inventory upsertInventory(Inventory inventory) {
+    public Inventory insertInventory(Inventory inventory) {
         Long tenantId = BaconContextHolder.currentTenantId();
-        if (inventory.getId() == null) {
-            inventory = Inventory.reconstruct(
-                    InventoryId.of(inventoryIdGenerator.getAndIncrement()),
-                    inventory.getSkuId(),
-                    inventory.getWarehouseCode(),
-                    inventory.getOnHandQuantity(),
-                    inventory.getReservedQuantity(),
-                    inventory.getStatus(),
-                    inventory.getVersion(),
-                    inventory.getUpdatedAt());
-        }
+        inventory = Inventory.reconstruct(
+                InventoryId.of(inventoryIdGenerator.getAndIncrement()),
+                inventory.getSkuId(),
+                inventory.getWarehouseCode(),
+                inventory.getOnHandQuantity(),
+                inventory.getReservedQuantity(),
+                inventory.getStatus(),
+                inventory.getVersion(),
+                inventory.getUpdatedAt());
         Version version = inventory.getVersion() == null
                 ? new Version(0L)
                 : inventory.getVersion().next();
@@ -138,7 +136,39 @@ public class InMemoryInventoryRepositorySupport {
         return inventory;
     }
 
-    public InventoryReservation upsertReservation(InventoryReservation reservation) {
+    public Inventory updateInventory(Inventory inventory) {
+        Long tenantId = BaconContextHolder.currentTenantId();
+        Version version = inventory.getVersion() == null
+                ? new Version(0L)
+                : inventory.getVersion().next();
+        inventory.markPersisted(version);
+        inventories.put(
+                key(
+                        tenantId,
+                        inventory.getSkuId() == null
+                                ? null
+                                : inventory.getSkuId().value()),
+                inventory);
+        return inventory;
+    }
+
+    public InventoryReservation insertReservation(InventoryReservation reservation) {
+        Long tenantId = BaconContextHolder.currentTenantId();
+        java.util.Objects.requireNonNull(reservation.getId(), "reservation.id must not be null");
+        reservation
+                .getItems()
+                .forEach(item -> java.util.Objects.requireNonNull(item.getId(), "reservationItem.id must not be null"));
+        reservations.put(
+                reservationKey(
+                        tenantId,
+                        reservation.getOrderNo() == null
+                                ? null
+                                : reservation.getOrderNo().value()),
+                reservation);
+        return reservation;
+    }
+
+    public InventoryReservation updateReservation(InventoryReservation reservation) {
         Long tenantId = BaconContextHolder.currentTenantId();
         java.util.Objects.requireNonNull(reservation.getId(), "reservation.id must not be null");
         reservation

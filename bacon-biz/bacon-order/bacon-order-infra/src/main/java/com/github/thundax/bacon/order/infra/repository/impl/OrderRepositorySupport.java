@@ -82,17 +82,20 @@ public class OrderRepositorySupport {
         log.info("Using MyBatis-Plus order repository");
     }
 
-    public Order saveOrder(Order order) {
+    public Order insertOrder(Order order) {
         OrderDO dataObject = orderPersistenceAssembler.toDataObject(order);
         dataObject.setUpdatedAt(Instant.now());
-        if (dataObject.getId() == null) {
-            dataObject.setId(idGenerator.nextId(ORDER_ID_BIZ_TAG));
-            orderMapper.insert(dataObject);
-            order.setId(OrderId.of(dataObject.getId()));
-        } else {
-            // 订单主表只承载主单核心字段；支付和库存侧派生信息不直接塞回主表，而是走快照表分开维护。
-            orderMapper.updateById(dataObject);
-        }
+        dataObject.setId(idGenerator.nextId(ORDER_ID_BIZ_TAG));
+        orderMapper.insert(dataObject);
+        order.setId(OrderId.of(dataObject.getId()));
+        return order;
+    }
+
+    public Order updateOrder(Order order) {
+        OrderDO dataObject = orderPersistenceAssembler.toDataObject(order);
+        dataObject.setUpdatedAt(Instant.now());
+        // 订单主表只承载主单核心字段；支付和库存侧派生信息不直接塞回主表，而是走快照表分开维护。
+        orderMapper.updateById(dataObject);
         return order;
     }
 
@@ -130,7 +133,15 @@ public class OrderRepositorySupport {
                 .toList();
     }
 
-    public void upsertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
+    public void insertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
+        BaconContextHolder.requireTenantId();
+        OrderPaymentSnapshotDO dataObject = orderPaymentSnapshotPersistenceAssembler.toDataObject(snapshot);
+        dataObject.setId(idGenerator.nextId(PAYMENT_SNAPSHOT_ID_BIZ_TAG));
+        dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
+        orderPaymentSnapshotMapper.insert(dataObject);
+    }
+
+    public void updatePaymentSnapshot(OrderPaymentSnapshot snapshot) {
         BaconContextHolder.requireTenantId();
         OrderPaymentSnapshotDO existing =
                 orderPaymentSnapshotMapper.selectOne(Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
@@ -142,11 +153,6 @@ public class OrderRepositorySupport {
         OrderPaymentSnapshotDO dataObject = orderPaymentSnapshotPersistenceAssembler.toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
         // 支付快照按 orderId 唯一覆盖，目标是保留“当前支付视图”，而不是积累每次变化历史。
-        if (existing == null) {
-            dataObject.setId(idGenerator.nextId(PAYMENT_SNAPSHOT_ID_BIZ_TAG));
-            orderPaymentSnapshotMapper.insert(dataObject);
-            return;
-        }
         dataObject.setId(existing.getId());
         orderPaymentSnapshotMapper.updateById(dataObject);
     }
@@ -158,7 +164,14 @@ public class OrderRepositorySupport {
                 .map(orderPaymentSnapshotPersistenceAssembler::toDomain);
     }
 
-    public void upsertInventorySnapshot(OrderInventorySnapshot snapshot) {
+    public void insertInventorySnapshot(OrderInventorySnapshot snapshot) {
+        BaconContextHolder.requireTenantId();
+        OrderInventorySnapshotDO dataObject = orderInventorySnapshotPersistenceAssembler.toDataObject(snapshot);
+        dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
+        orderInventorySnapshotMapper.insert(dataObject);
+    }
+
+    public void updateInventorySnapshot(OrderInventorySnapshot snapshot) {
         BaconContextHolder.requireTenantId();
         OrderInventorySnapshotDO existing =
                 orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
@@ -170,10 +183,6 @@ public class OrderRepositorySupport {
         OrderInventorySnapshotDO dataObject = orderInventorySnapshotPersistenceAssembler.toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
         // 库存快照和支付快照一样采用唯一覆盖模型，分页/详情查询只需要当前库存派生状态。
-        if (existing == null) {
-            orderInventorySnapshotMapper.insert(dataObject);
-            return;
-        }
         dataObject.setId(existing.getId());
         orderInventorySnapshotMapper.updateById(dataObject);
     }

@@ -120,7 +120,7 @@ public class OrderOutboxActionExecutor {
                             : WarehouseCode.of(reserveResult.getWarehouseCode()),
                     reason);
             order.closeByInventoryReserveFailed(CLOSE_REASON_INVENTORY_RESERVE_FAILED);
-            orderRepository.upsertOrder(order);
+            orderRepository.updateOrder(order);
             orderDerivedDataPersistenceSupport.persist(
                     order, OrderAuditActionType.OUTBOX_RESERVE_FAILED, OrderStatus.RESERVING_STOCK);
             return;
@@ -128,7 +128,7 @@ public class OrderOutboxActionExecutor {
         order.markInventoryReserved(
                 ReservationNoCodec.toDomain(reserveResult.getReservationNo()),
                 reserveResult.getWarehouseCode() == null ? null : WarehouseCode.of(reserveResult.getWarehouseCode()));
-        orderRepository.upsertOrder(order);
+        orderRepository.updateOrder(order);
         orderDerivedDataPersistenceSupport.persist(
                 order, OrderAuditActionType.OUTBOX_RESERVE_OK, OrderStatus.RESERVING_STOCK);
 
@@ -173,7 +173,7 @@ public class OrderOutboxActionExecutor {
                 || paymentResult.getPaymentNo().isBlank()
                 || !PayStatus.PAYING.value().equals(paymentResult.getPaymentStatus())) {
             order.closeByPaymentCreateFailed(CLOSE_REASON_PAYMENT_CREATE_FAILED);
-            orderRepository.upsertOrder(order);
+            orderRepository.updateOrder(order);
             orderDerivedDataPersistenceSupport.persist(
                     order, OrderAuditActionType.OUTBOX_CREATE_PAYMENT_FAILED, OrderStatus.RESERVING_STOCK);
 
@@ -197,7 +197,7 @@ public class OrderOutboxActionExecutor {
             return;
         }
         order.markPendingPayment(PaymentNo.of(paymentResult.getPaymentNo()), paymentResult.getChannelCode());
-        orderRepository.upsertOrder(order);
+        orderRepository.updateOrder(order);
         orderDerivedDataPersistenceSupport.persist(
                 order, OrderAuditActionType.OUTBOX_CREATE_PAYMENT_OK, OrderStatus.RESERVING_STOCK);
     }
@@ -230,7 +230,7 @@ public class OrderOutboxActionExecutor {
                             ? reason
                             : releaseResult.getFailureReason());
         }
-        orderRepository.upsertOrder(order);
+        orderRepository.updateOrder(order);
         orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RELEASE, order.getOrderStatus());
     }
 

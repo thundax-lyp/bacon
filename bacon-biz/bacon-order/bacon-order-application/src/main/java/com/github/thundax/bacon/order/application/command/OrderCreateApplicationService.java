@@ -68,7 +68,7 @@ public class OrderCreateApplicationService {
                 totalAmount.toPlainString(),
                 command.remark(),
                 command.expiredAt());
-        Order savedOrder = orderRepository.upsertOrder(order);
+        Order savedOrder = orderRepository.insertOrder(order);
         orderRepository.updateItems(
                 savedOrder.getId() == null ? null : savedOrder.getId().value(),
                 items.stream()
@@ -85,7 +85,7 @@ public class OrderCreateApplicationService {
                                 Money.of(calculateLineAmount(item), currencyCode)))
                         .toList());
         savedOrder.markReservingStock();
-        orderRepository.upsertOrder(savedOrder);
+        orderRepository.updateOrder(savedOrder);
         orderOutboxActionExecutor.enqueueReserveStock(
                 OrderNoCodec.toValue(savedOrder.getOrderNo()), command.channelCode());
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED);

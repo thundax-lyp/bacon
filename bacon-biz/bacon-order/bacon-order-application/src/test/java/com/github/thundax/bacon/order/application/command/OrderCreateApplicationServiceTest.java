@@ -148,7 +148,7 @@ class OrderCreateApplicationServiceTest {
             Order paidOrder = repository.findByOrderNo(paid.getOrderNo()).orElseThrow();
             paidOrder.markInventoryReserved(ReservationNo.of("RSV-" + paid.getOrderNo()), WarehouseCode.of("1"));
             paidOrder.markPendingPayment(PaymentNo.of("PAY-" + paid.getOrderNo()), "MOCK");
-            repository.upsertOrder(paidOrder);
+            repository.updateOrder(paidOrder);
             paymentResultService.markPaid(
                     OrderNo.of(paid.getOrderNo()),
                     PaymentNo.of("PAY-1"),
@@ -453,10 +453,15 @@ class OrderCreateApplicationServiceTest {
         private final AtomicLong idGenerator = new AtomicLong(1000L);
 
         @Override
-        public Order upsertOrder(Order order) {
-            if (order.getId() == null) {
-                order.setId(OrderId.of(idGenerator.getAndIncrement()));
-            }
+        public Order insertOrder(Order order) {
+            order.setId(OrderId.of(idGenerator.getAndIncrement()));
+            storage.put(toOrderIdValue(order), order);
+            orderTenantStorage.put(toOrderIdValue(order), currentTenantId());
+            return order;
+        }
+
+        @Override
+        public Order updateOrder(Order order) {
             storage.put(toOrderIdValue(order), order);
             orderTenantStorage.put(toOrderIdValue(order), currentTenantId());
             return order;
@@ -493,7 +498,14 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public void upsertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
+        public void insertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
+            Long orderId = toOrderIdValue(snapshot.getOrderId());
+            paymentSnapshots.put(orderId, snapshot);
+            paymentSnapshotTenantStorage.put(orderId, currentTenantId());
+        }
+
+        @Override
+        public void updatePaymentSnapshot(OrderPaymentSnapshot snapshot) {
             Long orderId = toOrderIdValue(snapshot.getOrderId());
             paymentSnapshots.put(orderId, snapshot);
             paymentSnapshotTenantStorage.put(orderId, currentTenantId());
@@ -509,7 +521,14 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public void upsertInventorySnapshot(OrderInventorySnapshot snapshot) {
+        public void insertInventorySnapshot(OrderInventorySnapshot snapshot) {
+            String orderNo = toOrderNoValue(snapshot.getOrderNo());
+            inventorySnapshots.put(orderNo, snapshot);
+            inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
+        }
+
+        @Override
+        public void updateInventorySnapshot(OrderInventorySnapshot snapshot) {
             String orderNo = toOrderNoValue(snapshot.getOrderNo());
             inventorySnapshots.put(orderNo, snapshot);
             inventorySnapshotTenantStorage.put(orderNo, currentTenantId());

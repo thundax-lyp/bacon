@@ -50,7 +50,7 @@ public class InventoryManagementApplicationService {
             inventory.updateStatus(status);
         }
         try {
-            Inventory savedInventory = inventoryRepository.upsertInventory(inventory);
+            Inventory savedInventory = inventoryRepository.insertInventory(inventory);
             return InventoryStockAssembler.fromInventory(savedInventory);
         } catch (DuplicateKeyException ex) {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_ALREADY_EXISTS, String.valueOf(skuId), ex);
@@ -67,7 +67,7 @@ public class InventoryManagementApplicationService {
                 .orElseThrow(() ->
                         new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(skuId)));
         inventory.updateStatus(status);
-        Inventory savedInventory = inventoryRepository.upsertInventory(inventory);
+        Inventory savedInventory = inventoryRepository.updateInventory(inventory);
         return InventoryStockAssembler.fromInventory(savedInventory);
     }
 

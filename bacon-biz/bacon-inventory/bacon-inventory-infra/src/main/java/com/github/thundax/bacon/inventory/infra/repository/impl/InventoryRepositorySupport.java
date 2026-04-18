@@ -160,32 +160,38 @@ public class InventoryRepositorySupport {
                 skuId == null ? null : skuId.value(), status == null ? null : status.value());
     }
 
-    public Inventory upsertInventory(Inventory inventory) {
+    public Inventory insertInventory(Inventory inventory) {
         InventoryDO dataObject = InventoryPersistenceAssembler.toDataObject(inventory);
-        if (dataObject.getId() == null) {
-            inventoryMapper.insert(dataObject);
-        } else {
-            if (inventoryMapper.updateById(dataObject) == 0) {
-                throw new InventoryDomainException(
-                        InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED, String.valueOf(inventory.getSkuId()));
-            }
+        inventoryMapper.insert(dataObject);
+        return InventoryPersistenceAssembler.toDomain(dataObject);
+    }
+
+    public Inventory updateInventory(Inventory inventory) {
+        InventoryDO dataObject = InventoryPersistenceAssembler.toDataObject(inventory);
+        if (inventoryMapper.updateById(dataObject) == 0) {
+            throw new InventoryDomainException(
+                    InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED, String.valueOf(inventory.getSkuId()));
         }
         return InventoryPersistenceAssembler.toDomain(dataObject);
     }
 
-    public InventoryReservation upsertReservation(InventoryReservation reservation) {
+    public InventoryReservation insertReservation(InventoryReservation reservation) {
         BaconContextHolder.requireTenantId();
         InventoryReservationDO reservationDataObject =
                 InventoryReservationPersistenceAssembler.toDataObject(reservation);
-        if (reservationDataObject.getId() == null) {
-            reservationMapper.insert(reservationDataObject);
-            List<InventoryReservationItemDO> itemDataObjects = reservation.getItems().stream()
-                    .map(InventoryReservationItemPersistenceAssembler::toDataObject)
-                    .toList();
-            itemDataObjects.forEach(reservationItemMapper::insert);
-        } else {
-            reservationMapper.updateById(reservationDataObject);
-        }
+        reservationMapper.insert(reservationDataObject);
+        List<InventoryReservationItemDO> itemDataObjects = reservation.getItems().stream()
+                .map(InventoryReservationItemPersistenceAssembler::toDataObject)
+                .toList();
+        itemDataObjects.forEach(reservationItemMapper::insert);
+        return findReservation(reservation.getOrderNo()).orElseThrow();
+    }
+
+    public InventoryReservation updateReservation(InventoryReservation reservation) {
+        BaconContextHolder.requireTenantId();
+        InventoryReservationDO reservationDataObject =
+                InventoryReservationPersistenceAssembler.toDataObject(reservation);
+        reservationMapper.updateById(reservationDataObject);
         return findReservation(reservation.getOrderNo()).orElseThrow();
     }
 

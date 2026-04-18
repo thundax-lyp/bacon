@@ -50,8 +50,13 @@ public class InMemoryInventoryStockRepositoryImpl implements InventoryStockRepos
     }
 
     @Override
-    public Inventory upsertInventory(Inventory inventory) {
-        return support.upsertInventory(inventory);
+    public Inventory insertInventory(Inventory inventory) {
+        return support.insertInventory(inventory);
+    }
+
+    @Override
+    public Inventory updateInventory(Inventory inventory) {
+        return support.updateInventory(inventory);
     }
 
     private TenantId currentTenantId() {

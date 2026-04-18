@@ -64,7 +64,7 @@
 - `NAME_DOMAIN_SERVICE`：`DomainService` 命名 `{业务对象}DomainService`，目录 `domain/service/`
 - `NAME_REPOSITORY`：`Repository` 命名 `{业务对象}Repository`，目录 `domain/repository/`
 - `NAME_REPOSITORY_IMPL`：`RepositoryImpl` 命名 `{业务对象}RepositoryImpl`，目录 `infra/repository/impl/`
-- `NAME_REPOSITORY_METHOD_PREFIX`：`Repository` 方法名前缀必须命中白名单：`find / list / page / count / exists / claim / release / renew / mark / pause / resume / recover / delete / insert / update / upsert`；未命中白名单的方法一律视为不合规
+- `NAME_REPOSITORY_METHOD_PREFIX`：`Repository` 方法名前缀必须命中白名单：`find / list / page / count / exists / claim / release / renew / mark / pause / resume / recover / delete / insert / update`；未命中白名单的方法一律视为不合规
 - `NAME_MAPPER`：`Mapper` 命名 `{业务对象}Mapper`，目录 `infra/persistence/mapper/`
 - `NAME_DO`：`DO` 命名 `{业务对象}DO`，目录 `infra/persistence/dataobject/`
 - `NAME_PERSISTENCE_ASSEMBLER`：`PersistenceAssembler` 命名 `{业务对象}PersistenceAssembler`，目录 `infra/persistence/assembler/`

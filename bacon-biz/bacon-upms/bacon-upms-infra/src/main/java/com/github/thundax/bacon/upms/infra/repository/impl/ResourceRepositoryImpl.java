@@ -45,7 +45,7 @@ public class ResourceRepositoryImpl implements ResourceRepository {
     @Override
     public Resource insert(Resource resource) {
         TenantId tenantId = BaconIdContextHelper.requireTenantId();
-        Resource savedResource = support.insertResource(resource);
+        Resource savedResource = support.insert(resource);
         cacheSupport.evictTenantPermission(tenantId);
         return savedResource;
     }
@@ -53,7 +53,7 @@ public class ResourceRepositoryImpl implements ResourceRepository {
     @Override
     public Resource update(Resource resource) {
         TenantId tenantId = BaconIdContextHelper.requireTenantId();
-        Resource savedResource = support.updateResource(resource);
+        Resource savedResource = support.update(resource);
         cacheSupport.evictTenantPermission(tenantId);
         return savedResource;
     }
@@ -61,7 +61,7 @@ public class ResourceRepositoryImpl implements ResourceRepository {
     @Override
     public void delete(ResourceId resourceId) {
         TenantId tenantId = BaconIdContextHelper.requireTenantId();
-        support.deleteResource(resourceId);
+        support.delete(resourceId);
         cacheSupport.evictTenantPermission(tenantId);
     }
 }

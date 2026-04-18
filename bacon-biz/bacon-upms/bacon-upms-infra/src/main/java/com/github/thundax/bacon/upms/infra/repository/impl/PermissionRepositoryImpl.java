@@ -9,10 +9,12 @@ import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleDataScopeAssignment;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
+import com.github.thundax.bacon.upms.domain.repository.RoleDataScopeRepository;
+import com.github.thundax.bacon.upms.domain.repository.RoleMenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
+import com.github.thundax.bacon.upms.domain.repository.RoleResourceRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,14 +33,23 @@ public class PermissionRepositoryImpl implements PermissionRepository {
 
     private final MenuRepository menuRepository;
     private final RoleRepository roleRepository;
+    private final RoleMenuRepository roleMenuRepository;
+    private final RoleResourceRepository roleResourceRepository;
+    private final RoleDataScopeRepository roleDataScopeRepository;
     private final UpmsPermissionCacheSupport cacheSupport;
 
     public PermissionRepositoryImpl(
             MenuRepository menuRepository,
             RoleRepository roleRepository,
+            RoleMenuRepository roleMenuRepository,
+            RoleResourceRepository roleResourceRepository,
+            RoleDataScopeRepository roleDataScopeRepository,
             UpmsPermissionCacheSupport cacheSupport) {
         this.menuRepository = menuRepository;
         this.roleRepository = roleRepository;
+        this.roleMenuRepository = roleMenuRepository;
+        this.roleResourceRepository = roleResourceRepository;
+        this.roleDataScopeRepository = roleDataScopeRepository;
         this.cacheSupport = cacheSupport;
     }
 
@@ -83,7 +94,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
             return List.of();
         }
         Set<MenuId> menuIds = new HashSet<>();
-        roles.forEach(role -> menuIds.addAll(roleRepository.findMenuIds(role.getId())));
+        roles.forEach(role -> menuIds.addAll(roleMenuRepository.findMenuIds(role.getId())));
         if (menuIds.isEmpty()) {
             return List.of();
         }
@@ -102,7 +113,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
                 menuRepository.list().stream().collect(Collectors.toMap(Menu::getId, menu -> menu));
         Set<String> permissionCodes = new HashSet<>();
         roles.forEach(role -> {
-            roleRepository.findMenuIds(role.getId()).forEach(menuId -> {
+            roleMenuRepository.findMenuIds(role.getId()).forEach(menuId -> {
                 Menu menu = menuMap.get(menuId);
                 if (menu != null
                         && menu.getPermissionCode() != null
@@ -110,7 +121,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
                     permissionCodes.add(menu.getPermissionCode());
                 }
             });
-            roleRepository.findResourceCodes(role.getId()).stream()
+            roleResourceRepository.findResourceCodes(role.getId()).stream()
                     .map(ResourceCode::value)
                     .forEach(permissionCodes::add);
         });
@@ -120,7 +131,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     private Set<DepartmentId> loadUserDepartmentIds(UserId userId) {
         Set<DepartmentId> departmentIds = new HashSet<>();
         roleRepository.findByUserId(userId).forEach(role -> departmentIds.addAll(
-                roleRepository.findDataScope(role.getId()).departmentIds()));
+                roleDataScopeRepository.findDataScopeDepartmentIds(role.getId())));
         return Set.copyOf(departmentIds);
     }
 
@@ -128,8 +139,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         Set<String> scopeTypes = new HashSet<>();
         roleRepository.findByUserId(userId).stream()
                 .map(Role::getId)
-                .map(roleRepository::findDataScope)
-                .map(RoleDataScopeAssignment::dataScopeType)
+                .map(roleDataScopeRepository::findDataScopeType)
                 .map(RoleDataScopeType::value)
                 .forEach(scopeTypes::add);
         return Set.copyOf(scopeTypes);

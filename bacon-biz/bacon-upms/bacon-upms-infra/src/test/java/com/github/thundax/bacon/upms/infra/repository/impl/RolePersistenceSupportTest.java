@@ -19,10 +19,7 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleResourceRe
 import com.github.thundax.bacon.upms.infra.persistence.mapper.DataPermissionRuleMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.ResourceMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleDataScopeRelMapper;
-import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleMapper;
-import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleMenuRelMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleResourceRelMapper;
-import com.github.thundax.bacon.upms.infra.persistence.mapper.UserRoleRelMapper;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
@@ -38,16 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class RolePersistenceSupportTest {
 
     @Mock
-    private RoleMapper roleMapper;
-
-    @Mock
     private ResourceMapper resourceMapper;
-
-    @Mock
-    private UserRoleRelMapper userRoleRelMapper;
-
-    @Mock
-    private RoleMenuRelMapper roleMenuRelMapper;
 
     @Mock
     private RoleResourceRelMapper roleResourceRelMapper;
@@ -61,20 +49,14 @@ class RolePersistenceSupportTest {
     @Mock
     private IdGenerator idGenerator;
 
-    private RolePersistenceSupport support;
+    private RoleDataScopePersistenceSupport dataScopeSupport;
+    private RoleResourceRelPersistenceSupport resourceSupport;
 
     @BeforeEach
     void setUp() {
         BaconContextHolder.set(new BaconContextHolder.BaconContext(1001L, 2001L));
-        support = new RolePersistenceSupport(
-                roleMapper,
-                resourceMapper,
-                userRoleRelMapper,
-                roleMenuRelMapper,
-                roleResourceRelMapper,
-                dataPermissionRuleMapper,
-                roleDataScopeRelMapper,
-                idGenerator);
+        dataScopeSupport = new RoleDataScopePersistenceSupport(dataPermissionRuleMapper, roleDataScopeRelMapper, idGenerator);
+        resourceSupport = new RoleResourceRelPersistenceSupport(resourceMapper, roleResourceRelMapper, idGenerator);
         Mockito.lenient().when(idGenerator.nextId(any())).thenReturn(1001L, 1002L, 1003L, 1004L, 1005L);
     }
 
@@ -89,7 +71,7 @@ class RolePersistenceSupportTest {
         ArgumentCaptor<RoleDataScopeRelDO> relationCaptor = ArgumentCaptor.forClass(RoleDataScopeRelDO.class);
         when(dataPermissionRuleMapper.selectOne(any(Wrapper.class))).thenReturn(null);
 
-        support.replaceRoleDataScope(
+        dataScopeSupport.updateDataScope(
                 RoleId.of(9L), RoleDataScopeType.CUSTOM, Set.of(DepartmentId.of(11L), DepartmentId.of(12L)));
 
         verify(dataPermissionRuleMapper).insert(ruleCaptor.capture());
@@ -115,7 +97,7 @@ class RolePersistenceSupportTest {
                         new ResourceDO(21L, 1001L, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE"),
                         new ResourceDO(22L, 1001L, "upms:user:edit", "User Edit", "API", "POST", "/users", "ACTIVE")));
 
-        Set<ResourceCode> assignedResourceCodes = support.findResourceCodes(RoleId.of(9L));
+        Set<ResourceCode> assignedResourceCodes = resourceSupport.findResourceCodes(RoleId.of(9L));
 
         assertThat(assignedResourceCodes).containsExactlyInAnyOrder(
                 ResourceCode.of("upms:user:view"), ResourceCode.of("upms:user:edit"));
@@ -128,7 +110,7 @@ class RolePersistenceSupportTest {
                 .thenReturn(List.of(
                         new ResourceDO(21L, 1001L, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE")));
 
-        support.replaceRoleResources(RoleId.of(9L), Set.of(ResourceCode.of("upms:user:view")));
+        resourceSupport.updateResourceCodes(RoleId.of(9L), Set.of(ResourceCode.of("upms:user:view")));
 
         verify(roleResourceRelMapper).insert(captor.capture());
         assertThat(captor.getValue().getTenantId()).isEqualTo(1001L);

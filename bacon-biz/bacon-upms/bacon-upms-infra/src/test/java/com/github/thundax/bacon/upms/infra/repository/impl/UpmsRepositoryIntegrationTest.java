@@ -26,6 +26,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.MenuType;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
@@ -42,13 +43,18 @@ import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleCode;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleDataScopeAssignment;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
+import com.github.thundax.bacon.upms.domain.repository.RoleDataScopeRepository;
+import com.github.thundax.bacon.upms.domain.repository.RoleMenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
+import com.github.thundax.bacon.upms.domain.repository.RoleResourceRepository;
+import com.github.thundax.bacon.upms.domain.repository.UserCredentialRepository;
+import com.github.thundax.bacon.upms.domain.repository.UserIdentityRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
+import com.github.thundax.bacon.upms.domain.repository.UserRoleRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import com.github.thundax.bacon.upms.infra.persistence.handler.DepartmentIdTypeHandler;
 import com.github.thundax.bacon.upms.infra.persistence.handler.MenuIdTypeHandler;
@@ -98,7 +104,13 @@ class UpmsRepositoryIntegrationTest {
 
     private final DataSource dataSource = CONTEXT.getBean(DataSource.class);
     private final UserRepository userRepository = CONTEXT.getBean(UserRepository.class);
+    private final UserIdentityRepository userIdentityRepository = CONTEXT.getBean(UserIdentityRepository.class);
+    private final UserCredentialRepository userCredentialRepository = CONTEXT.getBean(UserCredentialRepository.class);
+    private final UserRoleRepository userRoleRepository = CONTEXT.getBean(UserRoleRepository.class);
     private final RoleRepository roleRepository = CONTEXT.getBean(RoleRepository.class);
+    private final RoleMenuRepository roleMenuRepository = CONTEXT.getBean(RoleMenuRepository.class);
+    private final RoleResourceRepository roleResourceRepository = CONTEXT.getBean(RoleResourceRepository.class);
+    private final RoleDataScopeRepository roleDataScopeRepository = CONTEXT.getBean(RoleDataScopeRepository.class);
     private final MenuRepository menuRepository = CONTEXT.getBean(MenuRepository.class);
     private final ResourceRepository resourceRepository = CONTEXT.getBean(ResourceRepository.class);
     private final PermissionRepository permissionRepository = CONTEXT.getBean(PermissionRepository.class);
@@ -318,10 +330,10 @@ class UpmsRepositoryIntegrationTest {
         childDepartment.sort(2);
         childDepartment = departmentRepository.insert(childDepartment);
         Menu rootMenu = menuRepository.insert(Menu.create(
-                MenuId.of(2001L), "MENU", "System", null, "/system", "SystemPage", "shield", null));
+                MenuId.of(2001L), MenuType.MENU, "System", null, "/system", "SystemPage", "shield", null));
         Menu childMenu = menuRepository.insert(Menu.create(
                 MenuId.of(2002L),
-                "MENU",
+                MenuType.MENU,
                 "Users",
                 rootMenu.getId(),
                 "/system/users",
@@ -334,35 +346,28 @@ class UpmsRepositoryIntegrationTest {
                 "Edit User",
                 ResourceType.API,
                 "POST",
-                "/users",
-                ResourceStatus.ENABLED));
+                "/users"));
         Role role = roleRepository.insert(Role.create(
-                RoleId.of(2101L),
-                RoleCode.of("ADMIN"),
-                "Administrator",
-                RoleType.SYSTEM_ROLE,
-                RoleDataScopeType.SELF,
-                RoleStatus.ACTIVE));
+                RoleId.of(2101L), RoleCode.of("ADMIN"), "Administrator", RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF));
         User user = userRepository.insert(
                 User.create(
                         UserId.of(2201L),
                         "Alice",
                         AvatarStoredObjectNo.of("storage-20260327100000-000901"),
-                        childDepartment.getId(),
-                        UserStatus.ACTIVE),
+                        childDepartment.getId()),
                 "alice",
                 "13800000001",
                 UserIdentityId.of(3001L),
                 UserIdentityId.of(3002L),
                 UserCredentialId.of(3003L));
 
-        roleRepository.updateMenuIds(role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
-        roleRepository.updateResourceCodes(role.getId(), Set.of(resource.getCode()));
-        roleRepository.updateDataScope(
+        roleMenuRepository.updateMenuIds(role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
+        roleResourceRepository.updateResourceCodes(role.getId(), Set.of(resource.getCode()));
+        roleDataScopeRepository.updateDataScope(
                 role.getId(),
-                RoleDataScopeAssignment.of(
-                        RoleDataScopeType.CUSTOM, Set.of(rootDepartment.getId(), childDepartment.getId())));
-        userRepository.updateRoleIds(user.getId(), List.of(role.getId()));
+                RoleDataScopeType.CUSTOM,
+                Set.of(rootDepartment.getId(), childDepartment.getId()));
+        userRoleRepository.updateRoleIds(user.getId(), List.of(role.getId()));
 
         assertEquals(1, permissionRepository.list().size());
 
@@ -371,18 +376,18 @@ class UpmsRepositoryIntegrationTest {
         assertTrue(persistedUser.getId().value() > 0);
         assertEquals(
                 AvatarStoredObjectNo.of("storage-20260327100000-000901"), persistedUser.getAvatarStoredObjectNo());
-        assertTrue(userRepository
+        assertTrue(userIdentityRepository
                 .findIdentity(UserIdentityType.ACCOUNT, "alice")
                 .isPresent());
-        assertNotNull(userRepository
+        assertNotNull(userCredentialRepository
                 .findCredentialByUserId(persistedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue());
-        assertTrue(userRepository
+        assertTrue(userCredentialRepository
                 .findCredentialByUserId(persistedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .isNeedChangePassword());
-        assertTrue(userRepository
+        assertTrue(userIdentityRepository
                 .findIdentity(UserIdentityType.PHONE, "13800000001")
                 .isPresent());
         assertEquals(1L, userRepository.count("ali", null, null, UserStatus.ACTIVE));
@@ -410,34 +415,28 @@ class UpmsRepositoryIntegrationTest {
         department.sort(1);
         department = departmentRepository.insert(department);
         Role role = roleRepository.insert(Role.create(
-                RoleId.of(2102L),
-                RoleCode.of("OPS_ADMIN"),
-                "Ops Admin",
-                RoleType.SYSTEM_ROLE,
-                RoleDataScopeType.SELF,
-                RoleStatus.ACTIVE));
+                RoleId.of(2102L), RoleCode.of("OPS_ADMIN"), "Ops Admin", RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF));
         User createdUser = userRepository.insert(
                 User.create(
                         UserId.of(2202L),
                         "Bob",
                         AvatarStoredObjectNo.of("storage-20260327100000-001001"),
-                        department.getId(),
-                        UserStatus.ACTIVE),
+                        department.getId()),
                 "bob",
                 "13800000002",
                 UserIdentityId.of(3101L),
                 UserIdentityId.of(3102L),
                 UserCredentialId.of(3103L));
 
-        userRepository.updateRoleIds(createdUser.getId(), List.of(role.getId()));
-        UserIdentity originalAccountIdentity = userRepository
+        userRoleRepository.updateRoleIds(createdUser.getId(), List.of(role.getId()));
+        UserIdentity originalAccountIdentity = userIdentityRepository
                 .findIdentityByUserId(createdUser.getId(), UserIdentityType.ACCOUNT)
                 .orElseThrow();
-        UserIdentity originalPhoneIdentity = userRepository
+        UserIdentity originalPhoneIdentity = userIdentityRepository
                 .findIdentityByUserId(createdUser.getId(), UserIdentityType.PHONE)
                 .orElseThrow();
         User updatedUser = userRepository.update(
-                User.create(
+                User.reconstruct(
                         createdUser.getId(),
                         "Bob",
                         AvatarStoredObjectNo.of("storage-20260327100000-001002"),
@@ -449,25 +448,25 @@ class UpmsRepositoryIntegrationTest {
                 UserIdentityId.of(3202L),
                 UserCredentialId.of(3203L));
 
-        assertFalse(userRepository
+        assertFalse(userIdentityRepository
                 .findIdentity(UserIdentityType.PHONE, "13800000002")
                 .isPresent());
-        assertTrue(userRepository
+        assertTrue(userIdentityRepository
                 .findIdentity(UserIdentityType.PHONE, "13900000003")
                 .isPresent());
         assertEquals(
                 originalAccountIdentity.getId(),
-                userRepository
+                userIdentityRepository
                         .findIdentityByUserId(updatedUser.getId(), UserIdentityType.ACCOUNT)
                         .orElseThrow()
                         .getId());
         assertEquals(
                 originalPhoneIdentity.getId(),
-                userRepository
+                userIdentityRepository
                         .findIdentityByUserId(updatedUser.getId(), UserIdentityType.PHONE)
                         .orElseThrow()
                         .getId());
-        assertNotNull(userRepository
+        assertNotNull(userCredentialRepository
                 .findCredentialByUserId(updatedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue());
@@ -480,7 +479,7 @@ class UpmsRepositoryIntegrationTest {
 
         assertFalse(userRepository.findById(updatedUser.getId()).isPresent());
         assertFalse(
-                userRepository.findIdentity(UserIdentityType.ACCOUNT, "bob").isPresent());
+                userIdentityRepository.findIdentity(UserIdentityType.ACCOUNT, "bob").isPresent());
         assertTrue(roleRepository.findByUserId(updatedUser.getId()).isEmpty());
         assertFalse(departmentRepository.existsUser(department.getId()));
         assertTrue(isUserDeleted(String.valueOf(updatedUser.getId().value())));
@@ -493,14 +492,14 @@ class UpmsRepositoryIntegrationTest {
         department.sort(1);
         department = departmentRepository.insert(department);
         User createdUser = userRepository.insert(
-                User.create(UserId.of(2203L), "Carol", null, department.getId(), UserStatus.ACTIVE),
+                User.create(UserId.of(2203L), "Carol", null, department.getId()),
                 "carol",
                 "13600000001",
                 UserIdentityId.of(3301L),
                 UserIdentityId.of(3302L),
                 UserCredentialId.of(3303L));
 
-        String originalPasswordHash = userRepository
+        String originalPasswordHash = userCredentialRepository
                 .findCredentialByUserId(createdUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue();
@@ -508,12 +507,12 @@ class UpmsRepositoryIntegrationTest {
         User updatedUser =
                 userRepository.updatePassword(createdUser.getId(), "654321", false, UserCredentialId.of(3304L));
 
-        String updatedPasswordHash = userRepository
+        String updatedPasswordHash = userCredentialRepository
                 .findCredentialByUserId(createdUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue();
         assertNotEquals(originalPasswordHash, updatedPasswordHash);
-        assertFalse(userRepository
+        assertFalse(userCredentialRepository
                 .findCredentialByUserId(createdUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .isNeedChangePassword());
@@ -530,62 +529,54 @@ class UpmsRepositoryIntegrationTest {
         child.sort(2);
         child = departmentRepository.insert(child);
         Menu oldMenu = menuRepository.insert(Menu.create(
-                MenuId.of(2003L), "MENU", "Old", null, "/old", "OldPage", "archive", "upms:old:view"));
+                MenuId.of(2003L), MenuType.MENU, "Old", null, "/old", "OldPage", "archive", "upms:old:view"));
         Menu newMenu = menuRepository.insert(Menu.create(
-                MenuId.of(2004L), "MENU", "New", null, "/new", "NewPage", "star", "upms:new:view"));
+                MenuId.of(2004L), MenuType.MENU, "New", null, "/new", "NewPage", "star", "upms:new:view"));
         Resource oldResource = resourceRepository.insert(Resource.create(
                 ResourceId.of(2302L),
                 ResourceCode.of("upms:old:edit"),
                 "Old Edit",
                 ResourceType.API,
                 "POST",
-                "/old",
-                ResourceStatus.ENABLED));
+                "/old"));
         Resource newResource = resourceRepository.insert(Resource.create(
                 ResourceId.of(2303L),
                 ResourceCode.of("upms:new:edit"),
                 "New Edit",
                 ResourceType.API,
                 "PUT",
-                "/new",
-                ResourceStatus.ENABLED));
+                "/new"));
         Role role = roleRepository.insert(Role.create(
-                RoleId.of(2103L),
-                RoleCode.of("MANAGER"),
-                "Manager",
-                RoleType.SYSTEM_ROLE,
-                RoleDataScopeType.SELF,
-                RoleStatus.ACTIVE));
+                RoleId.of(2103L), RoleCode.of("MANAGER"), "Manager", RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF));
 
-        roleRepository.updateMenuIds(role.getId(), Set.of(oldMenu.getId()));
-        roleRepository.updateResourceCodes(role.getId(), Set.of(oldResource.getCode()));
-        roleRepository.updateDataScope(
-                role.getId(), RoleDataScopeAssignment.of(RoleDataScopeType.CUSTOM, Set.of(root.getId())));
+        roleMenuRepository.updateMenuIds(role.getId(), Set.of(oldMenu.getId()));
+        roleResourceRepository.updateResourceCodes(role.getId(), Set.of(oldResource.getCode()));
+        roleDataScopeRepository.updateDataScope(
+                role.getId(), RoleDataScopeType.CUSTOM, Set.of(root.getId()));
 
         User user = userRepository.insert(
-                User.create(UserId.of(2204L), "Manager", null, child.getId(), UserStatus.ACTIVE),
+                User.create(UserId.of(2204L), "Manager", null, child.getId()),
                 "manager",
                 "13700000001",
                 UserIdentityId.of(3401L),
                 UserIdentityId.of(3402L),
                 UserCredentialId.of(3403L));
-        userRepository.updateRoleIds(user.getId(), List.of(role.getId()));
+        userRoleRepository.updateRoleIds(user.getId(), List.of(role.getId()));
 
         assertEquals(
                 Set.of("upms:old:view", "upms:old:edit"), permissionRepository.findPermissionCodesByUserId(user.getId()));
         assertEquals(Set.of("CUSTOM"), permissionRepository.findScopeTypesByUserId(user.getId()));
         assertEquals(1, permissionRepository.listMenuTreeByUserId(user.getId()).size());
 
-        roleRepository.updateMenuIds(role.getId(), Set.of(newMenu.getId()));
-        roleRepository.updateResourceCodes(role.getId(), Set.of(newResource.getCode()));
-        roleRepository.updateDataScope(
-                role.getId(), RoleDataScopeAssignment.of(RoleDataScopeType.ALL, Set.of(child.getId())));
+        roleMenuRepository.updateMenuIds(role.getId(), Set.of(newMenu.getId()));
+        roleResourceRepository.updateResourceCodes(role.getId(), Set.of(newResource.getCode()));
+        roleDataScopeRepository.updateDataScope(
+                role.getId(), RoleDataScopeType.ALL, Set.of(child.getId()));
 
-        assertEquals(Set.of(newMenu.getId()), roleRepository.findMenuIds(role.getId()));
-        assertEquals(Set.of(newResource.getCode()), roleRepository.findResourceCodes(role.getId()));
-        assertEquals(
-                RoleDataScopeAssignment.of(RoleDataScopeType.ALL, Set.of()),
-                roleRepository.findDataScope(role.getId()));
+        assertEquals(Set.of(newMenu.getId()), roleMenuRepository.findMenuIds(role.getId()));
+        assertEquals(Set.of(newResource.getCode()), roleResourceRepository.findResourceCodes(role.getId()));
+        assertEquals(RoleDataScopeType.ALL, roleDataScopeRepository.findDataScopeType(role.getId()));
+        assertTrue(roleDataScopeRepository.findDataScopeDepartmentIds(role.getId()).isEmpty());
         assertEquals(
                 Set.of("upms:new:view", "upms:new:edit"), permissionRepository.findPermissionCodesByUserId(user.getId()));
         assertEquals(Set.of("ALL"), permissionRepository.findScopeTypesByUserId(user.getId()));
@@ -599,8 +590,8 @@ class UpmsRepositoryIntegrationTest {
         menuRepository.delete(newMenu.getId());
         resourceRepository.delete(newResource.getId());
 
-        assertTrue(roleRepository.findMenuIds(role.getId()).isEmpty());
-        assertTrue(roleRepository.findResourceCodes(role.getId()).isEmpty());
+        assertTrue(roleMenuRepository.findMenuIds(role.getId()).isEmpty());
+        assertTrue(roleResourceRepository.findResourceCodes(role.getId()).isEmpty());
         assertTrue(permissionRepository.findPermissionCodesByUserId(user.getId()).isEmpty());
         assertNotEquals(oldMenu.getId(), newMenu.getId());
         assertNotEquals(oldResource.getId(), newResource.getId());
@@ -672,13 +663,24 @@ class UpmsRepositoryIntegrationTest {
 
         @Bean
         UserPersistenceSupport userPersistenceSupport(
-                UserMapper userMapper,
-                UserIdentityMapper userIdentityMapper,
-                UserCredentialMapper userCredentialMapper,
-                UserRoleRelMapper userRoleRelMapper,
-                IdGenerator idGenerator) {
-            return new UserPersistenceSupport(
-                    userMapper, userIdentityMapper, userCredentialMapper, userRoleRelMapper, idGenerator);
+                UserMapper userMapper) {
+            return new UserPersistenceSupport(userMapper);
+        }
+
+        @Bean
+        UserIdentityPersistenceSupport userIdentityPersistenceSupport(UserIdentityMapper userIdentityMapper) {
+            return new UserIdentityPersistenceSupport(userIdentityMapper);
+        }
+
+        @Bean
+        UserCredentialPersistenceSupport userCredentialPersistenceSupport(UserCredentialMapper userCredentialMapper) {
+            return new UserCredentialPersistenceSupport(userCredentialMapper);
+        }
+
+        @Bean
+        UserRoleRelPersistenceSupport userRoleRelPersistenceSupport(
+                UserRoleRelMapper userRoleRelMapper, IdGenerator idGenerator) {
+            return new UserRoleRelPersistenceSupport(userRoleRelMapper, idGenerator);
         }
 
         @Bean
@@ -693,24 +695,28 @@ class UpmsRepositoryIntegrationTest {
         }
 
         @Bean
-        RolePersistenceSupport rolePersistenceSupport(
-                RoleMapper roleMapper,
-                ResourceMapper resourceMapper,
-                UserRoleRelMapper userRoleRelMapper,
-                RoleMenuRelMapper roleMenuRelMapper,
-                RoleResourceRelMapper roleResourceRelMapper,
+        RolePersistenceSupport rolePersistenceSupport(RoleMapper roleMapper, UserRoleRelMapper userRoleRelMapper) {
+            return new RolePersistenceSupport(roleMapper, userRoleRelMapper);
+        }
+
+        @Bean
+        RoleMenuRelPersistenceSupport roleMenuRelPersistenceSupport(
+                RoleMenuRelMapper roleMenuRelMapper, IdGenerator idGenerator) {
+            return new RoleMenuRelPersistenceSupport(roleMenuRelMapper, idGenerator);
+        }
+
+        @Bean
+        RoleResourceRelPersistenceSupport roleResourceRelPersistenceSupport(
+                ResourceMapper resourceMapper, RoleResourceRelMapper roleResourceRelMapper, IdGenerator idGenerator) {
+            return new RoleResourceRelPersistenceSupport(resourceMapper, roleResourceRelMapper, idGenerator);
+        }
+
+        @Bean
+        RoleDataScopePersistenceSupport roleDataScopePersistenceSupport(
                 DataPermissionRuleMapper dataPermissionRuleMapper,
                 RoleDataScopeRelMapper roleDataScopeRelMapper,
                 IdGenerator idGenerator) {
-            return new RolePersistenceSupport(
-                    roleMapper,
-                    resourceMapper,
-                    userRoleRelMapper,
-                    roleMenuRelMapper,
-                    roleResourceRelMapper,
-                    dataPermissionRuleMapper,
-                    roleDataScopeRelMapper,
-                    idGenerator);
+            return new RoleDataScopePersistenceSupport(dataPermissionRuleMapper, roleDataScopeRelMapper, idGenerator);
         }
 
         @Bean
@@ -728,9 +734,37 @@ class UpmsRepositoryIntegrationTest {
         @Bean
         RoleRepositoryImpl roleRepository(
                 RolePersistenceSupport rolePersistenceSupport,
-                UpmsPermissionCacheSupport upmsPermissionCacheSupport,
-                IdGenerator idGenerator) {
-            return new RoleRepositoryImpl(rolePersistenceSupport, upmsPermissionCacheSupport);
+                RoleDataScopePersistenceSupport roleDataScopePersistenceSupport,
+                UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
+            return new RoleRepositoryImpl(
+                    rolePersistenceSupport, roleDataScopePersistenceSupport, upmsPermissionCacheSupport);
+        }
+
+        @Bean
+        RoleMenuRepository roleMenuRepository(
+                RolePersistenceSupport rolePersistenceSupport,
+                RoleMenuRelPersistenceSupport roleMenuRelPersistenceSupport,
+                UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
+            return new RoleMenuRepositoryImpl(
+                    rolePersistenceSupport, roleMenuRelPersistenceSupport, upmsPermissionCacheSupport);
+        }
+
+        @Bean
+        RoleResourceRepository roleResourceRepository(
+                RolePersistenceSupport rolePersistenceSupport,
+                RoleResourceRelPersistenceSupport roleResourceRelPersistenceSupport,
+                UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
+            return new RoleResourceRepositoryImpl(
+                    rolePersistenceSupport, roleResourceRelPersistenceSupport, upmsPermissionCacheSupport);
+        }
+
+        @Bean
+        RoleDataScopeRepository roleDataScopeRepository(
+                RolePersistenceSupport rolePersistenceSupport,
+                RoleDataScopePersistenceSupport roleDataScopePersistenceSupport,
+                UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
+            return new RoleDataScopeRepositoryImpl(
+                    rolePersistenceSupport, roleDataScopePersistenceSupport, upmsPermissionCacheSupport);
         }
 
         @Bean
@@ -749,13 +783,40 @@ class UpmsRepositoryIntegrationTest {
         @Bean
         UserRepositoryImpl userRepositoryImpl(
                 UserPersistenceSupport userPersistenceSupport,
-                RoleRepository roleRepository,
+                UserIdentityPersistenceSupport userIdentityPersistenceSupport,
+                UserCredentialPersistenceSupport userCredentialPersistenceSupport,
+                UserRoleRelPersistenceSupport userRoleRelPersistenceSupport,
                 PasswordEncoder passwordEncoder,
                 UpmsPermissionCacheSupport upmsPermissionCacheSupport,
                 Ids ids,
                 IdGenerator idGenerator) {
             return new UserRepositoryImpl(
-                    userPersistenceSupport, roleRepository, passwordEncoder, upmsPermissionCacheSupport);
+                    userPersistenceSupport,
+                    userIdentityPersistenceSupport,
+                    userCredentialPersistenceSupport,
+                    userRoleRelPersistenceSupport,
+                    passwordEncoder,
+                    upmsPermissionCacheSupport);
+        }
+
+        @Bean
+        UserIdentityRepository userIdentityRepository(UserIdentityPersistenceSupport userIdentityPersistenceSupport) {
+            return new UserIdentityRepositoryImpl(userIdentityPersistenceSupport);
+        }
+
+        @Bean
+        UserCredentialRepository userCredentialRepository(
+                UserCredentialPersistenceSupport userCredentialPersistenceSupport) {
+            return new UserCredentialRepositoryImpl(userCredentialPersistenceSupport);
+        }
+
+        @Bean
+        UserRoleRepository userRoleRepository(
+                UserRoleRelPersistenceSupport userRoleRelPersistenceSupport,
+                RoleRepository roleRepository,
+                UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
+            return new UserRoleRepositoryImpl(
+                    userRoleRelPersistenceSupport, roleRepository, upmsPermissionCacheSupport);
         }
 
         @Bean
@@ -773,8 +834,17 @@ class UpmsRepositoryIntegrationTest {
         PermissionRepository permissionRepository(
                 MenuRepository menuRepository,
                 RoleRepository roleRepository,
+                RoleMenuRepository roleMenuRepository,
+                RoleResourceRepository roleResourceRepository,
+                RoleDataScopeRepository roleDataScopeRepository,
                 UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
-            return new PermissionRepositoryImpl(menuRepository, roleRepository, upmsPermissionCacheSupport);
+            return new PermissionRepositoryImpl(
+                    menuRepository,
+                    roleRepository,
+                    roleMenuRepository,
+                    roleResourceRepository,
+                    roleDataScopeRepository,
+                    upmsPermissionCacheSupport);
         }
 
         @Bean

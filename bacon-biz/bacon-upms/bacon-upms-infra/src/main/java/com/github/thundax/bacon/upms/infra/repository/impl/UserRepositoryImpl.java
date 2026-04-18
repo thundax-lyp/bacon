@@ -7,25 +7,20 @@ import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
-import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
-import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
-import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
-import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
@@ -36,71 +31,65 @@ public class UserRepositoryImpl implements UserRepository {
 
     private static final String DEFAULT_PASSWORD = "123456";
     private static final UserCredentialType PASSWORD_CREDENTIAL_TYPE = UserCredentialType.PASSWORD;
-    private static final UserCredentialFactorLevel PRIMARY_FACTOR_LEVEL = UserCredentialFactorLevel.PRIMARY;
     private static final int PASSWORD_FAILED_LIMIT = 5;
     private static final long PASSWORD_EXPIRE_DAYS = 90L;
-    private static final UserIdentityStatus ACTIVE_IDENTITY_STATUS = UserIdentityStatus.ACTIVE;
-
-    private final UserPersistenceSupport support;
-    private final RoleRepository roleRepository;
+    private final UserPersistenceSupport userSupport;
+    private final UserIdentityPersistenceSupport userIdentitySupport;
+    private final UserCredentialPersistenceSupport userCredentialSupport;
+    private final UserRoleRelPersistenceSupport userRoleRelSupport;
     private final PasswordEncoder passwordEncoder;
     private final UpmsPermissionCacheSupport cacheSupport;
 
     public UserRepositoryImpl(
-            UserPersistenceSupport support,
-            RoleRepository roleRepository,
+            UserPersistenceSupport userSupport,
+            UserIdentityPersistenceSupport userIdentitySupport,
+            UserCredentialPersistenceSupport userCredentialSupport,
+            UserRoleRelPersistenceSupport userRoleRelSupport,
             PasswordEncoder passwordEncoder,
             UpmsPermissionCacheSupport cacheSupport) {
-        this.support = support;
-        this.roleRepository = roleRepository;
+        this.userSupport = userSupport;
+        this.userIdentitySupport = userIdentitySupport;
+        this.userCredentialSupport = userCredentialSupport;
+        this.userRoleRelSupport = userRoleRelSupport;
         this.passwordEncoder = passwordEncoder;
         this.cacheSupport = cacheSupport;
     }
 
     @Override
     public Optional<User> findById(UserId userId) {
-        return support.findById(userId);
+        return userSupport.findById(userId);
     }
 
     @Override
     public Optional<User> findByAccount(String account) {
-        return support.findByAccount(account);
+        return userIdentitySupport
+                .findIdentity(UserIdentityType.ACCOUNT, account)
+                .flatMap(identity -> userSupport.findById(identity.getUserId()));
     }
 
     @Override
-    public Optional<UserIdentity> findIdentity(UserIdentityType identityType, String identityValue) {
-        return support.findIdentity(identityType, identityValue);
-    }
-
-    @Override
-    public Optional<UserIdentity> findIdentityByUserId(UserId userId, UserIdentityType identityType) {
-        return support.findIdentity(userId, identityType);
-    }
-
-    @Override
-    public Optional<UserCredential> findCredentialByUserId(UserId userId, UserCredentialType credentialType) {
-        return support.findCredential(userId, credentialType);
+    public List<User> list(String account, String name, String phone, UserStatus status) {
+        return queryUsers(account, name, phone, status, 1, Integer.MAX_VALUE);
     }
 
     @Override
     public List<User> page(
             String account, String name, String phone, UserStatus status, int pageNo, int pageSize) {
-        return support.page(account, name, phone, status, pageNo, pageSize);
+        return queryUsers(account, name, phone, status, pageNo, pageSize);
     }
 
     @Override
     public long count(String account, String name, String phone, UserStatus status) {
-        return support.count(account, name, phone, status);
-    }
-
-    @Override
-    public List<User> list(String account, String name, String phone, UserStatus status) {
-        return support.page(account, name, phone, status, 1, Integer.MAX_VALUE);
+        Set<Long> userIds = userIdentitySupport.resolveUserIdsByIdentityFilters(account, phone);
+        if (userIds != null && userIds.isEmpty()) {
+            return 0L;
+        }
+        return userSupport.count(userIds, name, status);
     }
 
     @Override
     public boolean existsActiveByDepartmentId(DepartmentId departmentId) {
-        return support.hasActiveUserInDepartment(departmentId);
+        return userSupport.existsActiveByDepartmentId(departmentId);
     }
 
     @Override
@@ -136,7 +125,7 @@ public class UserRepositoryImpl implements UserRepository {
             UserCredentialId passwordCredentialIdIfAbsent,
             boolean newUser) {
         User savedUser = copyUser(user);
-        savedUser = newUser ? support.insertUser(savedUser) : support.updateUser(savedUser);
+        savedUser = newUser ? userSupport.insert(savedUser) : userSupport.update(savedUser);
         UserIdentity accountIdentity = replaceAccountIdentity(savedUser, account, accountIdentityId);
         upsertPasswordCredential(
                 savedUser,
@@ -145,7 +134,7 @@ public class UserRepositoryImpl implements UserRepository {
                 newUser,
                 false,
                 passwordCredentialIdIfAbsent);
-        replacePhoneIdentity(BaconIdContextHelper.requireTenantId(), savedUser, phone, phoneIdentityId);
+        replacePhoneIdentity(savedUser, phone, phoneIdentityId);
         return savedUser;
     }
 
@@ -154,7 +143,7 @@ public class UserRepositoryImpl implements UserRepository {
             UserId userId, String password, boolean needChangePassword, UserCredentialId passwordCredentialIdIfAbsent) {
         User currentUser =
                 findById(userId).orElseThrow(() -> new NotFoundException("User not found: " + userId));
-        User savedUser = support.updateUser(copyUser(currentUser));
+        User savedUser = userSupport.update(copyUser(currentUser));
         UserIdentity accountIdentity = requireUserIdentity(userId, UserIdentityType.ACCOUNT);
         upsertPasswordCredential(
                 savedUser,
@@ -167,25 +156,12 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public List<Role> updateRoleIds(UserId userId, List<RoleId> roleIds) {
-        TenantId tenantId = BaconIdContextHelper.requireTenantId();
-        List<Role> roles = roleIds.stream()
-                .map(roleId -> roleRepository
-                        .findById(roleId)
-                        .orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value())))
-                .toList();
-        support.replaceUserRoles(userId, roles.stream().map(Role::getId).toList());
-        cacheSupport.evictUserPermission(tenantId, userId);
-        return roles;
-    }
-
-    @Override
     public void delete(UserId userId) {
         TenantId tenantId = BaconIdContextHelper.requireTenantId();
-        support.delete(userId);
-        support.deleteUserRolesByUser(userId);
-        support.deleteUserIdentitiesByUser(userId);
-        support.deleteUserCredentialsByUser(userId);
+        userSupport.delete(userId);
+        userRoleRelSupport.deleteRoleIdsByUserId(userId);
+        userIdentitySupport.deleteIdentitiesByUserId(userId);
+        userCredentialSupport.deleteCredentialsByUserId(userId);
         cacheSupport.evictUserPermission(tenantId, userId);
     }
 
@@ -200,35 +176,35 @@ public class UserRepositoryImpl implements UserRepository {
 
     private UserIdentity replaceAccountIdentity(User user, String account, UserIdentityId accountIdentityId) {
         String normalizedAccount = requireIdentityValue(account, UserIdentityType.ACCOUNT);
-        UserIdentity currentIdentity = support.findIdentity(user.getId(), UserIdentityType.ACCOUNT)
+        UserIdentity currentIdentity = userIdentitySupport.findIdentityByUserId(user.getId(), UserIdentityType.ACCOUNT)
                 .orElse(null);
         if (currentIdentity == null) {
-            return support.saveIdentity(UserIdentity.create(
-                    accountIdentityId, user.getId(), UserIdentityType.ACCOUNT, normalizedAccount, ACTIVE_IDENTITY_STATUS));
+            return userIdentitySupport.insert(UserIdentity.create(
+                    accountIdentityId, user.getId(), UserIdentityType.ACCOUNT, normalizedAccount));
         }
         currentIdentity.changeAccount(normalizedAccount);
-        return support.saveIdentity(currentIdentity);
+        return userIdentitySupport.update(currentIdentity);
     }
 
-    private void replacePhoneIdentity(TenantId tenantId, User user, String phone, UserIdentityId phoneIdentityId) {
+    private void replacePhoneIdentity(User user, String phone, UserIdentityId phoneIdentityId) {
         if (phone == null || phone.isBlank()) {
-            support.deleteUserIdentitiesByUserAndType(user.getId(), UserIdentityType.PHONE);
+            userIdentitySupport.deleteIdentityByUserIdAndType(user.getId(), UserIdentityType.PHONE);
             return;
         }
         String normalizedPhone = phone.trim();
-        UserIdentity currentIdentity = support.findIdentity(user.getId(), UserIdentityType.PHONE)
+        UserIdentity currentIdentity = userIdentitySupport.findIdentityByUserId(user.getId(), UserIdentityType.PHONE)
                 .orElse(null);
         if (currentIdentity == null) {
-            support.saveIdentity(UserIdentity.create(
-                    phoneIdentityId, user.getId(), UserIdentityType.PHONE, normalizedPhone, ACTIVE_IDENTITY_STATUS));
+            userIdentitySupport.insert(
+                    UserIdentity.create(phoneIdentityId, user.getId(), UserIdentityType.PHONE, normalizedPhone));
             return;
         }
         currentIdentity.changePhone(normalizedPhone);
-        support.saveIdentity(currentIdentity);
+        userIdentitySupport.update(currentIdentity);
     }
 
     private UserIdentity requireUserIdentity(UserId userId, UserIdentityType identityType) {
-        return support.findIdentity(userId, identityType)
+        return userIdentitySupport.findIdentityByUserId(userId, identityType)
                 .orElseThrow(() -> new NotFoundException(
                         "User identity not found: " + userId + "/" + identityType.value()));
     }
@@ -244,7 +220,7 @@ public class UserRepositoryImpl implements UserRepository {
         if (newUser) {
             return passwordEncoder.encode(DEFAULT_PASSWORD);
         }
-        return support.findCredential(user.getId(), PASSWORD_CREDENTIAL_TYPE)
+        return userCredentialSupport.findCredentialByUserId(user.getId(), PASSWORD_CREDENTIAL_TYPE)
                 .map(UserCredential::getCredentialValue)
                 .orElseGet(() -> passwordEncoder.encode(DEFAULT_PASSWORD));
     }
@@ -256,30 +232,31 @@ public class UserRepositoryImpl implements UserRepository {
             boolean newUser,
             boolean needChangePassword,
             UserCredentialId passwordCredentialIdIfAbsent) {
-        UserCredential currentCredential = support.findCredential(user.getId(), PASSWORD_CREDENTIAL_TYPE)
-                .orElse(null);
+        UserCredential currentCredential =
+                userCredentialSupport.findCredentialByUserId(user.getId(), PASSWORD_CREDENTIAL_TYPE).orElse(null);
         Instant passwordExpiresAt = Instant.now().plus(PASSWORD_EXPIRE_DAYS, ChronoUnit.DAYS);
         if (currentCredential == null) {
-            support.saveCredential(UserCredential.create(
+            userCredentialSupport.insert(UserCredential.createPassword(
                     passwordCredentialIdIfAbsent,
                     user.getId(),
                     accountIdentity.getId(),
-                    PASSWORD_CREDENTIAL_TYPE,
-                    PRIMARY_FACTOR_LEVEL,
                     passwordHash,
-                    UserCredentialStatus.ACTIVE,
                     newUser || needChangePassword,
-                    0,
                     PASSWORD_FAILED_LIMIT,
-                    null,
-                    null,
-                    passwordExpiresAt,
-                    null));
+                    passwordExpiresAt));
             return;
         }
         currentCredential.bindIdentity(accountIdentity.getId());
         currentCredential.replacePassword(passwordHash, newUser || needChangePassword, passwordExpiresAt);
-        support.saveCredential(currentCredential);
+        userCredentialSupport.update(currentCredential);
     }
 
+    private List<User> queryUsers(
+            String account, String name, String phone, UserStatus status, int pageNo, int pageSize) {
+        Set<Long> userIds = userIdentitySupport.resolveUserIdsByIdentityFilters(account, phone);
+        if (userIds != null && userIds.isEmpty()) {
+            return List.of();
+        }
+        return userSupport.page(userIds, name, status, pageNo, pageSize);
+    }
 }

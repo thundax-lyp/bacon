@@ -60,19 +60,19 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .orElse(0L);
     }
 
-    Resource insertResource(Resource resource) {
+    Resource insert(Resource resource) {
         ResourceDO dataObject = ResourcePersistenceAssembler.toDataObject(resource);
         resourceMapper.insert(dataObject);
         return ResourcePersistenceAssembler.toDomain(dataObject);
     }
 
-    Resource updateResource(Resource resource) {
+    Resource update(Resource resource) {
         ResourceDO dataObject = ResourcePersistenceAssembler.toDataObject(resource);
         resourceMapper.updateById(dataObject);
         return ResourcePersistenceAssembler.toDomain(dataObject);
     }
 
-    void deleteResource(ResourceId resourceId) {
+    void delete(ResourceId resourceId) {
         BaconContextHolder.requireTenantId();
         resourceMapper.delete(Wrappers.<ResourceDO>lambdaQuery().eq(ResourceDO::getId, resourceId.value()));
         roleResourceRelMapper.delete(

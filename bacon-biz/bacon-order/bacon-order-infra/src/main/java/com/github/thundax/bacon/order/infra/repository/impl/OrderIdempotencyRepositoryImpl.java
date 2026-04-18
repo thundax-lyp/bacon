@@ -26,13 +26,13 @@ public class OrderIdempotencyRepositoryImpl implements OrderIdempotencyRepositor
     }
 
     @Override
-    public boolean updateStatus(OrderIdempotencyRecord record, OrderIdempotencyStatus currentStatus) {
-        return support.updateStatus(record, currentStatus);
+    public Optional<OrderIdempotencyRecord> findByKey(OrderIdempotencyRecordKey key) {
+        return support.findByKey(key);
     }
 
     @Override
-    public Optional<OrderIdempotencyRecord> findByKey(OrderIdempotencyRecordKey key) {
-        return support.findByKey(key);
+    public boolean updateStatus(OrderIdempotencyRecord record, OrderIdempotencyStatus currentStatus) {
+        return support.updateStatus(record, currentStatus);
     }
 
     @Override

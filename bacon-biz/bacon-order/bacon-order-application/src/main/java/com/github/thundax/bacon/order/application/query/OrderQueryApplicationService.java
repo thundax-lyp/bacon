@@ -22,6 +22,8 @@ import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.model.snapshot.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.snapshot.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
+import com.github.thundax.bacon.order.domain.repository.OrderInventorySnapshotRepository;
+import com.github.thundax.bacon.order.domain.repository.OrderPaymentSnapshotRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -33,9 +35,16 @@ import org.springframework.stereotype.Service;
 public class OrderQueryApplicationService {
 
     private final OrderRepository orderRepository;
+    private final OrderInventorySnapshotRepository orderInventorySnapshotRepository;
+    private final OrderPaymentSnapshotRepository orderPaymentSnapshotRepository;
 
-    public OrderQueryApplicationService(OrderRepository orderRepository) {
+    public OrderQueryApplicationService(
+            OrderRepository orderRepository,
+            OrderInventorySnapshotRepository orderInventorySnapshotRepository,
+            OrderPaymentSnapshotRepository orderPaymentSnapshotRepository) {
         this.orderRepository = orderRepository;
+        this.orderInventorySnapshotRepository = orderInventorySnapshotRepository;
+        this.orderPaymentSnapshotRepository = orderPaymentSnapshotRepository;
     }
 
     public OrderDetailDTO getById(OrderId orderId) {
@@ -97,11 +106,10 @@ public class OrderQueryApplicationService {
     }
 
     private OrderDetailDTO toDetail(Order order) {
-        OrderPaymentSnapshot paymentSnapshot = orderRepository
-                .findPaymentByOrderId(order.getId())
-                .orElse(null);
-        OrderInventorySnapshot inventorySnapshot = orderRepository
-                .findInventoryByOrderNo(order.getOrderNo())
+        OrderPaymentSnapshot paymentSnapshot =
+                orderPaymentSnapshotRepository.findByOrderId(order.getId()).orElse(null);
+        OrderInventorySnapshot inventorySnapshot = orderInventorySnapshotRepository
+                .findByOrderNo(order.getOrderNo())
                 .orElse(null);
         List<OrderItemDTO> itemDtos =
                 orderRepository

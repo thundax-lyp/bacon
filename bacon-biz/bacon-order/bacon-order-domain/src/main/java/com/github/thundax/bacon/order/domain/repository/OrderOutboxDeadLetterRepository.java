@@ -13,9 +13,9 @@ public interface OrderOutboxDeadLetterRepository {
         return Optional.empty();
     }
 
+    default void markReplayPending(OrderOutboxDeadLetterId id, String message, Instant updatedAt) {}
+
     default void markReplaySucceeded(OrderOutboxDeadLetterId id, Instant replayedAt, String message) {}
 
     default void markReplayFailed(OrderOutboxDeadLetterId id, Instant replayedAt, String message) {}
-
-    default void markReplayPending(OrderOutboxDeadLetterId id, String message, Instant updatedAt) {}
 }

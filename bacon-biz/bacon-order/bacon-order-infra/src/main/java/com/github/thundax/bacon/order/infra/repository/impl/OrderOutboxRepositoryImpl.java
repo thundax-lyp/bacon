@@ -29,11 +29,6 @@ public class OrderOutboxRepositoryImpl implements OrderOutboxRepository {
     }
 
     @Override
-    public int releaseExpired(Instant now) {
-        return support.releaseExpired(now);
-    }
-
-    @Override
     public boolean markRetryClaimed(
             OutboxId outboxId,
             String processingOwner,
@@ -58,5 +53,10 @@ public class OrderOutboxRepositoryImpl implements OrderOutboxRepository {
     @Override
     public boolean deleteClaimed(OutboxId outboxId, String processingOwner) {
         return support.deleteClaimed(outboxId, processingOwner);
+    }
+
+    @Override
+    public int releaseExpired(Instant now) {
+        return support.releaseExpired(now);
     }
 }

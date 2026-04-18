@@ -4,13 +4,10 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
-import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
-import com.github.thundax.bacon.order.domain.model.snapshot.OrderInventorySnapshot;
-import com.github.thundax.bacon.order.domain.model.snapshot.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.time.Instant;
@@ -33,11 +30,6 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     private final Map<Long, Long> orderTenantStorage = new ConcurrentHashMap<>();
     private final Map<Long, List<OrderItem>> itemsStorage = new ConcurrentHashMap<>();
     private final Map<Long, Long> itemTenantStorage = new ConcurrentHashMap<>();
-    private final Map<Long, OrderPaymentSnapshot> paymentSnapshotStorage = new ConcurrentHashMap<>();
-    private final Map<Long, Long> paymentSnapshotTenantStorage = new ConcurrentHashMap<>();
-    private final Map<String, OrderInventorySnapshot> inventorySnapshotStorage = new ConcurrentHashMap<>();
-    private final Map<String, Long> inventorySnapshotTenantStorage = new ConcurrentHashMap<>();
-    private final Map<String, List<OrderAuditLog>> auditLogStorage = new ConcurrentHashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1000L);
 
     @Override
@@ -89,64 +81,8 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void insertPayment(OrderPaymentSnapshot snapshot) {
-        Long orderId = toOrderIdValue(snapshot.orderId());
-        paymentSnapshotStorage.put(orderId, snapshot);
-        paymentSnapshotTenantStorage.put(orderId, currentTenantId());
-    }
-
-    @Override
-    public void updatePayment(OrderPaymentSnapshot snapshot) {
-        Long orderId = toOrderIdValue(snapshot.orderId());
-        paymentSnapshotStorage.put(orderId, snapshot);
-        paymentSnapshotTenantStorage.put(orderId, currentTenantId());
-    }
-
-    @Override
-    public Optional<OrderPaymentSnapshot> findPaymentByOrderId(OrderId orderId) {
-        Long orderIdValue = toOrderIdValue(orderId);
-        OrderPaymentSnapshot snapshot = paymentSnapshotStorage.get(orderIdValue);
-        if (snapshot == null || !isTenantMatched(paymentSnapshotTenantStorage.get(orderIdValue))) {
-            return Optional.empty();
-        }
-        return Optional.of(snapshot);
-    }
-
-    @Override
-    public void insertInventory(OrderInventorySnapshot snapshot) {
-        String orderNo = toOrderNoValue(snapshot.orderNo());
-        inventorySnapshotStorage.put(orderNo, snapshot);
-        inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
-    }
-
-    @Override
-    public void updateInventory(OrderInventorySnapshot snapshot) {
-        String orderNo = toOrderNoValue(snapshot.orderNo());
-        inventorySnapshotStorage.put(orderNo, snapshot);
-        inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
-    }
-
-    @Override
-    public Optional<OrderInventorySnapshot> findInventoryByOrderNo(OrderNo orderNo) {
-        String orderNoValue = toOrderNoValue(orderNo);
-        OrderInventorySnapshot snapshot = inventorySnapshotStorage.get(orderNoValue);
-        if (snapshot == null || !isTenantMatched(inventorySnapshotTenantStorage.get(orderNoValue))) {
-            return Optional.empty();
-        }
-        return Optional.of(snapshot);
-    }
-
-    @Override
-    public void insertLog(OrderAuditLog auditLog) {
-        String key = currentTenantId() + ":" + toOrderNoValue(auditLog.getOrderNo());
-        auditLogStorage
-                .computeIfAbsent(key, unused -> new java.util.ArrayList<>())
-                .add(auditLog);
-    }
-
-    @Override
-    public List<OrderAuditLog> listLogs(OrderNo orderNo) {
-        return List.copyOf(auditLogStorage.getOrDefault(currentTenantId() + ":" + toOrderNoValue(orderNo), List.of()));
+    public List<Order> list() {
+        return storage.values().stream().toList();
     }
 
     @Override
@@ -203,11 +139,6 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
                         .thenComparing(this::toOrderIdValue, Comparator.reverseOrder()))
                 .toList();
         return filtered;
-    }
-
-    @Override
-    public List<Order> list() {
-        return storage.values().stream().toList();
     }
 
     private Long toOrderIdValue(Order order) {

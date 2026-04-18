@@ -3,13 +3,10 @@ package com.github.thundax.bacon.order.domain.repository;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
-import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
-import com.github.thundax.bacon.order.domain.model.snapshot.OrderInventorySnapshot;
-import com.github.thundax.bacon.order.domain.model.snapshot.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import java.time.Instant;
 import java.util.List;
@@ -29,21 +26,7 @@ public interface OrderRepository {
 
     List<OrderItem> listItemsByOrderId(OrderId orderId);
 
-    void insertPayment(OrderPaymentSnapshot snapshot);
-
-    void updatePayment(OrderPaymentSnapshot snapshot);
-
-    Optional<OrderPaymentSnapshot> findPaymentByOrderId(OrderId orderId);
-
-    void insertInventory(OrderInventorySnapshot snapshot);
-
-    void updateInventory(OrderInventorySnapshot snapshot);
-
-    Optional<OrderInventorySnapshot> findInventoryByOrderNo(OrderNo orderNo);
-
-    void insertLog(OrderAuditLog auditLog);
-
-    List<OrderAuditLog> listLogs(OrderNo orderNo);
+    List<Order> list();
 
     long count(
             UserId userId,
@@ -64,6 +47,4 @@ public interface OrderRepository {
             Instant createdAtTo,
             int pageNo,
             int pageSize);
-
-    List<Order> list();
 }

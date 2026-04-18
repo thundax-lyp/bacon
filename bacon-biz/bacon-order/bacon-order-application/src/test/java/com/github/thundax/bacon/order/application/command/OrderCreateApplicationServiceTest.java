@@ -34,8 +34,11 @@ import com.github.thundax.bacon.order.domain.model.snapshot.OrderInventorySnapsh
 import com.github.thundax.bacon.order.domain.model.snapshot.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.order.domain.repository.OrderAuditLogRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
+import com.github.thundax.bacon.order.domain.repository.OrderInventorySnapshotRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
+import com.github.thundax.bacon.order.domain.repository.OrderPaymentSnapshotRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
@@ -65,12 +68,19 @@ class OrderCreateApplicationServiceTest {
     @Test
     void createShouldGenerateOrderNoInsideModule() {
         TestOrderRepository repository = new TestOrderRepository();
+        TestOrderAuditLogRepository auditLogRepository = new TestOrderAuditLogRepository();
+        TestOrderInventorySnapshotRepository inventorySnapshotRepository = new TestOrderInventorySnapshotRepository();
+        TestOrderPaymentSnapshotRepository paymentSnapshotRepository = new TestOrderPaymentSnapshotRepository();
         OrderCreateApplicationService service = newCreateService(
+                auditLogRepository,
                 repository,
+                inventorySnapshotRepository,
+                paymentSnapshotRepository,
                 () -> OrderNo.of("ORD-10001"),
                 new SuccessInventoryCommandFacade(),
                 new SuccessPaymentCommandFacade());
-        OrderQueryApplicationService queryService = new OrderQueryApplicationService(repository);
+        OrderQueryApplicationService queryService =
+                new OrderQueryApplicationService(repository, inventorySnapshotRepository, paymentSnapshotRepository);
 
         OrderSummaryDTO result = runWithContext(
                 1001L,
@@ -105,15 +115,30 @@ class OrderCreateApplicationServiceTest {
     @Test
     void pageOrdersShouldRespectFilterAndPaging() {
         TestOrderRepository repository = new TestOrderRepository();
+        TestOrderAuditLogRepository auditLogRepository = new TestOrderAuditLogRepository();
+        TestOrderInventorySnapshotRepository inventorySnapshotRepository = new TestOrderInventorySnapshotRepository();
+        TestOrderPaymentSnapshotRepository paymentSnapshotRepository = new TestOrderPaymentSnapshotRepository();
         SuccessInventoryCommandFacade inventoryFacade = new SuccessInventoryCommandFacade();
         OrderCreateApplicationService createService = newCreateService(
-                repository, new SequenceOrderNoGenerator(), inventoryFacade, new SuccessPaymentCommandFacade());
+                auditLogRepository,
+                repository,
+                inventorySnapshotRepository,
+                paymentSnapshotRepository,
+                new SequenceOrderNoGenerator(),
+                inventoryFacade,
+                new SuccessPaymentCommandFacade());
         OrderPaymentResultApplicationService paymentResultService = new OrderPaymentResultApplicationService(
                 repository,
                 inventoryFacade,
                 new OrderIdempotencyExecutor(new TestOrderIdempotencyRepository()),
-                new OrderDerivedDataPersistenceSupport(repository, new TestIdGenerator()));
-        OrderQueryApplicationService queryService = new OrderQueryApplicationService(repository);
+                new OrderDerivedDataPersistenceSupport(
+                        auditLogRepository,
+                        repository,
+                        inventorySnapshotRepository,
+                        paymentSnapshotRepository,
+                        new TestIdGenerator()));
+        OrderQueryApplicationService queryService =
+                new OrderQueryApplicationService(repository, inventorySnapshotRepository, paymentSnapshotRepository);
         runWithContext(
                 1001L,
                 2001L,
@@ -173,16 +198,31 @@ class OrderCreateApplicationServiceTest {
     @Test
     void cancelShouldPersistGivenReason() {
         TestOrderRepository repository = new TestOrderRepository();
+        TestOrderAuditLogRepository auditLogRepository = new TestOrderAuditLogRepository();
+        TestOrderInventorySnapshotRepository inventorySnapshotRepository = new TestOrderInventorySnapshotRepository();
+        TestOrderPaymentSnapshotRepository paymentSnapshotRepository = new TestOrderPaymentSnapshotRepository();
         SuccessInventoryCommandFacade inventoryFacade = new SuccessInventoryCommandFacade();
         SuccessPaymentCommandFacade paymentFacade = new SuccessPaymentCommandFacade();
         OrderCreateApplicationService createService =
-                newCreateService(repository, () -> OrderNo.of("ORD-CANCEL-1"), inventoryFacade, paymentFacade);
+                newCreateService(
+                        auditLogRepository,
+                        repository,
+                        inventorySnapshotRepository,
+                        paymentSnapshotRepository,
+                        () -> OrderNo.of("ORD-CANCEL-1"),
+                        inventoryFacade,
+                        paymentFacade);
         OrderCancelApplicationService cancelService = new OrderCancelApplicationService(
                 repository,
                 inventoryFacade,
                 paymentFacade,
                 new OrderIdempotencyExecutor(new TestOrderIdempotencyRepository()),
-                new OrderDerivedDataPersistenceSupport(repository, new TestIdGenerator()));
+                new OrderDerivedDataPersistenceSupport(
+                        auditLogRepository,
+                        repository,
+                        inventorySnapshotRepository,
+                        paymentSnapshotRepository,
+                        new TestIdGenerator()));
         OrderSummaryDTO created = runWithContext(
                 1001L,
                 2001L,
@@ -208,8 +248,14 @@ class OrderCreateApplicationServiceTest {
     @Test
     void createShouldCloseOrderWhenInventoryReserveFailed() {
         TestOrderRepository repository = new TestOrderRepository();
+        TestOrderAuditLogRepository auditLogRepository = new TestOrderAuditLogRepository();
+        TestOrderInventorySnapshotRepository inventorySnapshotRepository = new TestOrderInventorySnapshotRepository();
+        TestOrderPaymentSnapshotRepository paymentSnapshotRepository = new TestOrderPaymentSnapshotRepository();
         OrderCreateApplicationService service = newCreateService(
+                auditLogRepository,
                 repository,
+                inventorySnapshotRepository,
+                paymentSnapshotRepository,
                 () -> OrderNo.of("ORD-FAIL-1"),
                 new FailedInventoryCommandFacade(),
                 new SuccessPaymentCommandFacade());
@@ -231,8 +277,17 @@ class OrderCreateApplicationServiceTest {
     void createShouldReleaseInventoryWhenPaymentCreateFailed() {
         TrackingInventoryCommandFacade inventoryFacade = new TrackingInventoryCommandFacade();
         TestOrderRepository repository = new TestOrderRepository();
+        TestOrderAuditLogRepository auditLogRepository = new TestOrderAuditLogRepository();
+        TestOrderInventorySnapshotRepository inventorySnapshotRepository = new TestOrderInventorySnapshotRepository();
+        TestOrderPaymentSnapshotRepository paymentSnapshotRepository = new TestOrderPaymentSnapshotRepository();
         OrderCreateApplicationService service = newCreateService(
-                repository, () -> OrderNo.of("ORD-FAIL-2"), inventoryFacade, new FailedPaymentCommandFacade());
+                auditLogRepository,
+                repository,
+                inventorySnapshotRepository,
+                paymentSnapshotRepository,
+                () -> OrderNo.of("ORD-FAIL-2"),
+                inventoryFacade,
+                new FailedPaymentCommandFacade());
         OrderSummaryDTO summary = runWithContext(
                 1001L,
                 2001L,
@@ -248,12 +303,16 @@ class OrderCreateApplicationServiceTest {
     }
 
     private OrderCreateApplicationService newCreateService(
+            TestOrderAuditLogRepository auditLogRepository,
             TestOrderRepository repository,
+            TestOrderInventorySnapshotRepository inventorySnapshotRepository,
+            TestOrderPaymentSnapshotRepository paymentSnapshotRepository,
             OrderNoGenerator generator,
             InventoryCommandFacade inventoryFacade,
             PaymentCommandFacade paymentFacade) {
         IdGenerator idGenerator = new TestIdGenerator();
-        OrderDerivedDataPersistenceSupport support = new OrderDerivedDataPersistenceSupport(repository, idGenerator);
+        OrderDerivedDataPersistenceSupport support = new OrderDerivedDataPersistenceSupport(
+                auditLogRepository, repository, inventorySnapshotRepository, paymentSnapshotRepository, idGenerator);
         return new OrderCreateApplicationService(
                 repository,
                 generator,
@@ -430,11 +489,6 @@ class OrderCreateApplicationServiceTest {
         private final Map<Long, Long> orderTenantStorage = new ConcurrentHashMap<>();
         private final Map<Long, List<OrderItem>> itemStorage = new ConcurrentHashMap<>();
         private final Map<Long, Long> itemTenantStorage = new ConcurrentHashMap<>();
-        private final Map<Long, OrderPaymentSnapshot> paymentSnapshots = new ConcurrentHashMap<>();
-        private final Map<Long, Long> paymentSnapshotTenantStorage = new ConcurrentHashMap<>();
-        private final Map<String, OrderInventorySnapshot> inventorySnapshots = new ConcurrentHashMap<>();
-        private final Map<String, Long> inventorySnapshotTenantStorage = new ConcurrentHashMap<>();
-        private final Map<String, List<OrderAuditLog>> auditLogs = new ConcurrentHashMap<>();
         private final AtomicLong idGenerator = new AtomicLong(1000L);
 
         @Override
@@ -486,64 +540,8 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public void insertPayment(OrderPaymentSnapshot snapshot) {
-            Long orderId = toOrderIdValue(snapshot.orderId());
-            paymentSnapshots.put(orderId, snapshot);
-            paymentSnapshotTenantStorage.put(orderId, currentTenantId());
-        }
-
-        @Override
-        public void updatePayment(OrderPaymentSnapshot snapshot) {
-            Long orderId = toOrderIdValue(snapshot.orderId());
-            paymentSnapshots.put(orderId, snapshot);
-            paymentSnapshotTenantStorage.put(orderId, currentTenantId());
-        }
-
-        @Override
-        public Optional<OrderPaymentSnapshot> findPaymentByOrderId(OrderId orderId) {
-            Long orderIdValue = toOrderIdValue(orderId);
-            OrderPaymentSnapshot snapshot = paymentSnapshots.get(orderIdValue);
-            if (snapshot == null || !isTenantMatched(paymentSnapshotTenantStorage.get(orderIdValue))) {
-                return Optional.empty();
-            }
-            return Optional.of(snapshot);
-        }
-
-        @Override
-        public void insertInventory(OrderInventorySnapshot snapshot) {
-            String orderNo = toOrderNoValue(snapshot.orderNo());
-            inventorySnapshots.put(orderNo, snapshot);
-            inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
-        }
-
-        @Override
-        public void updateInventory(OrderInventorySnapshot snapshot) {
-            String orderNo = toOrderNoValue(snapshot.orderNo());
-            inventorySnapshots.put(orderNo, snapshot);
-            inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
-        }
-
-        @Override
-        public Optional<OrderInventorySnapshot> findInventoryByOrderNo(OrderNo orderNo) {
-            String orderNoValue = toOrderNoValue(orderNo);
-            OrderInventorySnapshot snapshot = inventorySnapshots.get(orderNoValue);
-            if (snapshot == null || !isTenantMatched(inventorySnapshotTenantStorage.get(orderNoValue))) {
-                return Optional.empty();
-            }
-            return Optional.of(snapshot);
-        }
-
-        @Override
-        public void insertLog(OrderAuditLog auditLog) {
-            String key = currentTenantId() + ":" + toOrderNoValue(auditLog.getOrderNo());
-            auditLogs
-                    .computeIfAbsent(key, unused -> new java.util.ArrayList<>())
-                    .add(auditLog);
-        }
-
-        @Override
-        public List<OrderAuditLog> listLogs(OrderNo orderNo) {
-            return List.copyOf(auditLogs.getOrDefault(currentTenantId() + ":" + toOrderNoValue(orderNo), List.of()));
+        public List<Order> list() {
+            return storage.values().stream().toList();
         }
 
         @Override
@@ -602,11 +600,6 @@ class OrderCreateApplicationServiceTest {
                             .thenComparing(this::toOrderIdValue, Comparator.reverseOrder()))
                     .toList();
             return filtered;
-        }
-
-        @Override
-        public List<Order> list() {
-            return storage.values().stream().toList();
         }
 
         private Long toOrderIdValue(Order order) {
@@ -670,6 +663,100 @@ class OrderCreateApplicationServiceTest {
         private boolean isTenantMatched(Long tenantId) {
             return tenantId != null && tenantId.equals(currentTenantId());
         }
+    }
+
+    private static final class TestOrderPaymentSnapshotRepository implements OrderPaymentSnapshotRepository {
+
+        private final Map<Long, OrderPaymentSnapshot> paymentSnapshots = new ConcurrentHashMap<>();
+        private final Map<Long, Long> paymentSnapshotTenantStorage = new ConcurrentHashMap<>();
+
+        @Override
+        public void insert(OrderPaymentSnapshot snapshot) {
+            Long orderId = toOrderIdValue(snapshot.orderId());
+            paymentSnapshots.put(orderId, snapshot);
+            paymentSnapshotTenantStorage.put(orderId, currentTenantId());
+        }
+
+        @Override
+        public void update(OrderPaymentSnapshot snapshot) {
+            Long orderId = toOrderIdValue(snapshot.orderId());
+            paymentSnapshots.put(orderId, snapshot);
+            paymentSnapshotTenantStorage.put(orderId, currentTenantId());
+        }
+
+        @Override
+        public Optional<OrderPaymentSnapshot> findByOrderId(OrderId orderId) {
+            Long orderIdValue = toOrderIdValue(orderId);
+            OrderPaymentSnapshot snapshot = paymentSnapshots.get(orderIdValue);
+            if (snapshot == null || !isTenantMatched(paymentSnapshotTenantStorage.get(orderIdValue))) {
+                return Optional.empty();
+            }
+            return Optional.of(snapshot);
+        }
+    }
+
+    private static final class TestOrderInventorySnapshotRepository implements OrderInventorySnapshotRepository {
+
+        private final Map<String, OrderInventorySnapshot> inventorySnapshots = new ConcurrentHashMap<>();
+        private final Map<String, Long> inventorySnapshotTenantStorage = new ConcurrentHashMap<>();
+
+        @Override
+        public void insert(OrderInventorySnapshot snapshot) {
+            String orderNo = toOrderNoValue(snapshot.orderNo());
+            inventorySnapshots.put(orderNo, snapshot);
+            inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
+        }
+
+        @Override
+        public void update(OrderInventorySnapshot snapshot) {
+            String orderNo = toOrderNoValue(snapshot.orderNo());
+            inventorySnapshots.put(orderNo, snapshot);
+            inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
+        }
+
+        @Override
+        public Optional<OrderInventorySnapshot> findByOrderNo(OrderNo orderNo) {
+            String orderNoValue = toOrderNoValue(orderNo);
+            OrderInventorySnapshot snapshot = inventorySnapshots.get(orderNoValue);
+            if (snapshot == null || !isTenantMatched(inventorySnapshotTenantStorage.get(orderNoValue))) {
+                return Optional.empty();
+            }
+            return Optional.of(snapshot);
+        }
+    }
+
+    private static final class TestOrderAuditLogRepository implements OrderAuditLogRepository {
+
+        private final Map<String, List<OrderAuditLog>> auditLogs = new ConcurrentHashMap<>();
+
+        @Override
+        public void insert(OrderAuditLog auditLog) {
+            String key = currentTenantId() + ":" + toOrderNoValue(auditLog.getOrderNo());
+            auditLogs
+                    .computeIfAbsent(key, unused -> new java.util.ArrayList<>())
+                    .add(auditLog);
+        }
+
+        @Override
+        public List<OrderAuditLog> listByOrderNo(OrderNo orderNo) {
+            return List.copyOf(auditLogs.getOrDefault(currentTenantId() + ":" + toOrderNoValue(orderNo), List.of()));
+        }
+    }
+
+    private static Long currentTenantId() {
+        return BaconContextHolder.requireTenantId();
+    }
+
+    private static boolean isTenantMatched(Long tenantId) {
+        return tenantId != null && tenantId.equals(currentTenantId());
+    }
+
+    private static Long toOrderIdValue(OrderId orderId) {
+        return orderId == null ? null : orderId.value();
+    }
+
+    private static String toOrderNoValue(OrderNo orderNo) {
+        return orderNo == null ? null : orderNo.value();
     }
 
     private static class SuccessInventoryCommandFacade implements InventoryCommandFacade {

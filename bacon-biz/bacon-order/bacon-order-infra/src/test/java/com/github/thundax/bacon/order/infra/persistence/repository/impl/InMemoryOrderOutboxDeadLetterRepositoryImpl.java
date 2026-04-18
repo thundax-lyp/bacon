@@ -31,6 +31,11 @@ public class InMemoryOrderOutboxDeadLetterRepositoryImpl implements OrderOutboxD
     }
 
     @Override
+    public void markReplayPending(OrderOutboxDeadLetterId id, String message, Instant updatedAt) {
+        support.markDeadLetterReplayPending(id, message, updatedAt);
+    }
+
+    @Override
     public void markReplaySucceeded(OrderOutboxDeadLetterId id, Instant replayedAt, String message) {
         support.markDeadLetterReplaySucceeded(id, replayedAt, message);
     }
@@ -38,10 +43,5 @@ public class InMemoryOrderOutboxDeadLetterRepositoryImpl implements OrderOutboxD
     @Override
     public void markReplayFailed(OrderOutboxDeadLetterId id, Instant replayedAt, String message) {
         support.markDeadLetterReplayFailed(id, replayedAt, message);
-    }
-
-    @Override
-    public void markReplayPending(OrderOutboxDeadLetterId id, String message, Instant updatedAt) {
-        support.markDeadLetterReplayPending(id, message, updatedAt);
     }
 }

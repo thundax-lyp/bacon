@@ -13,12 +13,12 @@ public interface OrderIdempotencyRepository {
         return false;
     }
 
-    default boolean updateStatus(OrderIdempotencyRecord record, OrderIdempotencyStatus currentStatus) {
-        return false;
-    }
-
     default Optional<OrderIdempotencyRecord> findByKey(OrderIdempotencyRecordKey key) {
         return Optional.empty();
+    }
+
+    default boolean updateStatus(OrderIdempotencyRecord record, OrderIdempotencyStatus currentStatus) {
+        return false;
     }
 
     default boolean updateStatus(

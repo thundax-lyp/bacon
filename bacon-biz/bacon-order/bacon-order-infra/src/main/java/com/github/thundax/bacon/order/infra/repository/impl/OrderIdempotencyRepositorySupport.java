@@ -42,6 +42,16 @@ public class OrderIdempotencyRepositorySupport {
         }
     }
 
+    public Optional<OrderIdempotencyRecord> findByKey(OrderIdempotencyRecordKey key) {
+        return Optional.ofNullable(mapper.selectOne(Wrappers.<OrderIdempotencyRecordDO>lambdaQuery()
+                        .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
+                        .eq(
+                                OrderIdempotencyRecordDO::getOrderNo,
+                                key.orderNo() == null ? null : key.orderNo().value())
+                        .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())))
+                .map(orderIdempotencyRecordPersistenceAssembler::toDomain);
+    }
+
     public boolean updateStatus(OrderIdempotencyRecord record, OrderIdempotencyStatus currentStatus) {
         return updateStatus(record, currentStatus, null);
     }
@@ -71,16 +81,6 @@ public class OrderIdempotencyRepositorySupport {
                                 .set(OrderIdempotencyRecordDO::getClaimedAt, dataObject.getClaimedAt())
                                 .set(OrderIdempotencyRecordDO::getUpdatedAt, dataObject.getUpdatedAt()))
                 > 0;
-    }
-
-    public Optional<OrderIdempotencyRecord> findByKey(OrderIdempotencyRecordKey key) {
-        return Optional.ofNullable(mapper.selectOne(Wrappers.<OrderIdempotencyRecordDO>lambdaQuery()
-                        .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
-                        .eq(
-                                OrderIdempotencyRecordDO::getOrderNo,
-                                key.orderNo() == null ? null : key.orderNo().value())
-                        .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())))
-                .map(orderIdempotencyRecordPersistenceAssembler::toDomain);
     }
 
     public List<OrderIdempotencyRecord> listExpiredProcessing(Instant now) {

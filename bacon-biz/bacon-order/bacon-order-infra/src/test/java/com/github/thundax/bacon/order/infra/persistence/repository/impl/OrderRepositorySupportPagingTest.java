@@ -7,13 +7,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.order.infra.persistence.assembler.OrderAuditLogPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.assembler.OrderInventorySnapshotPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.assembler.OrderItemPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.assembler.OrderPaymentSnapshotPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.assembler.OrderPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderDO;
-import com.github.thundax.bacon.order.infra.persistence.mapper.OrderAuditLogMapper;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderInventorySnapshotMapper;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderItemMapper;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderMapper;
@@ -41,13 +39,11 @@ class OrderRepositorySupportPagingTest {
                 createNoopMapper(OrderItemMapper.class),
                 paymentMapper,
                 inventoryMapper,
-                createNoopMapper(OrderAuditLogMapper.class),
                 idGenerator,
                 new OrderPersistenceAssembler(),
                 new OrderItemPersistenceAssembler(),
                 new OrderPaymentSnapshotPersistenceAssembler(),
-                new OrderInventorySnapshotPersistenceAssembler(),
-                new OrderAuditLogPersistenceAssembler());
+                new OrderInventorySnapshotPersistenceAssembler());
 
         BaconContext previous = BaconContextHolder.snapshot();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));

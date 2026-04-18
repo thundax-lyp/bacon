@@ -13,10 +13,6 @@ public interface OrderOutboxRepository {
         return List.of();
     }
 
-    default int releaseExpired(Instant now) {
-        return 0;
-    }
-
     default boolean markRetryClaimed(
             OutboxId outboxId,
             String processingOwner,
@@ -39,5 +35,9 @@ public interface OrderOutboxRepository {
 
     default boolean deleteClaimed(OutboxId outboxId, String processingOwner) {
         return false;
+    }
+
+    default int releaseExpired(Instant now) {
+        return 0;
     }
 }

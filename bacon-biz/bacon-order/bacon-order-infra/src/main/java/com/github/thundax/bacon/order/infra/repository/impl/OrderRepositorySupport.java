@@ -7,25 +7,19 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
-import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
-import com.github.thundax.bacon.order.domain.model.snapshot.OrderInventorySnapshot;
-import com.github.thundax.bacon.order.domain.model.snapshot.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
-import com.github.thundax.bacon.order.infra.persistence.assembler.OrderAuditLogPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.assembler.OrderInventorySnapshotPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.assembler.OrderItemPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.assembler.OrderPaymentSnapshotPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.assembler.OrderPersistenceAssembler;
-import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderAuditLogDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderInventorySnapshotDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderItemDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderPaymentSnapshotDO;
-import com.github.thundax.bacon.order.infra.persistence.mapper.OrderAuditLogMapper;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderInventorySnapshotMapper;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderItemMapper;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderMapper;
@@ -46,44 +40,35 @@ import org.springframework.stereotype.Component;
 public class OrderRepositorySupport {
 
     private static final String ORDER_ID_BIZ_TAG = "order-id";
-    private static final String AUDIT_LOG_ID_BIZ_TAG = "order_audit_log_id";
-    private static final String PAYMENT_SNAPSHOT_ID_BIZ_TAG = "order_payment_snapshot_id";
-
     private final OrderMapper orderMapper;
     private final OrderItemMapper orderItemMapper;
     private final OrderPaymentSnapshotMapper orderPaymentSnapshotMapper;
     private final OrderInventorySnapshotMapper orderInventorySnapshotMapper;
-    private final OrderAuditLogMapper orderAuditLogMapper;
     private final IdGenerator idGenerator;
     private final OrderPersistenceAssembler orderPersistenceAssembler;
     private final OrderItemPersistenceAssembler orderItemPersistenceAssembler;
     private final OrderPaymentSnapshotPersistenceAssembler orderPaymentSnapshotPersistenceAssembler;
     private final OrderInventorySnapshotPersistenceAssembler orderInventorySnapshotPersistenceAssembler;
-    private final OrderAuditLogPersistenceAssembler orderAuditLogPersistenceAssembler;
 
     public OrderRepositorySupport(
             OrderMapper orderMapper,
             OrderItemMapper orderItemMapper,
             OrderPaymentSnapshotMapper orderPaymentSnapshotMapper,
             OrderInventorySnapshotMapper orderInventorySnapshotMapper,
-            OrderAuditLogMapper orderAuditLogMapper,
             IdGenerator idGenerator,
             OrderPersistenceAssembler orderPersistenceAssembler,
             OrderItemPersistenceAssembler orderItemPersistenceAssembler,
             OrderPaymentSnapshotPersistenceAssembler orderPaymentSnapshotPersistenceAssembler,
-            OrderInventorySnapshotPersistenceAssembler orderInventorySnapshotPersistenceAssembler,
-            OrderAuditLogPersistenceAssembler orderAuditLogPersistenceAssembler) {
+            OrderInventorySnapshotPersistenceAssembler orderInventorySnapshotPersistenceAssembler) {
         this.orderMapper = orderMapper;
         this.orderItemMapper = orderItemMapper;
         this.orderPaymentSnapshotMapper = orderPaymentSnapshotMapper;
         this.orderInventorySnapshotMapper = orderInventorySnapshotMapper;
-        this.orderAuditLogMapper = orderAuditLogMapper;
         this.idGenerator = idGenerator;
         this.orderPersistenceAssembler = orderPersistenceAssembler;
         this.orderItemPersistenceAssembler = orderItemPersistenceAssembler;
         this.orderPaymentSnapshotPersistenceAssembler = orderPaymentSnapshotPersistenceAssembler;
         this.orderInventorySnapshotPersistenceAssembler = orderInventorySnapshotPersistenceAssembler;
-        this.orderAuditLogPersistenceAssembler = orderAuditLogPersistenceAssembler;
         log.info("Using MyBatis-Plus order repository");
     }
 
@@ -138,85 +123,11 @@ public class OrderRepositorySupport {
                 .toList();
     }
 
-    public void insertPayment(OrderPaymentSnapshot snapshot) {
-        BaconContextHolder.requireTenantId();
-        OrderPaymentSnapshotDO dataObject = orderPaymentSnapshotPersistenceAssembler.toDataObject(snapshot);
-        dataObject.setId(idGenerator.nextId(PAYMENT_SNAPSHOT_ID_BIZ_TAG));
-        dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
-        orderPaymentSnapshotMapper.insert(dataObject);
-    }
-
-    public void updatePayment(OrderPaymentSnapshot snapshot) {
-        BaconContextHolder.requireTenantId();
-        OrderPaymentSnapshotDO existing =
-                orderPaymentSnapshotMapper.selectOne(Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
-                        .eq(
-                                OrderPaymentSnapshotDO::getOrderId,
-                                snapshot.orderId() == null
-                                        ? null
-                                        : snapshot.orderId().value()));
-        OrderPaymentSnapshotDO dataObject = orderPaymentSnapshotPersistenceAssembler.toDataObject(snapshot);
-        dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
-        // 支付快照按 orderId 唯一覆盖，目标是保留“当前支付视图”，而不是积累每次变化历史。
-        dataObject.setId(existing.getId());
-        orderPaymentSnapshotMapper.updateById(dataObject);
-    }
-
-    public Optional<OrderPaymentSnapshot> findPaymentByOrderId(OrderId orderId) {
-        BaconContextHolder.requireTenantId();
-        return Optional.ofNullable(orderPaymentSnapshotMapper.selectOne(
-                        Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
-                                .eq(OrderPaymentSnapshotDO::getOrderId, toOrderIdValue(orderId))))
-                .map(orderPaymentSnapshotPersistenceAssembler::toDomain);
-    }
-
-    public void insertInventory(OrderInventorySnapshot snapshot) {
-        BaconContextHolder.requireTenantId();
-        OrderInventorySnapshotDO dataObject = orderInventorySnapshotPersistenceAssembler.toDataObject(snapshot);
-        dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
-        orderInventorySnapshotMapper.insert(dataObject);
-    }
-
-    public void updateInventory(OrderInventorySnapshot snapshot) {
-        BaconContextHolder.requireTenantId();
-        OrderInventorySnapshotDO existing =
-                orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
-                        .eq(
-                                OrderInventorySnapshotDO::getOrderNo,
-                                snapshot.orderNo() == null
-                                        ? null
-                                        : snapshot.orderNo().value()));
-        OrderInventorySnapshotDO dataObject = orderInventorySnapshotPersistenceAssembler.toDataObject(snapshot);
-        dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
-        // 库存快照和支付快照一样采用唯一覆盖模型，分页/详情查询只需要当前库存派生状态。
-        dataObject.setId(existing.getId());
-        orderInventorySnapshotMapper.updateById(dataObject);
-    }
-
-    public Optional<OrderInventorySnapshot> findInventoryByOrderNo(OrderNo orderNo) {
-        BaconContextHolder.requireTenantId();
-        return Optional.ofNullable(
-                        orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
-                                .eq(OrderInventorySnapshotDO::getOrderNo, toOrderNoValue(orderNo))))
-                .map(orderInventorySnapshotPersistenceAssembler::toDomain);
-    }
-
-    public void insertLog(OrderAuditLog auditLog) {
-        OrderAuditLogDO dataObject = orderAuditLogPersistenceAssembler.toDataObject(auditLog);
-        if (dataObject.getId() == null) {
-            dataObject.setId(idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG));
-        }
-        orderAuditLogMapper.insert(dataObject);
-    }
-
-    public List<OrderAuditLog> listLogs(OrderNo orderNo) {
-        BaconContextHolder.requireTenantId();
-        return orderAuditLogMapper
-                .selectList(Wrappers.<OrderAuditLogDO>lambdaQuery()
-                        .eq(OrderAuditLogDO::getOrderNo, toOrderNoValue(orderNo))
-                        .orderByAsc(OrderAuditLogDO::getOccurredAt, OrderAuditLogDO::getId))
+    public List<Order> list() {
+        return orderMapper
+                .selectList(Wrappers.<OrderDO>lambdaQuery().orderByDesc(OrderDO::getCreatedAt, OrderDO::getId))
                 .stream()
-                .map(orderAuditLogPersistenceAssembler::toDomain)
+                .map(this::toDomainWithSnapshots)
                 .toList();
     }
 
@@ -277,14 +188,6 @@ public class OrderRepositorySupport {
                         inventorySnapshotMap.get(orderData.getOrderNo())))
                 .toList();
         return records;
-    }
-
-    public List<Order> list() {
-        return orderMapper
-                .selectList(Wrappers.<OrderDO>lambdaQuery().orderByDesc(OrderDO::getCreatedAt, OrderDO::getId))
-                .stream()
-                .map(this::toDomainWithSnapshots)
-                .toList();
     }
 
     private LambdaQueryWrapper<OrderDO> buildPageQuery(

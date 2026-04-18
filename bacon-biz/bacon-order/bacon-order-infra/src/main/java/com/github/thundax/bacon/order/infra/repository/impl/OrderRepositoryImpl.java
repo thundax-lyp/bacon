@@ -3,13 +3,10 @@ package com.github.thundax.bacon.order.infra.repository.impl;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
-import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
-import com.github.thundax.bacon.order.domain.model.snapshot.OrderInventorySnapshot;
-import com.github.thundax.bacon.order.domain.model.snapshot.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.time.Instant;
@@ -59,43 +56,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void insertPayment(OrderPaymentSnapshot snapshot) {
-        support.insertPayment(snapshot);
-    }
-
-    @Override
-    public void updatePayment(OrderPaymentSnapshot snapshot) {
-        support.updatePayment(snapshot);
-    }
-
-    @Override
-    public Optional<OrderPaymentSnapshot> findPaymentByOrderId(OrderId orderId) {
-        return support.findPaymentByOrderId(orderId);
-    }
-
-    @Override
-    public void insertInventory(OrderInventorySnapshot snapshot) {
-        support.insertInventory(snapshot);
-    }
-
-    @Override
-    public void updateInventory(OrderInventorySnapshot snapshot) {
-        support.updateInventory(snapshot);
-    }
-
-    @Override
-    public Optional<OrderInventorySnapshot> findInventoryByOrderNo(OrderNo orderNo) {
-        return support.findInventoryByOrderNo(orderNo);
-    }
-
-    @Override
-    public void insertLog(OrderAuditLog auditLog) {
-        support.insertLog(auditLog);
-    }
-
-    @Override
-    public List<OrderAuditLog> listLogs(OrderNo orderNo) {
-        return support.listLogs(orderNo);
+    public List<Order> list() {
+        return support.list();
     }
 
     @Override
@@ -124,10 +86,5 @@ public class OrderRepositoryImpl implements OrderRepository {
             int pageSize) {
         return support.page(
                 userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo, pageNo, pageSize);
-    }
-
-    @Override
-    public List<Order> list() {
-        return support.list();
     }
 }

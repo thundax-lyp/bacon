@@ -128,38 +128,6 @@ public class OrderOutboxRepositorySupport {
         return List.copyOf(claimed);
     }
 
-    public int releaseExpired(Instant now) {
-        List<OrderOutboxEventDO> expired = outboxEventMapper.selectList(Wrappers.<OrderOutboxEventDO>lambdaQuery()
-                .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
-                .le(OrderOutboxEventDO::getLeaseUntil, now));
-        if (expired.isEmpty()) {
-            return 0;
-        }
-        int updated = 0;
-        for (OrderOutboxEventDO dataObject : expired) {
-            OrderOutboxEvent event = orderOutboxEventPersistenceAssembler.toDomain(dataObject);
-            if (!event.isLeaseExpired(now)) {
-                continue;
-            }
-            event.releaseExpiredLease(now);
-            updated += outboxEventMapper.update(
-                            null,
-                            Wrappers.<OrderOutboxEventDO>lambdaUpdate()
-                                    .eq(OrderOutboxEventDO::getId, dataObject.getId())
-                                    .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
-                                    .le(OrderOutboxEventDO::getLeaseUntil, now)
-                                    .set(
-                                            OrderOutboxEventDO::getStatus,
-                                            event.getStatus() == null ? null : event.getStatus().value())
-                                    .set(OrderOutboxEventDO::getProcessingOwner, event.getProcessingOwner())
-                                    .set(OrderOutboxEventDO::getLeaseUntil, event.getLeaseUntil())
-                                    .set(OrderOutboxEventDO::getClaimedAt, event.getClaimedAt())
-                                    .set(OrderOutboxEventDO::getUpdatedAt, event.getUpdatedAt()))
-                    > 0 ? 1 : 0;
-        }
-        return updated;
-    }
-
     public boolean markRetryClaimed(
             OutboxId outboxId,
             String processingOwner,
@@ -238,6 +206,38 @@ public class OrderOutboxRepositorySupport {
                 > 0;
     }
 
+    public int releaseExpired(Instant now) {
+        List<OrderOutboxEventDO> expired = outboxEventMapper.selectList(Wrappers.<OrderOutboxEventDO>lambdaQuery()
+                .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
+                .le(OrderOutboxEventDO::getLeaseUntil, now));
+        if (expired.isEmpty()) {
+            return 0;
+        }
+        int updated = 0;
+        for (OrderOutboxEventDO dataObject : expired) {
+            OrderOutboxEvent event = orderOutboxEventPersistenceAssembler.toDomain(dataObject);
+            if (!event.isLeaseExpired(now)) {
+                continue;
+            }
+            event.releaseExpiredLease(now);
+            updated += outboxEventMapper.update(
+                            null,
+                            Wrappers.<OrderOutboxEventDO>lambdaUpdate()
+                                    .eq(OrderOutboxEventDO::getId, dataObject.getId())
+                                    .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
+                                    .le(OrderOutboxEventDO::getLeaseUntil, now)
+                                    .set(
+                                            OrderOutboxEventDO::getStatus,
+                                            event.getStatus() == null ? null : event.getStatus().value())
+                                    .set(OrderOutboxEventDO::getProcessingOwner, event.getProcessingOwner())
+                                    .set(OrderOutboxEventDO::getLeaseUntil, event.getLeaseUntil())
+                                    .set(OrderOutboxEventDO::getClaimedAt, event.getClaimedAt())
+                                    .set(OrderOutboxEventDO::getUpdatedAt, event.getUpdatedAt()))
+                    > 0 ? 1 : 0;
+        }
+        return updated;
+    }
+
     public void insert(OrderOutboxDeadLetter deadLetter) {
         OrderOutboxDeadLetterDO dataObject = orderOutboxDeadLetterPersistenceAssembler.toDataObject(deadLetter);
         deadLetterMapper.insert(dataObject);
@@ -249,6 +249,17 @@ public class OrderOutboxRepositorySupport {
         }
         return Optional.ofNullable(deadLetterMapper.selectById(id.value()))
                 .map(orderOutboxDeadLetterPersistenceAssembler::toDomain);
+    }
+
+    public void markDeadLetterReplayPending(OrderOutboxDeadLetterId id, String message, Instant updatedAt) {
+        deadLetterMapper.update(
+                null,
+                Wrappers.<OrderOutboxDeadLetterDO>lambdaUpdate()
+                        .eq(OrderOutboxDeadLetterDO::getId, id == null ? null : id.value())
+                        .eq(OrderOutboxDeadLetterDO::getReplayStatus, OrderOutboxReplayStatus.FAILED.value())
+                        .set(OrderOutboxDeadLetterDO::getReplayStatus, OrderOutboxReplayStatus.PENDING.value())
+                        .set(OrderOutboxDeadLetterDO::getLastReplayMessage, truncate(message))
+                        .set(OrderOutboxDeadLetterDO::getUpdatedAt, updatedAt));
     }
 
     public void markDeadLetterReplaySucceeded(OrderOutboxDeadLetterId id, Instant replayedAt, String message) {
@@ -273,17 +284,6 @@ public class OrderOutboxRepositorySupport {
                         .set(OrderOutboxDeadLetterDO::getLastReplayAt, replayedAt)
                         .set(OrderOutboxDeadLetterDO::getLastReplayMessage, truncate(message))
                         .set(OrderOutboxDeadLetterDO::getUpdatedAt, replayedAt));
-    }
-
-    public void markDeadLetterReplayPending(OrderOutboxDeadLetterId id, String message, Instant updatedAt) {
-        deadLetterMapper.update(
-                null,
-                Wrappers.<OrderOutboxDeadLetterDO>lambdaUpdate()
-                        .eq(OrderOutboxDeadLetterDO::getId, id == null ? null : id.value())
-                        .eq(OrderOutboxDeadLetterDO::getReplayStatus, OrderOutboxReplayStatus.FAILED.value())
-                        .set(OrderOutboxDeadLetterDO::getReplayStatus, OrderOutboxReplayStatus.PENDING.value())
-                        .set(OrderOutboxDeadLetterDO::getLastReplayMessage, truncate(message))
-                        .set(OrderOutboxDeadLetterDO::getUpdatedAt, updatedAt));
     }
 
     private String truncate(String message) {

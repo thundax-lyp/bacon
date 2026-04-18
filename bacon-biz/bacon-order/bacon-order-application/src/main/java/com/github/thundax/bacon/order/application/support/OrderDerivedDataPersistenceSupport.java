@@ -10,6 +10,9 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.order.domain.model.snapshot.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.snapshot.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.repository.OrderAuditLogRepository;
+import com.github.thundax.bacon.order.domain.repository.OrderInventorySnapshotRepository;
+import com.github.thundax.bacon.order.domain.repository.OrderPaymentSnapshotRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
@@ -20,11 +23,22 @@ public class OrderDerivedDataPersistenceSupport {
     private static final String OPERATOR_ID_SYSTEM = "0";
     private static final String INVENTORY_SNAPSHOT_ID_BIZ_TAG = "order_inventory_snapshot_id";
 
+    private final OrderAuditLogRepository orderAuditLogRepository;
     private final OrderRepository orderRepository;
+    private final OrderInventorySnapshotRepository orderInventorySnapshotRepository;
+    private final OrderPaymentSnapshotRepository orderPaymentSnapshotRepository;
     private final IdGenerator idGenerator;
 
-    public OrderDerivedDataPersistenceSupport(OrderRepository orderRepository, IdGenerator idGenerator) {
+    public OrderDerivedDataPersistenceSupport(
+            OrderAuditLogRepository orderAuditLogRepository,
+            OrderRepository orderRepository,
+            OrderInventorySnapshotRepository orderInventorySnapshotRepository,
+            OrderPaymentSnapshotRepository orderPaymentSnapshotRepository,
+            IdGenerator idGenerator) {
+        this.orderAuditLogRepository = orderAuditLogRepository;
         this.orderRepository = orderRepository;
+        this.orderInventorySnapshotRepository = orderInventorySnapshotRepository;
+        this.orderPaymentSnapshotRepository = orderPaymentSnapshotRepository;
         this.idGenerator = idGenerator;
     }
 
@@ -46,12 +60,10 @@ public class OrderDerivedDataPersistenceSupport {
                             ? null
                             : PaymentChannelStatus.from(order.getPaymentChannelStatus()),
                     now);
-            if (orderRepository
-                    .findPaymentByOrderId(order.getId())
-                    .isPresent()) {
-                orderRepository.updatePayment(paymentSnapshot);
+            if (orderPaymentSnapshotRepository.findByOrderId(order.getId()).isPresent()) {
+                orderPaymentSnapshotRepository.update(paymentSnapshot);
             } else {
-                orderRepository.insertPayment(paymentSnapshot);
+                orderPaymentSnapshotRepository.insert(paymentSnapshot);
             }
         }
         if (order.getReservationNo() != null
@@ -64,13 +76,13 @@ public class OrderDerivedDataPersistenceSupport {
                     order.getWarehouseCode(),
                     order.getInventoryFailureReason(),
                     now);
-            if (orderRepository.findInventoryByOrderNo(order.getOrderNo()).isPresent()) {
-                orderRepository.updateInventory(inventorySnapshot);
+            if (orderInventorySnapshotRepository.findByOrderNo(order.getOrderNo()).isPresent()) {
+                orderInventorySnapshotRepository.update(inventorySnapshot);
             } else {
-                orderRepository.insertInventory(inventorySnapshot);
+                orderInventorySnapshotRepository.insert(inventorySnapshot);
             }
         }
-        orderRepository.insertLog(OrderAuditLog.create(
+        orderAuditLogRepository.insert(OrderAuditLog.create(
                 order.getOrderNo(),
                 actionType,
                 beforeStatus,

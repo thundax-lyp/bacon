@@ -3,7 +3,7 @@ package com.github.thundax.bacon.upms.domain.model.enums;
 import java.util.Arrays;
 
 public enum RoleStatus {
-    ENABLED,
+    ACTIVE,
     DISABLED;
 
     public String value() {

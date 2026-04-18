@@ -1,6 +1,9 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
+import com.github.thundax.bacon.upms.domain.exception.MenuDomainException;
+import com.github.thundax.bacon.upms.domain.exception.MenuErrorCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.AccessLevel;
@@ -45,13 +48,26 @@ public class Menu {
             String routePath,
             String componentName,
             String icon,
-            Integer sort,
-            String permissionCode,
-            List<Menu> children) {
+            String permissionCode) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(menuType, "menuType must not be null");
         Objects.requireNonNull(name, "name must not be null");
-        return new Menu(id, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, children);
+        validateParentId(id, parentId);
+        return new Menu(
+                id, menuType, name, parentId, routePath, componentName, icon, 0, permissionCode, new ArrayList<>());
+    }
+
+    public static Menu reconstruct(
+            MenuId id,
+            String menuType,
+            String name,
+            MenuId parentId,
+            String routePath,
+            String componentName,
+            String icon,
+            Integer sort,
+            String permissionCode) {
+        return reconstruct(id, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, List.of());
     }
 
     public static Menu reconstruct(
@@ -65,22 +81,59 @@ public class Menu {
             Integer sort,
             String permissionCode,
             List<Menu> children) {
-        return new Menu(id, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, children);
+        return new Menu(
+                id,
+                menuType,
+                name,
+                parentId,
+                routePath,
+                componentName,
+                icon,
+                sort,
+                permissionCode,
+                new ArrayList<>(Objects.requireNonNull(children, "children must not be null")));
     }
 
-    public Menu update(
+    public void update(
             String menuType,
             String name,
             MenuId parentId,
             String routePath,
             String componentName,
             String icon,
-            Integer sort,
-            String permissionCode,
-            List<Menu> children) {
-        Objects.requireNonNull(id, "id must not be null");
+            String permissionCode) {
         Objects.requireNonNull(menuType, "menuType must not be null");
         Objects.requireNonNull(name, "name must not be null");
-        return new Menu(id, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, children);
+        validateParentId(id, parentId);
+        this.menuType = menuType;
+        this.name = name;
+        this.parentId = parentId;
+        this.routePath = routePath;
+        this.componentName = componentName;
+        this.icon = icon;
+        this.permissionCode = permissionCode;
+    }
+
+    public void sort(Integer sort) {
+        if (sort == null || sort < 0) {
+            throw new MenuDomainException(MenuErrorCode.INVALID_MENU_SORT);
+        }
+        this.sort = sort;
+    }
+
+    public void addChild(Menu child) {
+        Objects.requireNonNull(child, "child must not be null");
+        this.children.add(child);
+    }
+
+    public void removeChild(Menu child) {
+        Objects.requireNonNull(child, "child must not be null");
+        this.children.remove(child);
+    }
+
+    private static void validateParentId(MenuId id, MenuId parentId) {
+        if (Objects.equals(id, parentId)) {
+            throw new MenuDomainException(MenuErrorCode.MENU_PARENT_CANNOT_BE_SELF);
+        }
     }
 }

@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.upms.domain.exception.TenantDomainException;
+import com.github.thundax.bacon.upms.domain.exception.TenantErrorCode;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
 import java.time.Instant;
@@ -43,11 +45,62 @@ public class Tenant {
         return new Tenant(id, name, tenantCode, status, expiredAt);
     }
 
-    public Tenant update(String name, TenantCode tenantCode, TenantStatus status, Instant expiredAt) {
-        Objects.requireNonNull(id, "id must not be null");
+    public void activate() {
+        this.status = TenantStatus.ACTIVE;
+    }
+
+    public void disable() {
+        this.status = TenantStatus.DISABLED;
+    }
+
+    public void assertActive(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        if (status != TenantStatus.ACTIVE) {
+            throw new TenantDomainException(TenantErrorCode.TENANT_NOT_ACTIVE);
+        }
+        if (isExpired(now)) {
+            throw new TenantDomainException(TenantErrorCode.TENANT_EXPIRED);
+        }
+    }
+
+    public boolean isActive(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        return status == TenantStatus.ACTIVE && !isExpired(now);
+    }
+
+    public boolean isExpired(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        return expiredAt != null && !expiredAt.isAfter(now);
+    }
+
+    public void rename(String name) {
         Objects.requireNonNull(name, "name must not be null");
+        this.name = name;
+    }
+
+    public void changeTenantCode(TenantCode tenantCode) {
+        changeCode(tenantCode);
+    }
+
+    public void changeCode(TenantCode tenantCode) {
         Objects.requireNonNull(tenantCode, "tenantCode must not be null");
-        Objects.requireNonNull(status, "status must not be null");
-        return new Tenant(id, name, tenantCode, status, expiredAt);
+        this.tenantCode = tenantCode;
+    }
+
+    public void renewTo(Instant newExpiredAt) {
+        renewTo(newExpiredAt, Instant.now());
+    }
+
+    public void renewTo(Instant newExpiredAt, Instant now) {
+        Objects.requireNonNull(newExpiredAt, "newExpiredAt must not be null");
+        Objects.requireNonNull(now, "now must not be null");
+        if (newExpiredAt.isBefore(now)) {
+            throw new TenantDomainException(TenantErrorCode.TENANT_INVALID_EXPIRED_AT);
+        }
+        this.expiredAt = newExpiredAt;
+    }
+
+    public void clearExpiry() {
+        this.expiredAt = null;
     }
 }

@@ -3,6 +3,8 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.upms.domain.exception.UserCredentialDomainException;
+import com.github.thundax.bacon.upms.domain.exception.UserCredentialErrorCode;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
@@ -118,5 +120,126 @@ public class UserCredential {
                 lockedUntil,
                 expiresAt,
                 lastVerifiedAt);
+    }
+
+    public void assertVerifiable(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        if (isLocked(now)) {
+            throw new UserCredentialDomainException(UserCredentialErrorCode.USER_CREDENTIAL_LOCKED);
+        }
+        if (status != UserCredentialStatus.ACTIVE) {
+            throw new UserCredentialDomainException(UserCredentialErrorCode.USER_CREDENTIAL_NOT_ACTIVE);
+        }
+        if (expiresAt != null && !expiresAt.isAfter(now)) {
+            throw new UserCredentialDomainException(UserCredentialErrorCode.USER_CREDENTIAL_EXPIRED);
+        }
+    }
+
+    public void markVerified(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        this.status = UserCredentialStatus.ACTIVE;
+        this.failedCount = 0;
+        this.lockReason = null;
+        this.lockedUntil = null;
+        this.lastVerifiedAt = now;
+    }
+
+    public void markFailed(String reason, Instant now) {
+        Objects.requireNonNull(reason, "reason must not be null");
+        Objects.requireNonNull(now, "now must not be null");
+        this.failedCount += 1;
+        this.lockReason = reason;
+        if (failedLimit > 0 && failedCount >= failedLimit) {
+            this.status = UserCredentialStatus.LOCKED;
+        }
+    }
+
+    public void lock(String reason, Instant until) {
+        Objects.requireNonNull(reason, "reason must not be null");
+        this.status = UserCredentialStatus.LOCKED;
+        this.lockReason = reason;
+        this.lockedUntil = until;
+    }
+
+    public void unlock() {
+        this.status = UserCredentialStatus.ACTIVE;
+        this.lockReason = null;
+        this.lockedUntil = null;
+    }
+
+    public void activate() {
+        this.status = UserCredentialStatus.ACTIVE;
+    }
+
+    public void disable() {
+        this.status = UserCredentialStatus.DISABLED;
+    }
+
+    public boolean isExpired(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        return expiresAt != null && !expiresAt.isAfter(now);
+    }
+
+    public void expireAt(Instant expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public void clearExpiry() {
+        this.expiresAt = null;
+    }
+
+    public void requirePasswordChange() {
+        if (credentialType != UserCredentialType.PASSWORD) {
+            throw new UserCredentialDomainException(
+                    UserCredentialErrorCode.USER_CREDENTIAL_PASSWORD_CHANGE_NOT_SUPPORTED);
+        }
+        this.needChangePassword = true;
+    }
+
+    public void clearPasswordChangeRequirement() {
+        if (credentialType != UserCredentialType.PASSWORD) {
+            throw new UserCredentialDomainException(
+                    UserCredentialErrorCode.USER_CREDENTIAL_PASSWORD_CHANGE_NOT_SUPPORTED);
+        }
+        this.needChangePassword = false;
+    }
+
+    public void replaceCredentialValue(String newValue) {
+        Objects.requireNonNull(newValue, "newValue must not be null");
+        this.credentialValue = newValue;
+    }
+
+    public boolean isLocked(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        if (lockedUntil != null && lockedUntil.isAfter(now)) {
+            return true;
+        }
+        return status == UserCredentialStatus.LOCKED && lockedUntil == null;
+    }
+
+    public boolean isActive() {
+        return status == UserCredentialStatus.ACTIVE;
+    }
+
+    public boolean isDisabled() {
+        return status == UserCredentialStatus.DISABLED;
+    }
+
+    public boolean isPasswordCredential() {
+        return credentialType == UserCredentialType.PASSWORD;
+    }
+
+    public boolean needsPasswordChange() {
+        return needChangePassword;
+    }
+
+    public boolean matchesFactorLevel(UserCredentialFactorLevel level) {
+        Objects.requireNonNull(level, "level must not be null");
+        return factorLevel == level;
+    }
+
+    public boolean canBeUsedForAuthentication(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        return isActive() && !isLocked(now) && !isExpired(now);
     }
 }

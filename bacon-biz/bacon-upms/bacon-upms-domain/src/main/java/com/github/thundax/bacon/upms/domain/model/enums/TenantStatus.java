@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 public enum TenantStatus {
     ACTIVE,
-    EXPIRED,
     DISABLED;
 
     public String value() {

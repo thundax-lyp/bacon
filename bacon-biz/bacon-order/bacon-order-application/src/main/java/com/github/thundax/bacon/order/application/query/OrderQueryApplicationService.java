@@ -2,6 +2,7 @@ package com.github.thundax.bacon.order.application.query;
 
 import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
 import com.github.thundax.bacon.common.commerce.codec.PaymentNoCodec;
+import com.github.thundax.bacon.common.commerce.codec.SkuIdCodec;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
@@ -15,11 +16,11 @@ import com.github.thundax.bacon.order.application.dto.OrderItemDTO;
 import com.github.thundax.bacon.order.application.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.result.OrderPageResult;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
-import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
-import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
+import com.github.thundax.bacon.order.domain.model.snapshot.OrderInventorySnapshot;
+import com.github.thundax.bacon.order.domain.model.snapshot.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.math.BigDecimal;
@@ -65,26 +66,11 @@ public class OrderQueryApplicationService {
             Integer pageSize) {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
-        long total = orderRepository.count(
-                userId,
-                orderNo,
-                orderStatus == null ? null : orderStatus.value(),
-                payStatus == null ? null : payStatus.value(),
-                inventoryStatus == null ? null : inventoryStatus.value(),
-                createdAtFrom,
-                createdAtTo);
+        long total = orderRepository.count(userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo);
         List<Order> page = total <= 0
                 ? List.of()
                 : orderRepository.page(
-                        userId,
-                        orderNo,
-                        orderStatus == null ? null : orderStatus.value(),
-                        payStatus == null ? null : payStatus.value(),
-                        inventoryStatus == null ? null : inventoryStatus.value(),
-                        createdAtFrom,
-                        createdAtTo,
-                        normalizedPageNo,
-                        normalizedPageSize);
+                        userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo, normalizedPageNo, normalizedPageSize);
         List<OrderSummaryDTO> records = page.stream().map(this::toSummary).toList();
         return new OrderPageResult(records, total, normalizedPageNo, normalizedPageSize);
     }
@@ -122,7 +108,7 @@ public class OrderQueryApplicationService {
                         .listItemsByOrderId(order.getId())
                         .stream()
                         .map(item -> new OrderItemDTO(
-                                item.getSkuId() == null ? null : item.getSkuId().value(),
+                                SkuIdCodec.toValue(item.getSkuId()),
                                 item.getSkuName(),
                                 item.getImageUrl(),
                                 item.getQuantity(),
@@ -140,16 +126,16 @@ public class OrderQueryApplicationService {
                         : order.getInventoryStatus().value(),
                 paymentSnapshot == null
                         ? PaymentNoCodec.toValue(order.getPaymentNo())
-                        : (paymentSnapshot.getPaymentNo() == null
+                        : (paymentSnapshot.paymentNo() == null
                                 ? null
-                                : paymentSnapshot.getPaymentNo().value()),
+                                : paymentSnapshot.paymentNo().value()),
                 inventorySnapshot == null
                         ? (order.getReservationNo() == null
                                 ? null
                                 : ReservationNoCodec.toValue(order.getReservationNo()))
-                        : (inventorySnapshot.getReservationNo() == null
+                        : (inventorySnapshot.reservationNo() == null
                                 ? null
-                                : ReservationNoCodec.toValue(inventorySnapshot.getReservationNo())),
+                                : ReservationNoCodec.toValue(inventorySnapshot.reservationNo())),
                 order.getCurrencyCode() == null ? null : order.getCurrencyCode().value(),
                 order.getTotalAmount().value(),
                 order.getPayableAmount().value(),
@@ -170,33 +156,33 @@ public class OrderQueryApplicationService {
         }
         String paymentNo = paymentSnapshot == null
                 ? PaymentNoCodec.toValue(order.getPaymentNo())
-                : (paymentSnapshot.getPaymentNo() == null
+                : (paymentSnapshot.paymentNo() == null
                         ? null
-                        : paymentSnapshot.getPaymentNo().value());
+                        : paymentSnapshot.paymentNo().value());
         String payStatus = paymentSnapshot == null
                 ? (order.getPayStatus() == null ? null : order.getPayStatus().value())
-                : (paymentSnapshot.getPayStatus() == null
+                : (paymentSnapshot.payStatus() == null
                         ? null
-                        : paymentSnapshot.getPayStatus().value());
+                        : paymentSnapshot.payStatus().value());
         String channelCode = paymentSnapshot == null
                 ? (order.getPaymentChannelCode() == null
                         ? null
                         : order.getPaymentChannelCode().value())
-                : (paymentSnapshot.getChannelCode() == null
+                : (paymentSnapshot.channelCode() == null
                         ? null
-                        : paymentSnapshot.getChannelCode().value());
+                        : paymentSnapshot.channelCode().value());
         BigDecimal paidAmount = paymentSnapshot == null
                 ? (order.getPaidAmount() == null ? null : order.getPaidAmount().value())
-                : (paymentSnapshot.getPaidAmount() == null
+                : (paymentSnapshot.paidAmount() == null
                         ? null
-                        : paymentSnapshot.getPaidAmount().value());
+                        : paymentSnapshot.paidAmount().value());
         String channelStatus = paymentSnapshot == null
                 ? order.getPaymentChannelStatus()
-                : (paymentSnapshot.getChannelStatus() == null
+                : (paymentSnapshot.channelStatus() == null
                         ? null
-                        : paymentSnapshot.getChannelStatus().value());
+                        : paymentSnapshot.channelStatus().value());
         String failureReason =
-                paymentSnapshot == null ? order.getPaymentFailureReason() : paymentSnapshot.getFailureReason();
+                paymentSnapshot == null ? order.getPaymentFailureReason() : paymentSnapshot.failureReason();
         return "paymentNo=" + paymentNo
                 + ",payStatus=" + payStatus
                 + ",channelCode=" + Objects.toString(channelCode, "N/A")
@@ -211,26 +197,26 @@ public class OrderQueryApplicationService {
                         ? (order.getReservationNo() == null
                                 ? null
                                 : ReservationNoCodec.toValue(order.getReservationNo()))
-                        : (inventorySnapshot.getReservationNo() == null
+                        : (inventorySnapshot.reservationNo() == null
                                 ? null
-                                : ReservationNoCodec.toValue(inventorySnapshot.getReservationNo())),
+                                : ReservationNoCodec.toValue(inventorySnapshot.reservationNo())),
                 "N/A");
         String inventoryStatus = inventorySnapshot == null
                 ? (order.getInventoryStatus() == null
                         ? null
                         : order.getInventoryStatus().value())
-                : (inventorySnapshot.getInventoryStatus() == null
+                : (inventorySnapshot.inventoryStatus() == null
                         ? null
-                        : inventorySnapshot.getInventoryStatus().value());
+                        : inventorySnapshot.inventoryStatus().value());
         String warehouseCode = inventorySnapshot == null
                 ? (order.getWarehouseCode() == null
                         ? null
                         : order.getWarehouseCode().value())
-                : (inventorySnapshot.getWarehouseCode() == null
+                : (inventorySnapshot.warehouseCode() == null
                         ? null
-                        : inventorySnapshot.getWarehouseCode().value());
+                        : inventorySnapshot.warehouseCode().value());
         String failureReason =
-                inventorySnapshot == null ? order.getInventoryFailureReason() : inventorySnapshot.getFailureReason();
+                inventorySnapshot == null ? order.getInventoryFailureReason() : inventorySnapshot.failureReason();
         return "reservationNo=" + reservationNo
                 + ",inventoryStatus=" + inventoryStatus
                 + ",warehouseCode=" + Objects.toString(warehouseCode, "N/A")

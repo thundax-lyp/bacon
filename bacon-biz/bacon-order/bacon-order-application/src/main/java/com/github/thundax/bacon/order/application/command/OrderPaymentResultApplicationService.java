@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.order.application.command;
 
 import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
-import com.github.thundax.bacon.common.commerce.codec.PaymentNoCodec;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
@@ -54,7 +53,6 @@ public class OrderPaymentResultApplicationService {
         orderIdempotencyExecutor.execute(
                 OrderIdempotencyExecutor.EVENT_MARK_PAID,
                 OrderNoCodec.toValue(orderNo),
-                PaymentNoCodec.toValue(paymentNo),
                 () -> doMarkPaid(orderNo, paymentNo, channelCode, paidAmount, paidTime));
     }
 
@@ -65,7 +63,6 @@ public class OrderPaymentResultApplicationService {
         orderIdempotencyExecutor.execute(
                 OrderIdempotencyExecutor.EVENT_MARK_PAYMENT_FAILED,
                 OrderNoCodec.toValue(orderNo),
-                PaymentNoCodec.toValue(paymentNo),
                 () -> doMarkPaymentFailed(orderNo, paymentNo, reason, channelStatus, failedTime));
     }
 
@@ -76,26 +73,18 @@ public class OrderPaymentResultApplicationService {
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaid(paymentNo, channelCode, Money.of(paidAmount, order.getCurrencyCode()), paidTime);
-        // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
         InventoryReservationFacadeResponse deductResult = inventoryCommandFacade.deductReservedStock(
                 new InventoryDeductFacadeRequest(OrderNoCodec.toValue(orderNo)));
-        if (!InventoryStatus.DEDUCTED.value().equals(deductResult.getInventoryStatus())) {
-            String reason = deductResult.getFailureReason() == null
-                            || deductResult.getFailureReason().isBlank()
-                    ? "inventory deduct failed"
-                    : deductResult.getFailureReason();
-            order.markInventoryFailed(
-                    ReservationNoCodec.toDomain(deductResult.getReservationNo()),
-                    deductResult.getWarehouseCode() == null ? null : WarehouseCode.of(deductResult.getWarehouseCode()),
-                    reason);
-            orderRepository.update(order);
-            throw new IllegalStateException(reason);
-        }
-        order.markInventoryDeducted(
+        boolean deducted = order.recordInventoryDeductionResult(
+                toInventoryStatus(deductResult.getInventoryStatus()),
                 ReservationNoCodec.toDomain(deductResult.getReservationNo()),
-                deductResult.getWarehouseCode() == null ? null : WarehouseCode.of(deductResult.getWarehouseCode()),
-                deductResult.getDeductedAt());
+                toWarehouseCode(deductResult.getWarehouseCode()),
+                deductResult.getDeductedAt(),
+                resolveReason(deductResult.getFailureReason(), "inventory deduct failed"));
         orderRepository.update(order);
+        if (!deducted) {
+            throw new IllegalStateException(resolveReason(deductResult.getFailureReason(), "inventory deduct failed"));
+        }
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAID, beforeStatus);
     }
 
@@ -115,22 +104,24 @@ public class OrderPaymentResultApplicationService {
     }
 
     private void applyReleaseResult(Order order, InventoryReservationFacadeResponse releaseResult, String fallbackReason) {
-        if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
-            order.markInventoryReleased(
-                    ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
-                    releaseResult.getWarehouseCode() == null
-                            ? null
-                            : WarehouseCode.of(releaseResult.getWarehouseCode()),
-                    releaseResult.getReleaseReason(),
-                    releaseResult.getReleasedAt());
-            return;
-        }
-        order.markInventoryFailed(
+        order.recordInventoryReleaseResult(
+                toInventoryStatus(releaseResult.getInventoryStatus()),
                 ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
-                releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
-                releaseResult.getFailureReason() == null
-                                || releaseResult.getFailureReason().isBlank()
-                        ? fallbackReason
-                        : releaseResult.getFailureReason());
+                toWarehouseCode(releaseResult.getWarehouseCode()),
+                releaseResult.getReleaseReason(),
+                releaseResult.getReleasedAt(),
+                resolveReason(releaseResult.getFailureReason(), fallbackReason));
+    }
+
+    private InventoryStatus toInventoryStatus(String inventoryStatus) {
+        return inventoryStatus == null || inventoryStatus.isBlank() ? null : InventoryStatus.from(inventoryStatus);
+    }
+
+    private WarehouseCode toWarehouseCode(String warehouseCode) {
+        return warehouseCode == null || warehouseCode.isBlank() ? null : WarehouseCode.of(warehouseCode);
+    }
+
+    private String resolveReason(String reason, String fallbackReason) {
+        return reason == null || reason.isBlank() ? fallbackReason : reason;
     }
 }

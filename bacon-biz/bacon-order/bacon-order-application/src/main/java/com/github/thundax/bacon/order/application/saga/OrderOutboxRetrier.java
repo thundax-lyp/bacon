@@ -3,7 +3,7 @@ package com.github.thundax.bacon.order.application.saga;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
-import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderOutboxDeadLetterId;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxDeadLetterRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import java.time.Instant;
@@ -67,12 +67,12 @@ public class OrderOutboxRetrier {
         }
         Instant now = Instant.now();
         // 先释放过期租约，再拉取一批可重试事件，避免节点异常退出后事件永久卡在 PROCESSING。
-        orderOutboxRepository.releaseExpiredLease(now);
+        orderOutboxRepository.releaseExpired(now);
         int safeBatchSize = Math.max(batchSize, 1);
         Instant leaseUntil = now.plusSeconds(Math.max(leaseSeconds, 1L));
         String owner = applicationName + ":" + processingOwner;
         List<OrderOutboxEvent> events =
-                orderOutboxRepository.claimRetryable(now, safeBatchSize, owner, leaseUntil);
+                orderOutboxRepository.claim(now, safeBatchSize, owner, leaseUntil);
         for (OrderOutboxEvent event : events) {
             retryOne(event, owner, now);
         }
@@ -89,31 +89,18 @@ public class OrderOutboxRetrier {
     }
 
     private void handleRetryFailure(OrderOutboxEvent event, String owner, Instant now, RuntimeException ex) {
-        int nextRetryCount = (event.getRetryCount() == null ? 0 : event.getRetryCount()) + 1;
+        int nextRetryCount = event.nextRetryCount();
         String message = truncate(ex.getMessage());
         // 超过重试上限后把事件移入死信表，后续只允许人工或专门补偿链路接手，不再由定时任务继续重试。
         if (nextRetryCount > maxRetries) {
             String deadReason = "MAX_RETRIES_EXCEEDED";
             if (orderOutboxRepository.markDeadClaimed(event.getId(), owner, nextRetryCount, deadReason, message, now)) {
                 orderOutboxDeadLetterRepository.insert(OrderOutboxDeadLetter.create(
-                        idGenerator.nextId(DEAD_LETTER_ID_BIZ_TAG),
-                        event.getId() == null ? null : event.getId().value(),
-                        event.getEventCode() == null
-                                ? null
-                                : event.getEventCode().value(),
-                        event.getOrderNo() == null ? null : event.getOrderNo().value(),
-                        event.getEventType(),
-                        event.getBusinessKey(),
-                        event.getPayload(),
+                        OrderOutboxDeadLetterId.of(idGenerator.nextId(DEAD_LETTER_ID_BIZ_TAG)),
+                        event,
                         nextRetryCount,
                         message,
                         deadReason,
-                        now,
-                        OrderOutboxReplayStatus.PENDING,
-                        0,
-                        null,
-                        null,
-                        now,
                         now));
                 log.error(
                         "ALERT order outbox retry exhausted, outboxId={}, eventType={}, orderNo={}",
@@ -128,7 +115,7 @@ public class OrderOutboxRetrier {
         }
         // 未到上限时按指数退避回写下一次重试时间，避免固定频率放大下游故障。
         Instant nextRetryAt = now.plusSeconds(nextDelaySeconds(nextRetryCount));
-        orderOutboxRepository.markRetryingClaimed(event.getId(), owner, nextRetryCount, nextRetryAt, message, now);
+        orderOutboxRepository.markRetryClaimed(event.getId(), owner, nextRetryCount, nextRetryAt, message, now);
         log.warn(
                 "Order outbox retry failed, outboxId={}, eventType={}, orderNo={}, retryCount={}",
                 event.getId(),

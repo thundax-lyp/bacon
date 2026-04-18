@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.order.application.saga;
 
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
@@ -10,6 +10,7 @@ import com.github.thundax.bacon.inventory.api.request.InventoryReleaseFacadeRequ
 import com.github.thundax.bacon.inventory.api.request.InventoryReservationItemFacadeRequest;
 import com.github.thundax.bacon.inventory.api.request.InventoryReserveFacadeRequest;
 import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
+import com.github.thundax.bacon.common.commerce.codec.SkuIdCodec;
 import com.github.thundax.bacon.order.application.codec.OrderOutboxPayloadCodec;
 import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
@@ -99,35 +100,24 @@ public class OrderOutboxActionExecutor {
         Order order = findOrder(event.getOrderNo());
         List<OrderItem> items = orderRepository.listItemsByOrderId(order.getId());
         List<InventoryReservationItemFacadeRequest> reserveItems = items.stream()
-                .map(item -> new InventoryReservationItemFacadeRequest(
-                        item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity()))
+                .map(item -> new InventoryReservationItemFacadeRequest(SkuIdCodec.toValue(item.getSkuId()), item.getQuantity()))
                 .toList();
         InventoryReservationFacadeResponse reserveResult = BaconContextHolder.callWithTenantId(
                 BaconContextHolder.requireTenantId(),
                 () -> inventoryCommandFacade.reserveStock(new InventoryReserveFacadeRequest(
                         order.getOrderNo() == null ? null : order.getOrderNo().value(), reserveItems)));
-        // 预占失败时直接把订单收敛为关闭态，不再继续创建支付单，避免出现“无库存但有支付单”的脏状态。
-        if (!InventoryStatus.RESERVED.value().equals(reserveResult.getInventoryStatus())) {
-            String reason = reserveResult.getFailureReason() == null
-                            || reserveResult.getFailureReason().isBlank()
-                    ? "inventory reserve failed"
-                    : reserveResult.getFailureReason();
-            order.markInventoryFailed(
-                    ReservationNoCodec.toDomain(reserveResult.getReservationNo()),
-                    reserveResult.getWarehouseCode() == null
-                            ? null
-                            : WarehouseCode.of(reserveResult.getWarehouseCode()),
-                    reason);
-            order.closeByInventoryReserveFailed(CLOSE_REASON_INVENTORY_RESERVE_FAILED);
-            orderRepository.update(order);
+        boolean reserved = order.recordInventoryReservationResult(
+                toInventoryStatus(reserveResult.getInventoryStatus()),
+                ReservationNoCodec.toDomain(reserveResult.getReservationNo()),
+                toWarehouseCode(reserveResult.getWarehouseCode()),
+                resolveReason(reserveResult.getFailureReason(), "inventory reserve failed"),
+                CLOSE_REASON_INVENTORY_RESERVE_FAILED);
+        orderRepository.update(order);
+        if (!reserved) {
             orderDerivedDataPersistenceSupport.persist(
                     order, OrderAuditActionType.OUTBOX_RESERVE_FAILED, OrderStatus.RESERVING_STOCK);
             return;
         }
-        order.markInventoryReserved(
-                ReservationNoCodec.toDomain(reserveResult.getReservationNo()),
-                reserveResult.getWarehouseCode() == null ? null : WarehouseCode.of(reserveResult.getWarehouseCode()));
-        orderRepository.update(order);
         orderDerivedDataPersistenceSupport.persist(
                 order, OrderAuditActionType.OUTBOX_RESERVE_OK, OrderStatus.RESERVING_STOCK);
 
@@ -166,12 +156,13 @@ public class OrderOutboxActionExecutor {
                         channelCode,
                         "order:" + (order.getOrderNo() == null ? null : order.getOrderNo().value()),
                         order.getExpiredAt())));
-        // 创建支付单失败时不只关闭订单，还要补一条释放库存事件，把前一步已预占的资源回收掉。
-        if (paymentResult.getPaymentNo() == null
-                || paymentResult.getPaymentNo().isBlank()
-                || !PayStatus.PAYING.value().equals(paymentResult.getPaymentStatus())) {
-            order.closeByPaymentCreateFailed(CLOSE_REASON_PAYMENT_CREATE_FAILED);
-            orderRepository.update(order);
+        boolean created = order.recordPaymentCreationResult(
+                toPaymentNo(paymentResult.getPaymentNo()),
+                toPayStatus(paymentResult.getPaymentStatus()),
+                paymentResult.getChannelCode(),
+                CLOSE_REASON_PAYMENT_CREATE_FAILED);
+        orderRepository.update(order);
+        if (!created) {
             orderDerivedDataPersistenceSupport.persist(
                     order, OrderAuditActionType.OUTBOX_CREATE_PAYMENT_FAILED, OrderStatus.RESERVING_STOCK);
 
@@ -194,8 +185,6 @@ public class OrderOutboxActionExecutor {
                     Instant.now()));
             return;
         }
-        order.markPendingPayment(PaymentNo.of(paymentResult.getPaymentNo()), paymentResult.getChannelCode());
-        orderRepository.update(order);
         orderDerivedDataPersistenceSupport.persist(
                 order, OrderAuditActionType.OUTBOX_CREATE_PAYMENT_OK, OrderStatus.RESERVING_STOCK);
     }
@@ -207,26 +196,13 @@ public class OrderOutboxActionExecutor {
                 BaconContextHolder.requireTenantId(),
                 () -> inventoryCommandFacade.releaseReservedStock(new InventoryReleaseFacadeRequest(
                         order.getOrderNo() == null ? null : order.getOrderNo().value(), reason)));
-        // 释放结果只更新库存侧派生状态，不再反向改订单主状态；订单主状态在上游取消/超时/支付失败时已经确定。
-        if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
-            order.markInventoryReleased(
-                    ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
-                    releaseResult.getWarehouseCode() == null
-                            ? null
-                            : WarehouseCode.of(releaseResult.getWarehouseCode()),
-                    releaseResult.getReleaseReason(),
-                    releaseResult.getReleasedAt());
-        } else {
-            order.markInventoryFailed(
-                    ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
-                    releaseResult.getWarehouseCode() == null
-                            ? null
-                            : WarehouseCode.of(releaseResult.getWarehouseCode()),
-                    releaseResult.getFailureReason() == null
-                                    || releaseResult.getFailureReason().isBlank()
-                            ? reason
-                            : releaseResult.getFailureReason());
-        }
+        order.recordInventoryReleaseResult(
+                toInventoryStatus(releaseResult.getInventoryStatus()),
+                ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
+                toWarehouseCode(releaseResult.getWarehouseCode()),
+                releaseResult.getReleaseReason(),
+                releaseResult.getReleasedAt(),
+                resolveReason(releaseResult.getFailureReason(), reason));
         orderRepository.update(order);
         orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RELEASE, order.getOrderStatus());
     }
@@ -235,5 +211,25 @@ public class OrderOutboxActionExecutor {
         return orderRepository
                 .findByOrderNo(orderNo)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));
+    }
+
+    private InventoryStatus toInventoryStatus(String inventoryStatus) {
+        return inventoryStatus == null || inventoryStatus.isBlank() ? null : InventoryStatus.from(inventoryStatus);
+    }
+
+    private PayStatus toPayStatus(String payStatus) {
+        return payStatus == null || payStatus.isBlank() ? null : PayStatus.from(payStatus);
+    }
+
+    private PaymentNo toPaymentNo(String paymentNo) {
+        return paymentNo == null || paymentNo.isBlank() ? null : PaymentNo.of(paymentNo);
+    }
+
+    private WarehouseCode toWarehouseCode(String warehouseCode) {
+        return warehouseCode == null || warehouseCode.isBlank() ? null : WarehouseCode.of(warehouseCode);
+    }
+
+    private String resolveReason(String reason, String fallbackReason) {
+        return reason == null || reason.isBlank() ? fallbackReason : reason;
     }
 }

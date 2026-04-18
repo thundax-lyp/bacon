@@ -51,7 +51,6 @@ public class OrderCancelApplicationService {
         orderIdempotencyExecutor.execute(
                 OrderIdempotencyExecutor.EVENT_CANCEL,
                 OrderNoCodec.toValue(orderNo),
-                null,
                 () -> doCancel(orderNo, resolvedReason));
     }
 
@@ -73,23 +72,24 @@ public class OrderCancelApplicationService {
     }
 
     private void applyReleaseResult(Order order, InventoryReservationFacadeResponse releaseResult, String fallbackReason) {
-        if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
-            order.markInventoryReleased(
-                    ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
-                    releaseResult.getWarehouseCode() == null
-                            ? null
-                            : WarehouseCode.of(releaseResult.getWarehouseCode()),
-                    releaseResult.getReleaseReason(),
-                    releaseResult.getReleasedAt());
-            return;
-        }
-        // 释放失败只更新库存派生状态，方便后续排障或补偿，不会把已经确定的取消主状态回滚掉。
-        order.markInventoryFailed(
+        order.recordInventoryReleaseResult(
+                toInventoryStatus(releaseResult.getInventoryStatus()),
                 ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
-                releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
-                releaseResult.getFailureReason() == null
-                                || releaseResult.getFailureReason().isBlank()
-                        ? fallbackReason
-                        : releaseResult.getFailureReason());
+                toWarehouseCode(releaseResult.getWarehouseCode()),
+                releaseResult.getReleaseReason(),
+                releaseResult.getReleasedAt(),
+                resolveReason(releaseResult.getFailureReason(), fallbackReason));
+    }
+
+    private InventoryStatus toInventoryStatus(String inventoryStatus) {
+        return inventoryStatus == null || inventoryStatus.isBlank() ? null : InventoryStatus.from(inventoryStatus);
+    }
+
+    private WarehouseCode toWarehouseCode(String warehouseCode) {
+        return warehouseCode == null || warehouseCode.isBlank() ? null : WarehouseCode.of(warehouseCode);
+    }
+
+    private String resolveReason(String reason, String fallbackReason) {
+        return reason == null || reason.isBlank() ? fallbackReason : reason;
     }
 }

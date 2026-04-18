@@ -17,6 +17,7 @@ import com.github.thundax.bacon.inventory.api.request.InventoryReserveFacadeRequ
 import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
 import com.github.thundax.bacon.order.application.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
+import com.github.thundax.bacon.order.application.codec.OrderIdempotencyRecordKeyCodec;
 import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
 import com.github.thundax.bacon.order.application.result.OrderPageResult;
 import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
@@ -24,11 +25,13 @@ import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersis
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
-import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
-import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
+import com.github.thundax.bacon.order.domain.model.snapshot.OrderInventorySnapshot;
+import com.github.thundax.bacon.order.domain.model.snapshot.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
@@ -291,132 +294,114 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public boolean insert(OrderIdempotencyRecord record) {
-            String key = keyOf(valueOf(record.getOrderNo()), record.getEventType());
+            String key = keyOf(
+                    OrderIdempotencyRecordKeyCodec.toOrderNoValue(record.getKey()),
+                    OrderIdempotencyRecordKeyCodec.toEventTypeValue(record.getKey()));
             OrderIdempotencyRecord value = OrderIdempotencyRecord.reconstruct(
-                    com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey.of(
-                            record.getOrderNo(), record.getEventType()),
-                    com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING,
-                    1,
-                    null,
+                    record.getKey(),
+                    record.getStatus(),
+                    record.getAttemptCount(),
+                    record.getLastError(),
                     record.getProcessingOwner(),
                     record.getLeaseUntil(),
                     record.getClaimedAt(),
-                    Instant.now(),
-                    Instant.now());
+                    record.getCreatedAt(),
+                    record.getUpdatedAt());
             return storage.putIfAbsent(key, value) == null;
         }
 
         @Override
         public Optional<OrderIdempotencyRecord> findByKey(
                 com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey key) {
-            return Optional.ofNullable(storage.get(keyOf(key.orderNo().value(), key.eventType())));
+            return Optional.ofNullable(storage.get(keyOf(key.orderNo().value(), key.eventType())))
+                    .map(existing -> OrderIdempotencyRecord.reconstruct(
+                            existing.getKey(),
+                            existing.getStatus(),
+                            existing.getAttemptCount(),
+                            existing.getLastError(),
+                            existing.getProcessingOwner(),
+                            existing.getLeaseUntil(),
+                            existing.getClaimedAt(),
+                            existing.getCreatedAt(),
+                            existing.getUpdatedAt()));
         }
 
         @Override
-        public boolean markSuccess(
-                com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey key,
-                Instant updatedAt) {
+        public boolean updateStatus(
+                OrderIdempotencyRecord record,
+                com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus currentStatus) {
             AtomicLong updated = new AtomicLong(0);
-            storage.computeIfPresent(keyOf(key.orderNo().value(), key.eventType()), (mapKey, existing) -> {
-                if (existing.getStatus()
-                        != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING) {
+            storage.computeIfPresent(keyOf(record.getKey().orderNo().value(), record.getKey().eventType()), (mapKey, existing) -> {
+                if (existing.getStatus() != currentStatus) {
                     return existing;
                 }
-                existing.setStatus(com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.SUCCESS);
-                existing.setLastError(null);
-                existing.setProcessingOwner(null);
-                existing.setLeaseUntil(null);
-                existing.setClaimedAt(null);
-                existing.setUpdatedAt(updatedAt);
                 updated.incrementAndGet();
-                return existing;
+                return OrderIdempotencyRecord.reconstruct(
+                        record.getKey(),
+                        record.getStatus(),
+                        record.getAttemptCount(),
+                        record.getLastError(),
+                        record.getProcessingOwner(),
+                        record.getLeaseUntil(),
+                        record.getClaimedAt(),
+                        record.getCreatedAt(),
+                        record.getUpdatedAt());
             });
             return updated.get() > 0;
         }
 
         @Override
-        public boolean markFailed(
-                com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey key,
-                String lastError,
-                Instant updatedAt) {
+        public boolean updateStatus(
+                OrderIdempotencyRecord record,
+                com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus currentStatus,
+                Instant leaseExpiredBefore) {
             AtomicLong updated = new AtomicLong(0);
-            storage.computeIfPresent(keyOf(key.orderNo().value(), key.eventType()), (mapKey, existing) -> {
-                if (existing.getStatus()
-                        != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING) {
-                    return existing;
-                }
-                existing.setStatus(com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.FAILED);
-                existing.setLastError(lastError);
-                existing.setProcessingOwner(null);
-                existing.setLeaseUntil(null);
-                existing.setClaimedAt(null);
-                existing.setUpdatedAt(updatedAt);
-                updated.incrementAndGet();
-                return existing;
-            });
-            return updated.get() > 0;
-        }
-
-        @Override
-        public boolean recoverFailed(
-                com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey key,
-                String processingOwner,
-                Instant leaseUntil,
-                Instant claimedAt,
-                Instant updatedAt) {
-            AtomicLong updated = new AtomicLong(0);
-            storage.computeIfPresent(keyOf(key.orderNo().value(), key.eventType()), (mapKey, existing) -> {
-                if (existing.getStatus()
-                        != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.FAILED) {
-                    return existing;
-                }
-                existing.setStatus(com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING);
-                existing.setAttemptCount(existing.getAttemptCount() + 1);
-                existing.setLastError(null);
-                existing.setProcessingOwner(processingOwner);
-                existing.setLeaseUntil(leaseUntil);
-                existing.setClaimedAt(claimedAt);
-                existing.setUpdatedAt(updatedAt);
-                updated.incrementAndGet();
-                return existing;
-            });
-            return updated.get() > 0;
-        }
-
-        @Override
-        public boolean claimExpired(
-                com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey key,
-                String processingOwner,
-                Instant leaseUntil,
-                Instant claimedAt,
-                Instant updatedAt) {
-            AtomicLong updated = new AtomicLong(0);
-            storage.computeIfPresent(keyOf(key.orderNo().value(), key.eventType()), (mapKey, existing) -> {
-                if (existing.getStatus()
-                        != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING) {
+            storage.computeIfPresent(keyOf(record.getKey().orderNo().value(), record.getKey().eventType()), (mapKey, existing) -> {
+                if (existing.getStatus() != currentStatus) {
                     return existing;
                 }
                 Instant existingLease = existing.getLeaseUntil();
-                if (existingLease != null && existingLease.isAfter(claimedAt)) {
+                if (leaseExpiredBefore != null && existingLease != null && existingLease.isAfter(leaseExpiredBefore)) {
                     return existing;
                 }
-                existing.setProcessingOwner(processingOwner);
-                existing.setLeaseUntil(leaseUntil);
-                existing.setClaimedAt(claimedAt);
-                existing.setUpdatedAt(updatedAt);
                 updated.incrementAndGet();
-                return existing;
+                return OrderIdempotencyRecord.reconstruct(
+                        record.getKey(),
+                        record.getStatus(),
+                        record.getAttemptCount(),
+                        record.getLastError(),
+                        record.getProcessingOwner(),
+                        record.getLeaseUntil(),
+                        record.getClaimedAt(),
+                        record.getCreatedAt(),
+                        record.getUpdatedAt());
             });
             return updated.get() > 0;
+        }
+
+        @Override
+        public List<OrderIdempotencyRecord> listExpiredProcessing(Instant now) {
+            return storage.values().stream()
+                    .filter(existing -> existing.getStatus()
+                            == com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING)
+                    .filter(existing -> existing.getLeaseUntil() != null && !existing.getLeaseUntil().isAfter(now))
+                    .map(existing -> OrderIdempotencyRecord.reconstruct(
+                            existing.getKey(),
+                            existing.getStatus(),
+                            existing.getAttemptCount(),
+                            existing.getLastError(),
+                            existing.getProcessingOwner(),
+                            existing.getLeaseUntil(),
+                            existing.getClaimedAt(),
+                            existing.getCreatedAt(),
+                            existing.getUpdatedAt()))
+                    .toList();
         }
 
         private String keyOf(String orderNo, String eventType) {
             return orderNo + ":" + eventType;
         }
 
-        private String valueOf(OrderNo orderNo) {
-            return orderNo == null ? null : orderNo.value();
-        }
     }
 
     private static final class TestIdGenerator implements IdGenerator {
@@ -454,10 +439,10 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public Order insert(Order order) {
-            order.setId(OrderId.of(idGenerator.getAndIncrement()));
-            storage.put(toOrderIdValue(order), order);
-            orderTenantStorage.put(toOrderIdValue(order), currentTenantId());
-            return order;
+            Order savedOrder = withId(order, OrderId.of(idGenerator.getAndIncrement()));
+            storage.put(toOrderIdValue(savedOrder), savedOrder);
+            orderTenantStorage.put(toOrderIdValue(savedOrder), currentTenantId());
+            return savedOrder;
         }
 
         @Override
@@ -502,14 +487,14 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public void insertPayment(OrderPaymentSnapshot snapshot) {
-            Long orderId = toOrderIdValue(snapshot.getOrderId());
+            Long orderId = toOrderIdValue(snapshot.orderId());
             paymentSnapshots.put(orderId, snapshot);
             paymentSnapshotTenantStorage.put(orderId, currentTenantId());
         }
 
         @Override
         public void updatePayment(OrderPaymentSnapshot snapshot) {
-            Long orderId = toOrderIdValue(snapshot.getOrderId());
+            Long orderId = toOrderIdValue(snapshot.orderId());
             paymentSnapshots.put(orderId, snapshot);
             paymentSnapshotTenantStorage.put(orderId, currentTenantId());
         }
@@ -526,14 +511,14 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public void insertInventory(OrderInventorySnapshot snapshot) {
-            String orderNo = toOrderNoValue(snapshot.getOrderNo());
+            String orderNo = toOrderNoValue(snapshot.orderNo());
             inventorySnapshots.put(orderNo, snapshot);
             inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
         }
 
         @Override
         public void updateInventory(OrderInventorySnapshot snapshot) {
-            String orderNo = toOrderNoValue(snapshot.getOrderNo());
+            String orderNo = toOrderNoValue(snapshot.orderNo());
             inventorySnapshots.put(orderNo, snapshot);
             inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
         }
@@ -565,9 +550,9 @@ class OrderCreateApplicationServiceTest {
         public long count(
                 UserId userId,
                 OrderNo orderNo,
-                String orderStatus,
-                String payStatus,
-                String inventoryStatus,
+                OrderStatus orderStatus,
+                PayStatus payStatus,
+                InventoryStatus inventoryStatus,
                 Instant createdAtFrom,
                 Instant createdAtTo) {
             return filterOrders(userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
@@ -578,9 +563,9 @@ class OrderCreateApplicationServiceTest {
         public List<Order> page(
                 UserId userId,
                 OrderNo orderNo,
-                String orderStatus,
-                String payStatus,
-                String inventoryStatus,
+                OrderStatus orderStatus,
+                PayStatus payStatus,
+                InventoryStatus inventoryStatus,
                 Instant createdAtFrom,
                 Instant createdAtTo,
                 int pageNo,
@@ -595,9 +580,9 @@ class OrderCreateApplicationServiceTest {
         private List<Order> filterOrders(
                 UserId userId,
                 OrderNo orderNo,
-                String orderStatus,
-                String payStatus,
-                String inventoryStatus,
+                OrderStatus orderStatus,
+                PayStatus payStatus,
+                InventoryStatus inventoryStatus,
                 Instant createdAtFrom,
                 Instant createdAtTo) {
             List<Order> filtered = storage.values().stream()
@@ -605,11 +590,9 @@ class OrderCreateApplicationServiceTest {
                     .filter(order -> userId == null || toUserIdValue(userId).equals(toUserIdValue(order)))
                     .filter(order -> orderNo == null
                             || toOrderNoValue(order.getOrderNo()).contains(toOrderNoValue(orderNo)))
-                    .filter(order ->
-                            orderStatus == null || orderStatus.equals(toOrderStatusValue(order.getOrderStatus())))
-                    .filter(order -> payStatus == null || payStatus.equals(toPayStatusValue(order.getPayStatus())))
-                    .filter(order -> inventoryStatus == null
-                            || inventoryStatus.equals(toInventoryStatusValue(order.getInventoryStatus())))
+                    .filter(order -> orderStatus == null || orderStatus == order.getOrderStatus())
+                    .filter(order -> payStatus == null || payStatus == order.getPayStatus())
+                    .filter(order -> inventoryStatus == null || inventoryStatus == order.getInventoryStatus())
                     .filter(order ->
                             createdAtFrom == null || !order.getCreatedAt().isBefore(createdAtFrom))
                     .filter(order ->
@@ -630,6 +613,38 @@ class OrderCreateApplicationServiceTest {
             return order.getId() == null ? null : order.getId().value();
         }
 
+        private Order withId(Order order, OrderId orderId) {
+            return Order.reconstruct(
+                    orderId,
+                    order.getOrderNo(),
+                    order.getUserId(),
+                    order.getOrderStatus(),
+                    order.getPayStatus(),
+                    order.getInventoryStatus(),
+                    order.getPaymentNo(),
+                    order.getReservationNo(),
+                    order.getCurrencyCode(),
+                    order.getTotalAmount(),
+                    order.getPayableAmount(),
+                    order.getRemark(),
+                    order.getCancelReason(),
+                    order.getCloseReason(),
+                    order.getCreatedAt(),
+                    order.getExpiredAt(),
+                    order.getPaidAt(),
+                    order.getClosedAt(),
+                    order.getPaymentChannelCode(),
+                    order.getPaidAmount(),
+                    order.getPaymentChannelStatus(),
+                    order.getPaymentFailureReason(),
+                    order.getPaymentFailedAt(),
+                    order.getWarehouseCode(),
+                    order.getInventoryFailureReason(),
+                    order.getInventoryReleaseReason(),
+                    order.getInventoryReleasedAt(),
+                    order.getInventoryDeductedAt());
+        }
+
         private Long toUserIdValue(Order order) {
             return order.getUserId() == null
                     ? null
@@ -646,19 +661,6 @@ class OrderCreateApplicationServiceTest {
 
         private String toOrderNoValue(OrderNo orderNo) {
             return orderNo == null ? null : orderNo.value();
-        }
-
-        private String toOrderStatusValue(com.github.thundax.bacon.order.domain.model.enums.OrderStatus orderStatus) {
-            return orderStatus == null ? null : orderStatus.value();
-        }
-
-        private String toPayStatusValue(com.github.thundax.bacon.order.domain.model.enums.PayStatus payStatus) {
-            return payStatus == null ? null : payStatus.value();
-        }
-
-        private String toInventoryStatusValue(
-                com.github.thundax.bacon.order.domain.model.enums.InventoryStatus inventoryStatus) {
-            return inventoryStatus == null ? null : inventoryStatus.value();
         }
 
         private Long currentTenantId() {

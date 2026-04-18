@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.application.command;
 
 import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
+import com.github.thundax.bacon.common.commerce.codec.SkuIdCodec;
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
@@ -18,7 +19,6 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
-import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -56,33 +56,31 @@ public class OrderCreateApplicationService {
             throw new BadRequestException("items must not be empty");
         }
         BaconContextHolder.requireTenantId();
-        BigDecimal totalAmount = items.stream().map(this::calculateLineAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         OrderNo orderNo = orderNoGenerator.nextOrderNo();
-        CurrencyCode currencyCode = resolveCurrencyCode(command.currencyCode());
+        List<OrderItem> orderItems = items.stream()
+                .map(item -> toOrderItem(item, command.currencyCode()))
+                .toList();
         Order order = Order.create(
                 null,
-                orderNo.value(),
+                orderNo,
                 command.userId(),
-                currencyCode,
-                totalAmount.toPlainString(),
-                totalAmount.toPlainString(),
+                resolveCurrencyCode(command.currencyCode()),
+                orderItems,
                 command.remark(),
                 command.expiredAt());
         Order savedOrder = orderRepository.insert(order);
         orderRepository.updateItems(
                 savedOrder.getId(),
-                items.stream()
-                        .map(item -> OrderItem.create(
+                orderItems.stream()
+                        .map(item -> OrderItem.reconstruct(
                                 idGenerator.nextId(ORDER_ITEM_ID_BIZ_TAG),
-                                savedOrder.getId() == null
-                                        ? null
-                                        : savedOrder.getId().value(),
-                                item.skuId(),
-                                item.skuName(),
-                                item.imageUrl(),
-                                item.quantity(),
-                                Money.of(item.salePrice(), currencyCode),
-                                Money.of(calculateLineAmount(item), currencyCode)))
+                                savedOrder.getId(),
+                                item.getSkuId(),
+                                item.getSkuName(),
+                                item.getImageUrl(),
+                                item.getQuantity(),
+                                item.getSalePrice(),
+                                item.getLineAmount()))
                         .toList());
         savedOrder.markReservingStock();
         orderRepository.update(savedOrder);
@@ -119,11 +117,18 @@ public class OrderCreateApplicationService {
                 savedOrder.getExpiredAt());
     }
 
-    private BigDecimal calculateLineAmount(CreateOrderItemCommand item) {
-        if (item == null || item.quantity() == null || item.salePrice() == null) {
-            throw new BadRequestException("order item quantity and salePrice are required");
+    private OrderItem toOrderItem(CreateOrderItemCommand item, String currencyCode) {
+        if (item == null) {
+            throw new BadRequestException("order item is required");
         }
-        return item.salePrice().multiply(BigDecimal.valueOf(item.quantity()));
+        return OrderItem.create(
+                null,
+                null,
+                SkuIdCodec.toDomain(item.skuId()),
+                item.skuName(),
+                item.imageUrl(),
+                item.quantity(),
+                Money.of(item.salePrice(), resolveCurrencyCode(currencyCode)));
     }
 
     private CurrencyCode resolveCurrencyCode(String currencyCode) {

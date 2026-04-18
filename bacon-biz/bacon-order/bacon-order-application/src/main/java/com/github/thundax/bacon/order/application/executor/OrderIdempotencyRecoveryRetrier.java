@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.application.executor;
 
+import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
 import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +28,18 @@ public class OrderIdempotencyRecoveryRetrier {
         if (!enabled) {
             return;
         }
-        // 这里只做“卡死租约转 FAILED”的托底恢复，不直接重放业务动作，避免定时任务绕过正常幂等入口。
-        int recovered = orderIdempotencyRepository.recoverExpired(Instant.now(), RECOVER_MESSAGE);
+        Instant now = Instant.now();
+        int recovered = 0;
+        // 定时任务只负责扫描过期 PROCESSING 记录，并通过领域规则把它们转为 FAILED，不直接重放业务动作。
+        for (var record : orderIdempotencyRepository.listExpiredProcessing(now)) {
+            record.expire(RECOVER_MESSAGE, now);
+            if (orderIdempotencyRepository.updateStatus(
+                    record,
+                    OrderIdempotencyStatus.PROCESSING,
+                    now)) {
+                recovered++;
+            }
+        }
         if (recovered > 0) {
             log.warn("Recovered expired order idempotency processing records, count={}", recovered);
         }

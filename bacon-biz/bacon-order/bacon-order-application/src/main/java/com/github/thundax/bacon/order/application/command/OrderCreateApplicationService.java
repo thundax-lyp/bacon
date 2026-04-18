@@ -70,7 +70,7 @@ public class OrderCreateApplicationService {
                 command.expiredAt());
         Order savedOrder = orderRepository.insert(order);
         orderRepository.updateItems(
-                savedOrder.getId() == null ? null : savedOrder.getId().value(),
+                savedOrder.getId(),
                 items.stream()
                         .map(item -> OrderItem.create(
                                 idGenerator.nextId(ORDER_ITEM_ID_BIZ_TAG),

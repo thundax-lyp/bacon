@@ -57,7 +57,7 @@ public class OrderCancelApplicationService {
 
     private void doCancel(OrderNo orderNo, String reason) {
         Order order = orderRepository
-                .findByOrderNo(OrderNoCodec.toValue(orderNo))
+                .findByOrderNo(orderNo)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.cancel(reason);

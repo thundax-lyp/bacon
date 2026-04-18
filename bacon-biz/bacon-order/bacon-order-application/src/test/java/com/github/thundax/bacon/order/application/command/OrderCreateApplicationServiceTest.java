@@ -145,7 +145,7 @@ class OrderCreateApplicationServiceTest {
                         List.of(new CreateOrderItemCommand(
                                 103L, "item-3", "https://cdn.example.com/103.png", 1, BigDecimal.valueOf(30))))));
         runWithContext(1001L, 2001L, () -> {
-            Order paidOrder = repository.findByOrderNo(paid.getOrderNo()).orElseThrow();
+            Order paidOrder = repository.findByOrderNo(OrderNo.of(paid.getOrderNo())).orElseThrow();
             paidOrder.markInventoryReserved(ReservationNo.of("RSV-" + paid.getOrderNo()), WarehouseCode.of("1"));
             paidOrder.markPendingPayment(PaymentNo.of("PAY-" + paid.getOrderNo()), "MOCK");
             repository.update(paidOrder);
@@ -194,7 +194,7 @@ class OrderCreateApplicationServiceTest {
 
         runWithContext(1001L, 2001L, () -> cancelService.cancel(OrderNo.of(created.getOrderNo()), "SYSTEM_CANCELLED"));
         Order found = runWithContext(1001L, 2001L, () -> repository
-                .findByOrderNo(created.getOrderNo())
+                .findByOrderNo(OrderNo.of(created.getOrderNo()))
                 .orElseThrow());
 
         assertEquals("CANCELLED", found.getOrderStatus().value());
@@ -468,33 +468,36 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public Optional<Order> findById(Long id) {
-            if (!isTenantMatched(orderTenantStorage.get(id))) {
+        public Optional<Order> findById(OrderId id) {
+            Long orderId = toOrderIdValue(id);
+            if (!isTenantMatched(orderTenantStorage.get(orderId))) {
                 return Optional.empty();
             }
-            return Optional.ofNullable(storage.get(id));
+            return Optional.ofNullable(storage.get(orderId));
         }
 
         @Override
-        public Optional<Order> findByOrderNo(String orderNo) {
+        public Optional<Order> findByOrderNo(OrderNo orderNo) {
             return storage.values().stream()
                     .filter(order -> isTenantMatched(orderTenantStorage.get(toOrderIdValue(order))))
-                    .filter(order -> orderNo.equals(toOrderNoValue(order.getOrderNo())))
+                    .filter(order -> toOrderNoValue(orderNo).equals(toOrderNoValue(order.getOrderNo())))
                     .findFirst();
         }
 
         @Override
-        public void updateItems(Long orderId, List<OrderItem> items) {
-            itemStorage.put(orderId, items == null ? List.of() : List.copyOf(items));
-            itemTenantStorage.put(orderId, currentTenantId());
+        public void updateItems(OrderId orderId, List<OrderItem> items) {
+            Long orderIdValue = toOrderIdValue(orderId);
+            itemStorage.put(orderIdValue, items == null ? List.of() : List.copyOf(items));
+            itemTenantStorage.put(orderIdValue, currentTenantId());
         }
 
         @Override
-        public List<OrderItem> listItemsByOrderId(Long orderId) {
-            if (!isTenantMatched(itemTenantStorage.get(orderId))) {
+        public List<OrderItem> listItemsByOrderId(OrderId orderId) {
+            Long orderIdValue = toOrderIdValue(orderId);
+            if (!isTenantMatched(itemTenantStorage.get(orderIdValue))) {
                 return List.of();
             }
-            return itemStorage.getOrDefault(orderId, List.of());
+            return itemStorage.getOrDefault(orderIdValue, List.of());
         }
 
         @Override
@@ -512,9 +515,10 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public Optional<OrderPaymentSnapshot> findPaymentByOrderId(Long orderId) {
-            OrderPaymentSnapshot snapshot = paymentSnapshots.get(orderId);
-            if (snapshot == null || !isTenantMatched(paymentSnapshotTenantStorage.get(orderId))) {
+        public Optional<OrderPaymentSnapshot> findPaymentByOrderId(OrderId orderId) {
+            Long orderIdValue = toOrderIdValue(orderId);
+            OrderPaymentSnapshot snapshot = paymentSnapshots.get(orderIdValue);
+            if (snapshot == null || !isTenantMatched(paymentSnapshotTenantStorage.get(orderIdValue))) {
                 return Optional.empty();
             }
             return Optional.of(snapshot);
@@ -535,9 +539,10 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public Optional<OrderInventorySnapshot> findInventoryByOrderNo(String orderNo) {
-            OrderInventorySnapshot snapshot = inventorySnapshots.get(orderNo);
-            if (snapshot == null || !isTenantMatched(inventorySnapshotTenantStorage.get(orderNo))) {
+        public Optional<OrderInventorySnapshot> findInventoryByOrderNo(OrderNo orderNo) {
+            String orderNoValue = toOrderNoValue(orderNo);
+            OrderInventorySnapshot snapshot = inventorySnapshots.get(orderNoValue);
+            if (snapshot == null || !isTenantMatched(inventorySnapshotTenantStorage.get(orderNoValue))) {
                 return Optional.empty();
             }
             return Optional.of(snapshot);
@@ -552,14 +557,14 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public List<OrderAuditLog> listLogs(String orderNo) {
-            return List.copyOf(auditLogs.getOrDefault(currentTenantId() + ":" + orderNo, List.of()));
+        public List<OrderAuditLog> listLogs(OrderNo orderNo) {
+            return List.copyOf(auditLogs.getOrDefault(currentTenantId() + ":" + toOrderNoValue(orderNo), List.of()));
         }
 
         @Override
         public long count(
-                Long userId,
-                String orderNo,
+                UserId userId,
+                OrderNo orderNo,
                 String orderStatus,
                 String payStatus,
                 String inventoryStatus,
@@ -571,8 +576,8 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public List<Order> page(
-                Long userId,
-                String orderNo,
+                UserId userId,
+                OrderNo orderNo,
                 String orderStatus,
                 String payStatus,
                 String inventoryStatus,
@@ -588,8 +593,8 @@ class OrderCreateApplicationServiceTest {
         }
 
         private List<Order> filterOrders(
-                Long userId,
-                String orderNo,
+                UserId userId,
+                OrderNo orderNo,
                 String orderStatus,
                 String payStatus,
                 String inventoryStatus,
@@ -597,9 +602,9 @@ class OrderCreateApplicationServiceTest {
                 Instant createdAtTo) {
             List<Order> filtered = storage.values().stream()
                     .filter(order -> isTenantMatched(orderTenantStorage.get(toOrderIdValue(order))))
-                    .filter(order -> userId == null || userId.equals(toUserIdValue(order)))
+                    .filter(order -> userId == null || toUserIdValue(userId).equals(toUserIdValue(order)))
                     .filter(order -> orderNo == null
-                            || toOrderNoValue(order.getOrderNo()).contains(orderNo))
+                            || toOrderNoValue(order.getOrderNo()).contains(toOrderNoValue(orderNo)))
                     .filter(order ->
                             orderStatus == null || orderStatus.equals(toOrderStatusValue(order.getOrderStatus())))
                     .filter(order -> payStatus == null || payStatus.equals(toPayStatusValue(order.getPayStatus())))
@@ -629,6 +634,10 @@ class OrderCreateApplicationServiceTest {
             return order.getUserId() == null
                     ? null
                     : Long.valueOf(order.getUserId().value());
+        }
+
+        private Long toUserIdValue(UserId userId) {
+            return userId == null ? null : Long.valueOf(userId.value());
         }
 
         private Long toOrderIdValue(OrderId orderId) {

@@ -56,7 +56,7 @@ public class OrderTimeoutApplicationService {
 
     private void doCloseExpiredOrder(OrderNo orderNo, String reason) {
         Order order = orderRepository
-                .findByOrderNo(OrderNoCodec.toValue(orderNo))
+                .findByOrderNo(orderNo)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.closeExpired(reason);

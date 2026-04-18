@@ -2,7 +2,9 @@ package com.github.thundax.bacon.order.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
@@ -99,21 +101,22 @@ public class OrderRepositorySupport {
         return order;
     }
 
-    public Optional<Order> findById(Long id) {
-        return Optional.ofNullable(orderMapper.selectById(id)).map(this::toDomainWithSnapshots);
+    public Optional<Order> findById(OrderId id) {
+        return Optional.ofNullable(orderMapper.selectById(toOrderIdValue(id))).map(this::toDomainWithSnapshots);
     }
 
-    public Optional<Order> findByOrderNo(String orderNo) {
+    public Optional<Order> findByOrderNo(OrderNo orderNo) {
         BaconContextHolder.requireTenantId();
         return Optional.ofNullable(
-                        orderMapper.selectOne(Wrappers.<OrderDO>lambdaQuery().eq(OrderDO::getOrderNo, orderNo)))
+                        orderMapper.selectOne(
+                                Wrappers.<OrderDO>lambdaQuery().eq(OrderDO::getOrderNo, toOrderNoValue(orderNo))))
                 .map(this::toDomainWithSnapshots);
     }
 
-    public void updateItems(Long orderId, List<OrderItem> items) {
+    public void updateItems(OrderId orderId, List<OrderItem> items) {
         BaconContextHolder.requireTenantId();
         // 订单项采用“先删后插”的整包替换策略，保持应用层传入的 items 列表就是该订单的权威快照。
-        orderItemMapper.delete(Wrappers.<OrderItemDO>lambdaQuery().eq(OrderItemDO::getOrderId, orderId));
+        orderItemMapper.delete(Wrappers.<OrderItemDO>lambdaQuery().eq(OrderItemDO::getOrderId, toOrderIdValue(orderId)));
         if (items == null || items.isEmpty()) {
             return;
         }
@@ -122,11 +125,11 @@ public class OrderRepositorySupport {
         }
     }
 
-    public List<OrderItem> listItemsByOrderId(Long orderId) {
+    public List<OrderItem> listItemsByOrderId(OrderId orderId) {
         BaconContextHolder.requireTenantId();
         return orderItemMapper
                 .selectList(Wrappers.<OrderItemDO>lambdaQuery()
-                        .eq(OrderItemDO::getOrderId, orderId)
+                        .eq(OrderItemDO::getOrderId, toOrderIdValue(orderId))
                         .orderByAsc(OrderItemDO::getId))
                 .stream()
                 .map(orderItemPersistenceAssembler::toDomain)
@@ -157,10 +160,11 @@ public class OrderRepositorySupport {
         orderPaymentSnapshotMapper.updateById(dataObject);
     }
 
-    public Optional<OrderPaymentSnapshot> findPaymentByOrderId(Long orderId) {
+    public Optional<OrderPaymentSnapshot> findPaymentByOrderId(OrderId orderId) {
         BaconContextHolder.requireTenantId();
         return Optional.ofNullable(orderPaymentSnapshotMapper.selectOne(
-                        Wrappers.<OrderPaymentSnapshotDO>lambdaQuery().eq(OrderPaymentSnapshotDO::getOrderId, orderId)))
+                        Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
+                                .eq(OrderPaymentSnapshotDO::getOrderId, toOrderIdValue(orderId))))
                 .map(orderPaymentSnapshotPersistenceAssembler::toDomain);
     }
 
@@ -187,11 +191,11 @@ public class OrderRepositorySupport {
         orderInventorySnapshotMapper.updateById(dataObject);
     }
 
-    public Optional<OrderInventorySnapshot> findInventoryByOrderNo(String orderNo) {
+    public Optional<OrderInventorySnapshot> findInventoryByOrderNo(OrderNo orderNo) {
         BaconContextHolder.requireTenantId();
         return Optional.ofNullable(
                         orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
-                                .eq(OrderInventorySnapshotDO::getOrderNo, orderNo)))
+                                .eq(OrderInventorySnapshotDO::getOrderNo, toOrderNoValue(orderNo))))
                 .map(orderInventorySnapshotPersistenceAssembler::toDomain);
     }
 
@@ -203,11 +207,11 @@ public class OrderRepositorySupport {
         orderAuditLogMapper.insert(dataObject);
     }
 
-    public List<OrderAuditLog> listLogs(String orderNo) {
+    public List<OrderAuditLog> listLogs(OrderNo orderNo) {
         BaconContextHolder.requireTenantId();
         return orderAuditLogMapper
                 .selectList(Wrappers.<OrderAuditLogDO>lambdaQuery()
-                        .eq(OrderAuditLogDO::getOrderNo, orderNo)
+                        .eq(OrderAuditLogDO::getOrderNo, toOrderNoValue(orderNo))
                         .orderByAsc(OrderAuditLogDO::getOccurredAt, OrderAuditLogDO::getId))
                 .stream()
                 .map(orderAuditLogPersistenceAssembler::toDomain)
@@ -215,8 +219,8 @@ public class OrderRepositorySupport {
     }
 
     public long count(
-            Long userId,
-            String orderNo,
+            UserId userId,
+            OrderNo orderNo,
             String orderStatus,
             String payStatus,
             String inventoryStatus,
@@ -229,8 +233,8 @@ public class OrderRepositorySupport {
     }
 
     public List<Order> page(
-            Long userId,
-            String orderNo,
+            UserId userId,
+            OrderNo orderNo,
             String orderStatus,
             String payStatus,
             String inventoryStatus,
@@ -282,21 +286,33 @@ public class OrderRepositorySupport {
     }
 
     private LambdaQueryWrapper<OrderDO> buildPageQuery(
-            Long userId,
-            String orderNo,
+            UserId userId,
+            OrderNo orderNo,
             String orderStatus,
             String payStatus,
             String inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo) {
         return Wrappers.<OrderDO>lambdaQuery()
-                .eq(userId != null, OrderDO::getUserId, userId)
-                .like(orderNo != null && !orderNo.isBlank(), OrderDO::getOrderNo, orderNo)
+                .eq(userId != null, OrderDO::getUserId, toUserIdValue(userId))
+                .like(orderNo != null && !orderNo.value().isBlank(), OrderDO::getOrderNo, toOrderNoValue(orderNo))
                 .eq(orderStatus != null && !orderStatus.isBlank(), OrderDO::getOrderStatus, orderStatus)
                 .eq(payStatus != null && !payStatus.isBlank(), OrderDO::getPayStatus, payStatus)
                 .eq(inventoryStatus != null && !inventoryStatus.isBlank(), OrderDO::getInventoryStatus, inventoryStatus)
                 .ge(createdAtFrom != null, OrderDO::getCreatedAt, createdAtFrom)
                 .le(createdAtTo != null, OrderDO::getCreatedAt, createdAtTo);
+    }
+
+    private Long toOrderIdValue(OrderId orderId) {
+        return orderId == null ? null : orderId.value();
+    }
+
+    private String toOrderNoValue(OrderNo orderNo) {
+        return orderNo == null ? null : orderNo.value();
+    }
+
+    private Long toUserIdValue(UserId userId) {
+        return userId == null ? null : Long.valueOf(userId.value());
     }
 
     private Order toDomainWithSnapshots(OrderDO dataObject) {

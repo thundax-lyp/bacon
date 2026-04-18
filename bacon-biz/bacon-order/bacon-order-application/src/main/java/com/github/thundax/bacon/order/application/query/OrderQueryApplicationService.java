@@ -40,7 +40,7 @@ public class OrderQueryApplicationService {
     public OrderDetailDTO getById(OrderId orderId) {
         BaconContextHolder.requireTenantId();
         return orderRepository
-                .findById(OrderIdCodec.toValue(orderId))
+                .findById(orderId)
                 .map(this::toDetail)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderId));
     }
@@ -48,7 +48,7 @@ public class OrderQueryApplicationService {
     public OrderDetailDTO getByOrderNo(OrderNo orderNo) {
         BaconContextHolder.requireTenantId();
         return orderRepository
-                .findByOrderNo(OrderNoCodec.toValue(orderNo))
+                .findByOrderNo(orderNo)
                 .map(this::toDetail)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));
     }
@@ -66,8 +66,8 @@ public class OrderQueryApplicationService {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         long total = orderRepository.count(
-                UserIdCodec.toValue(userId),
-                OrderNoCodec.toValue(orderNo),
+                userId,
+                orderNo,
                 orderStatus == null ? null : orderStatus.value(),
                 payStatus == null ? null : payStatus.value(),
                 inventoryStatus == null ? null : inventoryStatus.value(),
@@ -76,8 +76,8 @@ public class OrderQueryApplicationService {
         List<Order> page = total <= 0
                 ? List.of()
                 : orderRepository.page(
-                        UserIdCodec.toValue(userId),
-                        OrderNoCodec.toValue(orderNo),
+                        userId,
+                        orderNo,
                         orderStatus == null ? null : orderStatus.value(),
                         payStatus == null ? null : payStatus.value(),
                         inventoryStatus == null ? null : inventoryStatus.value(),
@@ -112,14 +112,14 @@ public class OrderQueryApplicationService {
 
     private OrderDetailDTO toDetail(Order order) {
         OrderPaymentSnapshot paymentSnapshot = orderRepository
-                .findPaymentByOrderId(order.getId() == null ? null : OrderIdCodec.toValue(order.getId()))
+                .findPaymentByOrderId(order.getId())
                 .orElse(null);
         OrderInventorySnapshot inventorySnapshot = orderRepository
-                .findInventoryByOrderNo(OrderNoCodec.toValue(order.getOrderNo()))
+                .findInventoryByOrderNo(order.getOrderNo())
                 .orElse(null);
         List<OrderItemDTO> itemDtos =
                 orderRepository
-                        .listItemsByOrderId(order.getId() == null ? null : OrderIdCodec.toValue(order.getId()))
+                        .listItemsByOrderId(order.getId())
                         .stream()
                         .map(item -> new OrderItemDTO(
                                 item.getSkuId() == null ? null : item.getSkuId().value(),

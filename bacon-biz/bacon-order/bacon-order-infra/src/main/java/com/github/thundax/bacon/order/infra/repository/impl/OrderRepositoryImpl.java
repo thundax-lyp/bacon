@@ -1,10 +1,13 @@
 package com.github.thundax.bacon.order.infra.repository.impl;
 
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.time.Instant;
 import java.util.List;
@@ -33,22 +36,22 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Optional<Order> findById(Long id) {
+    public Optional<Order> findById(OrderId id) {
         return support.findById(id);
     }
 
     @Override
-    public Optional<Order> findByOrderNo(String orderNo) {
+    public Optional<Order> findByOrderNo(OrderNo orderNo) {
         return support.findByOrderNo(orderNo);
     }
 
     @Override
-    public void updateItems(Long orderId, List<OrderItem> items) {
+    public void updateItems(OrderId orderId, List<OrderItem> items) {
         support.updateItems(orderId, items);
     }
 
     @Override
-    public List<OrderItem> listItemsByOrderId(Long orderId) {
+    public List<OrderItem> listItemsByOrderId(OrderId orderId) {
         return support.listItemsByOrderId(orderId);
     }
 
@@ -63,7 +66,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Optional<OrderPaymentSnapshot> findPaymentByOrderId(Long orderId) {
+    public Optional<OrderPaymentSnapshot> findPaymentByOrderId(OrderId orderId) {
         return support.findPaymentByOrderId(orderId);
     }
 
@@ -78,7 +81,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Optional<OrderInventorySnapshot> findInventoryByOrderNo(String orderNo) {
+    public Optional<OrderInventorySnapshot> findInventoryByOrderNo(OrderNo orderNo) {
         return support.findInventoryByOrderNo(orderNo);
     }
 
@@ -88,14 +91,14 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<OrderAuditLog> listLogs(String orderNo) {
+    public List<OrderAuditLog> listLogs(OrderNo orderNo) {
         return support.listLogs(orderNo);
     }
 
     @Override
     public long count(
-            Long userId,
-            String orderNo,
+            UserId userId,
+            OrderNo orderNo,
             String orderStatus,
             String payStatus,
             String inventoryStatus,
@@ -107,8 +110,8 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public List<Order> page(
-            Long userId,
-            String orderNo,
+            UserId userId,
+            OrderNo orderNo,
             String orderStatus,
             String payStatus,
             String inventoryStatus,

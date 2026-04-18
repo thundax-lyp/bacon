@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.application.saga;
 
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
@@ -95,10 +96,8 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeReserveStock(OrderOutboxEvent event) {
-        Order order =
-                findOrder(event.getOrderNo() == null ? null : event.getOrderNo().value());
-        List<OrderItem> items = orderRepository.listItemsByOrderId(
-                order.getId() == null ? null : order.getId().value());
+        Order order = findOrder(event.getOrderNo());
+        List<OrderItem> items = orderRepository.listItemsByOrderId(order.getId());
         List<InventoryReservationItemFacadeRequest> reserveItems = items.stream()
                 .map(item -> new InventoryReservationItemFacadeRequest(
                         item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity()))
@@ -155,8 +154,7 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeCreatePayment(OrderOutboxEvent event) {
-        Order order =
-                findOrder(event.getOrderNo() == null ? null : event.getOrderNo().value());
+        Order order = findOrder(event.getOrderNo());
         Map<String, String> payload = OrderOutboxPayloadCodec.decode(event.getPayload());
         String channelCode = payload.getOrDefault("channelCode", "MOCK");
         PaymentCreateFacadeResponse paymentResult = BaconContextHolder.callWithTenantId(
@@ -203,8 +201,7 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeReleaseStock(OrderOutboxEvent event) {
-        Order order =
-                findOrder(event.getOrderNo() == null ? null : event.getOrderNo().value());
+        Order order = findOrder(event.getOrderNo());
         String reason = OrderOutboxPayloadCodec.decode(event.getPayload()).getOrDefault("reason", "SYSTEM_CANCELLED");
         InventoryReservationFacadeResponse releaseResult = BaconContextHolder.callWithTenantId(
                 BaconContextHolder.requireTenantId(),
@@ -234,7 +231,7 @@ public class OrderOutboxActionExecutor {
         orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RELEASE, order.getOrderStatus());
     }
 
-    private Order findOrder(String orderNo) {
+    private Order findOrder(OrderNo orderNo) {
         return orderRepository
                 .findByOrderNo(orderNo)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));

@@ -72,7 +72,7 @@ public class OrderPaymentResultApplicationService {
     private void doMarkPaid(
             OrderNo orderNo, PaymentNo paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
         Order order = orderRepository
-                .findByOrderNo(OrderNoCodec.toValue(orderNo))
+                .findByOrderNo(orderNo)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaid(paymentNo, channelCode, Money.of(paidAmount, order.getCurrencyCode()), paidTime);
@@ -102,7 +102,7 @@ public class OrderPaymentResultApplicationService {
     private void doMarkPaymentFailed(
             OrderNo orderNo, PaymentNo paymentNo, String reason, String channelStatus, Instant failedTime) {
         Order order = orderRepository
-                .findByOrderNo(OrderNoCodec.toValue(orderNo))
+                .findByOrderNo(orderNo)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaymentFailed(paymentNo, reason, channelStatus, failedTime);

@@ -47,7 +47,7 @@ public class OrderDerivedDataPersistenceSupport {
                             : PaymentChannelStatus.from(order.getPaymentChannelStatus()),
                     now);
             if (orderRepository
-                    .findPaymentByOrderId(order.getId() == null ? null : order.getId().value())
+                    .findPaymentByOrderId(order.getId())
                     .isPresent()) {
                 orderRepository.updatePayment(paymentSnapshot);
             } else {
@@ -64,7 +64,7 @@ public class OrderDerivedDataPersistenceSupport {
                     order.getWarehouseCode(),
                     order.getInventoryFailureReason(),
                     now);
-            if (orderRepository.findInventoryByOrderNo(order.getOrderNo().value()).isPresent()) {
+            if (orderRepository.findInventoryByOrderNo(order.getOrderNo()).isPresent()) {
                 orderRepository.updateInventory(inventorySnapshot);
             } else {
                 orderRepository.insertInventory(inventorySnapshot);

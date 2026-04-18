@@ -5,9 +5,12 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
-import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
-import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
+import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
+import com.github.thundax.bacon.order.domain.model.snapshot.OrderInventorySnapshot;
+import com.github.thundax.bacon.order.domain.model.snapshot.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.time.Instant;
@@ -39,10 +42,10 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Order insert(Order order) {
-        order.setId(OrderId.of(idGenerator.getAndIncrement()));
-        storage.put(toOrderIdValue(order), order);
-        orderTenantStorage.put(toOrderIdValue(order), currentTenantId());
-        return order;
+        Order savedOrder = withId(order, OrderId.of(idGenerator.getAndIncrement()));
+        storage.put(toOrderIdValue(savedOrder), savedOrder);
+        orderTenantStorage.put(toOrderIdValue(savedOrder), currentTenantId());
+        return savedOrder;
     }
 
     @Override
@@ -87,14 +90,14 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     @Override
     public void insertPayment(OrderPaymentSnapshot snapshot) {
-        Long orderId = toOrderIdValue(snapshot.getOrderId());
+        Long orderId = toOrderIdValue(snapshot.orderId());
         paymentSnapshotStorage.put(orderId, snapshot);
         paymentSnapshotTenantStorage.put(orderId, currentTenantId());
     }
 
     @Override
     public void updatePayment(OrderPaymentSnapshot snapshot) {
-        Long orderId = toOrderIdValue(snapshot.getOrderId());
+        Long orderId = toOrderIdValue(snapshot.orderId());
         paymentSnapshotStorage.put(orderId, snapshot);
         paymentSnapshotTenantStorage.put(orderId, currentTenantId());
     }
@@ -111,14 +114,14 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     @Override
     public void insertInventory(OrderInventorySnapshot snapshot) {
-        String orderNo = toOrderNoValue(snapshot.getOrderNo());
+        String orderNo = toOrderNoValue(snapshot.orderNo());
         inventorySnapshotStorage.put(orderNo, snapshot);
         inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
     }
 
     @Override
     public void updateInventory(OrderInventorySnapshot snapshot) {
-        String orderNo = toOrderNoValue(snapshot.getOrderNo());
+        String orderNo = toOrderNoValue(snapshot.orderNo());
         inventorySnapshotStorage.put(orderNo, snapshot);
         inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
     }
@@ -150,9 +153,9 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     public long count(
             UserId userId,
             OrderNo orderNo,
-            String orderStatus,
-            String payStatus,
-            String inventoryStatus,
+            OrderStatus orderStatus,
+            PayStatus payStatus,
+            InventoryStatus inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo) {
         return filterOrders(userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
@@ -163,9 +166,9 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     public List<Order> page(
             UserId userId,
             OrderNo orderNo,
-            String orderStatus,
-            String payStatus,
-            String inventoryStatus,
+            OrderStatus orderStatus,
+            PayStatus payStatus,
+            InventoryStatus inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo,
             int pageNo,
@@ -180,9 +183,9 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     private List<Order> filterOrders(
             UserId userId,
             OrderNo orderNo,
-            String orderStatus,
-            String payStatus,
-            String inventoryStatus,
+            OrderStatus orderStatus,
+            PayStatus payStatus,
+            InventoryStatus inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo) {
         List<Order> filtered = storage.values().stream()
@@ -190,10 +193,9 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
                 .filter(order -> userId == null || toUserIdValue(userId).equals(toUserIdValue(order)))
                 .filter(order ->
                         orderNo == null || toOrderNoValue(order.getOrderNo()).contains(toOrderNoValue(orderNo)))
-                .filter(order -> orderStatus == null || orderStatus.equals(toOrderStatusValue(order.getOrderStatus())))
-                .filter(order -> payStatus == null || payStatus.equals(toPayStatusValue(order.getPayStatus())))
-                .filter(order -> inventoryStatus == null
-                        || inventoryStatus.equals(toInventoryStatusValue(order.getInventoryStatus())))
+                .filter(order -> orderStatus == null || orderStatus == order.getOrderStatus())
+                .filter(order -> payStatus == null || payStatus == order.getPayStatus())
+                .filter(order -> inventoryStatus == null || inventoryStatus == order.getInventoryStatus())
                 .filter(order -> createdAtFrom == null || !order.getCreatedAt().isBefore(createdAtFrom))
                 .filter(order -> createdAtTo == null || !order.getCreatedAt().isAfter(createdAtTo))
                 .sorted(Comparator.comparing(Order::getCreatedAt)
@@ -212,6 +214,38 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
         return order.getId() == null ? null : order.getId().value();
     }
 
+    private Order withId(Order order, OrderId orderId) {
+        return Order.reconstruct(
+                orderId,
+                order.getOrderNo(),
+                order.getUserId(),
+                order.getOrderStatus(),
+                order.getPayStatus(),
+                order.getInventoryStatus(),
+                order.getPaymentNo(),
+                order.getReservationNo(),
+                order.getCurrencyCode(),
+                order.getTotalAmount(),
+                order.getPayableAmount(),
+                order.getRemark(),
+                order.getCancelReason(),
+                order.getCloseReason(),
+                order.getCreatedAt(),
+                order.getExpiredAt(),
+                order.getPaidAt(),
+                order.getClosedAt(),
+                order.getPaymentChannelCode(),
+                order.getPaidAmount(),
+                order.getPaymentChannelStatus(),
+                order.getPaymentFailureReason(),
+                order.getPaymentFailedAt(),
+                order.getWarehouseCode(),
+                order.getInventoryFailureReason(),
+                order.getInventoryReleaseReason(),
+                order.getInventoryReleasedAt(),
+                order.getInventoryDeductedAt());
+    }
+
     private Long toUserIdValue(Order order) {
         return order.getUserId() == null ? null : Long.valueOf(order.getUserId().value());
     }
@@ -226,19 +260,6 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     private String toOrderNoValue(com.github.thundax.bacon.common.commerce.valueobject.OrderNo orderNo) {
         return orderNo == null ? null : orderNo.value();
-    }
-
-    private String toOrderStatusValue(com.github.thundax.bacon.order.domain.model.enums.OrderStatus orderStatus) {
-        return orderStatus == null ? null : orderStatus.value();
-    }
-
-    private String toPayStatusValue(com.github.thundax.bacon.order.domain.model.enums.PayStatus payStatus) {
-        return payStatus == null ? null : payStatus.value();
-    }
-
-    private String toInventoryStatusValue(
-            com.github.thundax.bacon.order.domain.model.enums.InventoryStatus inventoryStatus) {
-        return inventoryStatus == null ? null : inventoryStatus.value();
     }
 
     private Long currentTenantId() {

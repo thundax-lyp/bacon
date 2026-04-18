@@ -8,9 +8,12 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
-import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
-import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
+import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
+import com.github.thundax.bacon.order.domain.model.snapshot.OrderInventorySnapshot;
+import com.github.thundax.bacon.order.domain.model.snapshot.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.infra.persistence.assembler.OrderAuditLogPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.assembler.OrderInventorySnapshotPersistenceAssembler;
@@ -89,8 +92,7 @@ public class OrderRepositorySupport {
         dataObject.setUpdatedAt(Instant.now());
         dataObject.setId(idGenerator.nextId(ORDER_ID_BIZ_TAG));
         orderMapper.insert(dataObject);
-        order.setId(OrderId.of(dataObject.getId()));
-        return order;
+        return withId(order, OrderId.of(dataObject.getId()));
     }
 
     public Order update(Order order) {
@@ -140,7 +142,7 @@ public class OrderRepositorySupport {
         BaconContextHolder.requireTenantId();
         OrderPaymentSnapshotDO dataObject = orderPaymentSnapshotPersistenceAssembler.toDataObject(snapshot);
         dataObject.setId(idGenerator.nextId(PAYMENT_SNAPSHOT_ID_BIZ_TAG));
-        dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
+        dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
         orderPaymentSnapshotMapper.insert(dataObject);
     }
 
@@ -150,11 +152,11 @@ public class OrderRepositorySupport {
                 orderPaymentSnapshotMapper.selectOne(Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
                         .eq(
                                 OrderPaymentSnapshotDO::getOrderId,
-                                snapshot.getOrderId() == null
+                                snapshot.orderId() == null
                                         ? null
-                                        : snapshot.getOrderId().value()));
+                                        : snapshot.orderId().value()));
         OrderPaymentSnapshotDO dataObject = orderPaymentSnapshotPersistenceAssembler.toDataObject(snapshot);
-        dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
+        dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
         // 支付快照按 orderId 唯一覆盖，目标是保留“当前支付视图”，而不是积累每次变化历史。
         dataObject.setId(existing.getId());
         orderPaymentSnapshotMapper.updateById(dataObject);
@@ -171,7 +173,7 @@ public class OrderRepositorySupport {
     public void insertInventory(OrderInventorySnapshot snapshot) {
         BaconContextHolder.requireTenantId();
         OrderInventorySnapshotDO dataObject = orderInventorySnapshotPersistenceAssembler.toDataObject(snapshot);
-        dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
+        dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
         orderInventorySnapshotMapper.insert(dataObject);
     }
 
@@ -181,11 +183,11 @@ public class OrderRepositorySupport {
                 orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
                         .eq(
                                 OrderInventorySnapshotDO::getOrderNo,
-                                snapshot.getOrderNo() == null
+                                snapshot.orderNo() == null
                                         ? null
-                                        : snapshot.getOrderNo().value()));
+                                        : snapshot.orderNo().value()));
         OrderInventorySnapshotDO dataObject = orderInventorySnapshotPersistenceAssembler.toDataObject(snapshot);
-        dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
+        dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
         // 库存快照和支付快照一样采用唯一覆盖模型，分页/详情查询只需要当前库存派生状态。
         dataObject.setId(existing.getId());
         orderInventorySnapshotMapper.updateById(dataObject);
@@ -221,9 +223,9 @@ public class OrderRepositorySupport {
     public long count(
             UserId userId,
             OrderNo orderNo,
-            String orderStatus,
-            String payStatus,
-            String inventoryStatus,
+            OrderStatus orderStatus,
+            PayStatus payStatus,
+            InventoryStatus inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo) {
         BaconContextHolder.requireTenantId();
@@ -235,9 +237,9 @@ public class OrderRepositorySupport {
     public List<Order> page(
             UserId userId,
             OrderNo orderNo,
-            String orderStatus,
-            String payStatus,
-            String inventoryStatus,
+            OrderStatus orderStatus,
+            PayStatus payStatus,
+            InventoryStatus inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo,
             int pageNo,
@@ -288,17 +290,17 @@ public class OrderRepositorySupport {
     private LambdaQueryWrapper<OrderDO> buildPageQuery(
             UserId userId,
             OrderNo orderNo,
-            String orderStatus,
-            String payStatus,
-            String inventoryStatus,
+            OrderStatus orderStatus,
+            PayStatus payStatus,
+            InventoryStatus inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo) {
         return Wrappers.<OrderDO>lambdaQuery()
                 .eq(userId != null, OrderDO::getUserId, toUserIdValue(userId))
                 .like(orderNo != null && !orderNo.value().isBlank(), OrderDO::getOrderNo, toOrderNoValue(orderNo))
-                .eq(orderStatus != null && !orderStatus.isBlank(), OrderDO::getOrderStatus, orderStatus)
-                .eq(payStatus != null && !payStatus.isBlank(), OrderDO::getPayStatus, payStatus)
-                .eq(inventoryStatus != null && !inventoryStatus.isBlank(), OrderDO::getInventoryStatus, inventoryStatus)
+                .eq(orderStatus != null, OrderDO::getOrderStatus, toOrderStatusValue(orderStatus))
+                .eq(payStatus != null, OrderDO::getPayStatus, toPayStatusValue(payStatus))
+                .eq(inventoryStatus != null, OrderDO::getInventoryStatus, toInventoryStatusValue(inventoryStatus))
                 .ge(createdAtFrom != null, OrderDO::getCreatedAt, createdAtFrom)
                 .le(createdAtTo != null, OrderDO::getCreatedAt, createdAtTo);
     }
@@ -307,12 +309,56 @@ public class OrderRepositorySupport {
         return orderId == null ? null : orderId.value();
     }
 
+    private Order withId(Order order, OrderId orderId) {
+        return Order.reconstruct(
+                orderId,
+                order.getOrderNo(),
+                order.getUserId(),
+                order.getOrderStatus(),
+                order.getPayStatus(),
+                order.getInventoryStatus(),
+                order.getPaymentNo(),
+                order.getReservationNo(),
+                order.getCurrencyCode(),
+                order.getTotalAmount(),
+                order.getPayableAmount(),
+                order.getRemark(),
+                order.getCancelReason(),
+                order.getCloseReason(),
+                order.getCreatedAt(),
+                order.getExpiredAt(),
+                order.getPaidAt(),
+                order.getClosedAt(),
+                order.getPaymentChannelCode(),
+                order.getPaidAmount(),
+                order.getPaymentChannelStatus(),
+                order.getPaymentFailureReason(),
+                order.getPaymentFailedAt(),
+                order.getWarehouseCode(),
+                order.getInventoryFailureReason(),
+                order.getInventoryReleaseReason(),
+                order.getInventoryReleasedAt(),
+                order.getInventoryDeductedAt());
+    }
+
     private String toOrderNoValue(OrderNo orderNo) {
         return orderNo == null ? null : orderNo.value();
     }
 
     private Long toUserIdValue(UserId userId) {
         return userId == null ? null : Long.valueOf(userId.value());
+    }
+
+    private String toOrderStatusValue(OrderStatus orderStatus) {
+        return orderStatus == null ? null : orderStatus.value();
+    }
+
+    private String toPayStatusValue(PayStatus payStatus) {
+        return payStatus == null ? null : payStatus.value();
+    }
+
+    private String toInventoryStatusValue(InventoryStatus inventoryStatus) {
+        return inventoryStatus == null ? null : inventoryStatus.value();
     }
 
     private Order toDomainWithSnapshots(OrderDO dataObject) {

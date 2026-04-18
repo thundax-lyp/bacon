@@ -1,12 +1,11 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
-import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderOutboxDeadLetterId;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -14,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.context.annotation.Profile;
@@ -30,36 +30,34 @@ public class InMemoryOrderOutboxSupport {
     private final AtomicLong outboxEventCodeGenerator = new AtomicLong(1000L);
     private final AtomicLong deadLetterIdGenerator = new AtomicLong(1000L);
     private final Map<OutboxId, OrderOutboxEvent> outboxStorage = new ConcurrentHashMap<>();
-    private final Map<Long, OrderOutboxDeadLetter> deadLetterStorage = new ConcurrentHashMap<>();
+    private final Map<OrderOutboxDeadLetterId, OrderOutboxDeadLetter> deadLetterStorage = new ConcurrentHashMap<>();
 
     public synchronized void insert(OrderOutboxEvent event) {
         Instant now = Instant.now();
-        if (event.getId() == null) {
-            event.setId(OutboxId.of(outboxIdGenerator.getAndIncrement()));
-        }
-        if (event.getEventCode() == null) {
-            event.setEventCode(generateEventCode());
-        }
-        if (event.getStatus() == null) {
-            event.setStatus(OrderOutboxStatus.NEW);
-        }
-        if (event.getRetryCount() == null) {
-            event.setRetryCount(0);
-        }
-        if (event.getCreatedAt() == null) {
-            event.setCreatedAt(now);
-        }
-        event.setUpdatedAt(now);
-        outboxStorage.put(event.getId(), copy(event));
+        OrderOutboxEvent stored = OrderOutboxEvent.reconstruct(
+                event.getId() == null ? OutboxId.of(outboxIdGenerator.getAndIncrement()) : event.getId(),
+                event.getEventCode() == null ? generateEventCode() : event.getEventCode(),
+                event.getOrderNo(),
+                event.getEventType(),
+                event.getBusinessKey(),
+                event.getPayload(),
+                event.getStatus() == null ? OrderOutboxStatus.NEW : event.getStatus(),
+                event.getRetryCount() == null ? 0 : event.getRetryCount(),
+                event.getNextRetryAt(),
+                event.getProcessingOwner(),
+                event.getLeaseUntil(),
+                event.getClaimedAt(),
+                event.getErrorMessage(),
+                event.getDeadReason(),
+                event.getCreatedAt() == null ? now : event.getCreatedAt(),
+                now);
+        outboxStorage.put(stored.getId(), copy(stored));
     }
 
-    public synchronized List<OrderOutboxEvent> claimRetryable(
+    public synchronized List<OrderOutboxEvent> claim(
             Instant now, int limit, String processingOwner, Instant leaseUntil) {
         List<OrderOutboxEvent> candidates = outboxStorage.values().stream()
-                .filter(event ->
-                        OrderOutboxStatus.NEW == event.getStatus() || OrderOutboxStatus.RETRYING == event.getStatus())
-                .filter(event -> event.getNextRetryAt() == null
-                        || !event.getNextRetryAt().isAfter(now))
+                .filter(event -> event.isClaimable(now))
                 .sorted(Comparator.comparing(OrderOutboxEvent::getCreatedAt)
                         .thenComparing(
                                 event -> event.getId() == null
@@ -74,40 +72,31 @@ public class InMemoryOrderOutboxSupport {
             if (stored == null) {
                 continue;
             }
-            if (!(OrderOutboxStatus.NEW == stored.getStatus() || OrderOutboxStatus.RETRYING == stored.getStatus())) {
+            if (!stored.isClaimable(now)) {
                 continue;
             }
-            if (stored.getNextRetryAt() != null && stored.getNextRetryAt().isAfter(now)) {
-                continue;
-            }
-            stored.setStatus(OrderOutboxStatus.PROCESSING);
-            stored.setProcessingOwner(processingOwner);
-            stored.setLeaseUntil(leaseUntil);
-            stored.setClaimedAt(now);
-            stored.setUpdatedAt(now);
-            claimed.add(copy(stored));
+            OrderOutboxEvent claimedEvent = copy(stored);
+            claimedEvent.claim(processingOwner, leaseUntil, now);
+            outboxStorage.put(claimedEvent.getId(), claimedEvent);
+            claimed.add(copy(claimedEvent));
         }
         return List.copyOf(claimed);
     }
 
-    public synchronized int releaseExpiredLease(Instant now) {
+    public synchronized int releaseExpired(Instant now) {
         int updated = 0;
-        for (OrderOutboxEvent event : outboxStorage.values()) {
-            if (OrderOutboxStatus.PROCESSING == event.getStatus()
-                    && event.getLeaseUntil() != null
-                    && !event.getLeaseUntil().isAfter(now)) {
-                event.setStatus(OrderOutboxStatus.RETRYING);
-                event.setProcessingOwner(null);
-                event.setLeaseUntil(null);
-                event.setClaimedAt(null);
-                event.setUpdatedAt(now);
-                updated++;
+        for (OrderOutboxEvent event : List.copyOf(outboxStorage.values())) {
+            if (event.getStatus() == OrderOutboxStatus.PROCESSING && event.isLeaseExpired(now)) {
+                OrderOutboxEvent released = copy(event);
+                released.releaseExpiredLease(now);
+                outboxStorage.put(event.getId(), released);
+                updated += 1;
             }
         }
         return updated;
     }
 
-    public synchronized boolean markRetryingClaimed(
+    public synchronized boolean markRetryClaimed(
             OutboxId outboxId,
             String processingOwner,
             int retryCount,
@@ -115,17 +104,12 @@ public class InMemoryOrderOutboxSupport {
             String errorMessage,
             Instant updatedAt) {
         OrderOutboxEvent event = outboxStorage.get(outboxId);
-        if (event == null || !isClaimedBy(event, processingOwner)) {
+        if (event == null || !event.isClaimedBy(processingOwner)) {
             return false;
         }
-        event.setStatus(OrderOutboxStatus.RETRYING);
-        event.setRetryCount(retryCount);
-        event.setNextRetryAt(nextRetryAt);
-        event.setErrorMessage(truncate(errorMessage));
-        event.setProcessingOwner(null);
-        event.setLeaseUntil(null);
-        event.setClaimedAt(null);
-        event.setUpdatedAt(updatedAt);
+        OrderOutboxEvent retrying = copy(event);
+        retrying.markRetrying(processingOwner, nextRetryAt, errorMessage, updatedAt);
+        outboxStorage.put(outboxId, retrying);
         return true;
     }
 
@@ -137,23 +121,18 @@ public class InMemoryOrderOutboxSupport {
             String errorMessage,
             Instant updatedAt) {
         OrderOutboxEvent event = outboxStorage.get(outboxId);
-        if (event == null || !isClaimedBy(event, processingOwner)) {
+        if (event == null || !event.isClaimedBy(processingOwner)) {
             return false;
         }
-        event.setStatus(OrderOutboxStatus.DEAD);
-        event.setRetryCount(retryCount);
-        event.setDeadReason(deadReason);
-        event.setErrorMessage(truncate(errorMessage));
-        event.setProcessingOwner(null);
-        event.setLeaseUntil(null);
-        event.setClaimedAt(null);
-        event.setUpdatedAt(updatedAt);
+        OrderOutboxEvent dead = copy(event);
+        dead.markDead(processingOwner, deadReason, errorMessage, updatedAt);
+        outboxStorage.put(outboxId, dead);
         return true;
     }
 
     public synchronized boolean deleteClaimed(OutboxId outboxId, String processingOwner) {
         OrderOutboxEvent event = outboxStorage.get(outboxId);
-        if (event == null || !isClaimedBy(event, processingOwner)) {
+        if (event == null || !event.isClaimedBy(processingOwner)) {
             return false;
         }
         outboxStorage.remove(outboxId);
@@ -161,22 +140,59 @@ public class InMemoryOrderOutboxSupport {
     }
 
     public synchronized void insert(OrderOutboxDeadLetter deadLetter) {
-        Instant now = Instant.now();
-        if (deadLetter.getReplayStatus() == null) {
-            deadLetter.setReplayStatus(OrderOutboxReplayStatus.PENDING);
-        }
-        if (deadLetter.getReplayCount() == null) {
-            deadLetter.setReplayCount(0);
-        }
-        if (deadLetter.getCreatedAt() == null) {
-            deadLetter.setCreatedAt(now);
-        }
-        deadLetter.setUpdatedAt(now);
-        deadLetterStorage.put(deadLetterIdGenerator.getAndIncrement(), copy(deadLetter));
+        OrderOutboxDeadLetter stored = OrderOutboxDeadLetter.reconstruct(
+                OrderOutboxDeadLetterId.of(deadLetterIdGenerator.getAndIncrement()),
+                deadLetter.getOutboxId(),
+                deadLetter.getEventCode(),
+                deadLetter.getOrderNo(),
+                deadLetter.getEventType(),
+                deadLetter.getBusinessKey(),
+                deadLetter.getPayload(),
+                deadLetter.getRetryCount(),
+                deadLetter.getErrorMessage(),
+                deadLetter.getDeadReason(),
+                deadLetter.getDeadAt(),
+                deadLetter.getReplayStatus(),
+                deadLetter.getReplayCount(),
+                deadLetter.getLastReplayAt(),
+                deadLetter.getLastReplayMessage(),
+                deadLetter.getCreatedAt(),
+                deadLetter.getUpdatedAt());
+        deadLetterStorage.put(stored.getId(), copy(stored));
     }
 
-    private boolean isClaimedBy(OrderOutboxEvent event, String processingOwner) {
-        return OrderOutboxStatus.PROCESSING == event.getStatus() && processingOwner.equals(event.getProcessingOwner());
+    public synchronized Optional<OrderOutboxDeadLetter> findDeadLetterById(OrderOutboxDeadLetterId id) {
+        return Optional.ofNullable(deadLetterStorage.get(id)).map(this::copy);
+    }
+
+    public synchronized void markDeadLetterReplaySucceeded(
+            OrderOutboxDeadLetterId id, Instant replayedAt, String message) {
+        OrderOutboxDeadLetter deadLetter = deadLetterStorage.get(id);
+        if (deadLetter == null) {
+            return;
+        }
+        deadLetter.markReplaySucceeded(replayedAt, message);
+        deadLetterStorage.put(id, copy(deadLetter));
+    }
+
+    public synchronized void markDeadLetterReplayFailed(
+            OrderOutboxDeadLetterId id, Instant replayedAt, String message) {
+        OrderOutboxDeadLetter deadLetter = deadLetterStorage.get(id);
+        if (deadLetter == null) {
+            return;
+        }
+        deadLetter.markReplayFailed(replayedAt, message);
+        deadLetterStorage.put(id, copy(deadLetter));
+    }
+
+    public synchronized void markDeadLetterReplayPending(
+            OrderOutboxDeadLetterId id, String message, Instant updatedAt) {
+        OrderOutboxDeadLetter deadLetter = deadLetterStorage.get(id);
+        if (deadLetter == null) {
+            return;
+        }
+        deadLetter.markReplayPending(message, updatedAt);
+        deadLetterStorage.put(id, copy(deadLetter));
     }
 
     private String truncate(String message) {
@@ -214,11 +230,11 @@ public class InMemoryOrderOutboxSupport {
     }
 
     private OrderOutboxDeadLetter copy(OrderOutboxDeadLetter source) {
-        return OrderOutboxDeadLetter.create(
+        return OrderOutboxDeadLetter.reconstruct(
                 source.getId(),
-                source.getOutboxId() == null ? null : source.getOutboxId().value(),
-                source.getEventCode() == null ? null : source.getEventCode().value(),
-                source.getOrderNo() == null ? null : source.getOrderNo().value(),
+                source.getOutboxId(),
+                source.getEventCode(),
+                source.getOrderNo(),
                 source.getEventType(),
                 source.getBusinessKey(),
                 source.getPayload(),
@@ -232,9 +248,5 @@ public class InMemoryOrderOutboxSupport {
                 source.getLastReplayMessage(),
                 source.getCreatedAt(),
                 source.getUpdatedAt());
-    }
-
-    private OrderNo toOrderNo(String orderNo) {
-        return orderNo == null ? null : OrderNo.of(orderNo);
     }
 }

@@ -3,8 +3,8 @@ package com.github.thundax.bacon.order.infra.persistence.assembler;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.snapshot.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderInventorySnapshotDO;
 import org.springframework.stereotype.Component;
@@ -14,20 +14,20 @@ public class OrderInventorySnapshotPersistenceAssembler {
 
     public OrderInventorySnapshotDO toDataObject(OrderInventorySnapshot snapshot) {
         return new OrderInventorySnapshotDO(
-                snapshot.getId(),
+                snapshot.id(),
                 BaconContextHolder.requireTenantId(),
-                snapshot.getOrderNo() == null ? null : snapshot.getOrderNo().value(),
-                snapshot.getReservationNo() == null
+                snapshot.orderNo() == null ? null : snapshot.orderNo().value(),
+                snapshot.reservationNo() == null
                         ? null
-                        : snapshot.getReservationNo().value(),
-                snapshot.getInventoryStatus() == null
+                        : snapshot.reservationNo().value(),
+                snapshot.inventoryStatus() == null
                         ? null
-                        : snapshot.getInventoryStatus().value(),
-                snapshot.getWarehouseCode() == null
+                        : snapshot.inventoryStatus().value(),
+                snapshot.warehouseCode() == null
                         ? null
-                        : snapshot.getWarehouseCode().value(),
-                snapshot.getFailureReason(),
-                snapshot.getUpdatedAt());
+                        : snapshot.warehouseCode().value(),
+                snapshot.failureReason(),
+                snapshot.updatedAt());
     }
 
     public OrderInventorySnapshot toDomain(OrderInventorySnapshotDO dataObject) {

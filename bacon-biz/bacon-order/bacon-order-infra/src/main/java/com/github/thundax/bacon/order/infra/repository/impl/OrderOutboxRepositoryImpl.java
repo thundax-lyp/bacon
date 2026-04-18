@@ -24,25 +24,24 @@ public class OrderOutboxRepositoryImpl implements OrderOutboxRepository {
     }
 
     @Override
-    public List<OrderOutboxEvent> claimRetryable(
-            Instant now, int limit, String processingOwner, Instant leaseUntil) {
-        return support.claimRetryable(now, limit, processingOwner, leaseUntil);
+    public List<OrderOutboxEvent> claim(Instant now, int limit, String processingOwner, Instant leaseUntil) {
+        return support.claim(now, limit, processingOwner, leaseUntil);
     }
 
     @Override
-    public int releaseExpiredLease(Instant now) {
-        return support.releaseExpiredLease(now);
+    public int releaseExpired(Instant now) {
+        return support.releaseExpired(now);
     }
 
     @Override
-    public boolean markRetryingClaimed(
+    public boolean markRetryClaimed(
             OutboxId outboxId,
             String processingOwner,
             int retryCount,
             Instant nextRetryAt,
             String errorMessage,
             Instant updatedAt) {
-        return support.markRetryingClaimed(outboxId, processingOwner, retryCount, nextRetryAt, errorMessage, updatedAt);
+        return support.markRetryClaimed(outboxId, processingOwner, retryCount, nextRetryAt, errorMessage, updatedAt);
     }
 
     @Override

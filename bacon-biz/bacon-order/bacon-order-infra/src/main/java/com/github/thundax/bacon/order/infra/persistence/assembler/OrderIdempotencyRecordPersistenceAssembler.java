@@ -12,10 +12,11 @@ import org.springframework.stereotype.Component;
 public class OrderIdempotencyRecordPersistenceAssembler {
 
     public OrderIdempotencyRecordDO toDataObject(OrderIdempotencyRecord record) {
+        OrderIdempotencyRecordKey key = record.getKey();
         return new OrderIdempotencyRecordDO(
                 BaconContextHolder.requireTenantId(),
-                record.getOrderNo() == null ? null : record.getOrderNo().value(),
-                record.getEventType(),
+                key == null || key.orderNo() == null ? null : key.orderNo().value(),
+                key == null ? null : key.eventType(),
                 record.getStatus() == null ? null : record.getStatus().value(),
                 record.getAttemptCount(),
                 record.getLastError(),

@@ -7,6 +7,7 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderOutboxDeadLetterId;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderOutboxDeadLetterDO;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,7 @@ public class OrderOutboxDeadLetterPersistenceAssembler {
 
     public OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter) {
         return new OrderOutboxDeadLetterDO(
-                deadLetter.getId(),
+                deadLetter.getId() == null ? null : deadLetter.getId().value(),
                 deadLetter.getOutboxId() == null
                         ? null
                         : deadLetter.getOutboxId().value(),
@@ -45,7 +46,7 @@ public class OrderOutboxDeadLetterPersistenceAssembler {
 
     public OrderOutboxDeadLetter toDomain(OrderOutboxDeadLetterDO dataObject) {
         return OrderOutboxDeadLetter.reconstruct(
-                dataObject.getId(),
+                dataObject.getId() == null ? null : OrderOutboxDeadLetterId.of(dataObject.getId()),
                 dataObject.getOutboxId() == null ? null : OutboxId.of(dataObject.getOutboxId()),
                 dataObject.getEventCode() == null ? null : EventCode.of(dataObject.getEventCode()),
                 dataObject.getOrderNo() == null ? null : OrderNo.of(dataObject.getOrderNo()),

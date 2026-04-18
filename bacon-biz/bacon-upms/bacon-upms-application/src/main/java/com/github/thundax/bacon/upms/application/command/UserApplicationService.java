@@ -368,6 +368,7 @@ public class UserApplicationService {
                 .toList();
     }
 
+    @Transactional
     public UserDTO updateAvatar(
             UserId userId, String originalFilename, String contentType, Long size, InputStream inputStream) {
         User currentUser = requireUser(userId);

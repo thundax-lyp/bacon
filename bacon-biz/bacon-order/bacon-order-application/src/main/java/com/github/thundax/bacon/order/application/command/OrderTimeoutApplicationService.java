@@ -19,6 +19,7 @@ import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import com.github.thundax.bacon.payment.api.request.PaymentCloseFacadeRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderTimeoutApplicationService {
@@ -44,6 +45,7 @@ public class OrderTimeoutApplicationService {
         this.orderDerivedDataPersistenceSupport = orderDerivedDataPersistenceSupport;
     }
 
+    @Transactional
     public void closeExpiredOrder(OrderNo orderNo, String reason) {
         BaconContextHolder.requireTenantId();
         // 超时关单同样走幂等执行器，防止定时任务重复扫描时对同一订单反复关单和释放资源。

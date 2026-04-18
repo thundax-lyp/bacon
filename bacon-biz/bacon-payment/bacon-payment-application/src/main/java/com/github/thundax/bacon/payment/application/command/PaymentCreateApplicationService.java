@@ -19,6 +19,7 @@ import com.github.thundax.bacon.payment.domain.service.PaymentNoGenerator;
 import java.math.BigDecimal;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PaymentCreateApplicationService {
@@ -41,6 +42,7 @@ public class PaymentCreateApplicationService {
         this.idGenerator = idGenerator;
     }
 
+    @Transactional
     public PaymentCreateResult createPayment(
             String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
         BaconContextHolder.requireTenantId();

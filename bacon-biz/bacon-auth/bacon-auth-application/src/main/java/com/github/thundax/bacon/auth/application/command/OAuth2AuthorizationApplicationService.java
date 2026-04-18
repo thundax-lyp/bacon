@@ -21,6 +21,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OAuth2AuthorizationApplicationService {
@@ -44,6 +45,7 @@ public class OAuth2AuthorizationApplicationService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public AuthorizationView authorize(
             String accessToken,
             String clientId,
@@ -85,6 +87,7 @@ public class OAuth2AuthorizationApplicationService {
                 authorizationRequestId, client.getClientCodeValue(), client.getClientName(), scope, state);
     }
 
+    @Transactional
     public AuthorizationDecisionResult decide(String authorizationRequestId, String decision) {
         OAuthAuthorizationRequest authorizationRequest = oAuthAuthorizationRepository
                 .findById(authorizationRequestId)
@@ -112,6 +115,7 @@ public class OAuth2AuthorizationApplicationService {
                 authorizationCode);
     }
 
+    @Transactional
     public OAuth2TokenDTO token(
             String grantType,
             String code,
@@ -176,6 +180,7 @@ public class OAuth2AuthorizationApplicationService {
                 .orElse(new OAuth2IntrospectionDTO(false, clientId, "", "", null, 0L));
     }
 
+    @Transactional
     public void revoke(String token, String clientId, String clientSecret) {
         validateClient(clientId, clientSecret);
         oAuthAuthorizationRepository

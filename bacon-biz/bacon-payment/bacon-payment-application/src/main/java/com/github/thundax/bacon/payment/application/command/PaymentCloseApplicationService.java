@@ -10,6 +10,7 @@ import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository
 import java.time.Instant;
 import java.util.Set;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PaymentCloseApplicationService {
@@ -24,6 +25,7 @@ public class PaymentCloseApplicationService {
         this.paymentOperationLogSupport = paymentOperationLogSupport;
     }
 
+    @Transactional
     public PaymentCloseResult closePayment(String paymentNo, String reason) {
         BaconContextHolder.requireTenantId();
         if (!VALID_REASONS.contains(reason)) {

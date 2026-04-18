@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.log.dto.SysLogDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SysLogConsumeApplicationService {
@@ -20,6 +21,7 @@ public class SysLogConsumeApplicationService {
         this.idGenerator = idGenerator;
     }
 
+    @Transactional
     public void consume(SysLogDTO sysLogDTO) {
         SysLogRecord sysLogRecord = SysLogRecord.create(
                 idGenerator.nextId(SYS_LOG_ID_BIZ_TAG),

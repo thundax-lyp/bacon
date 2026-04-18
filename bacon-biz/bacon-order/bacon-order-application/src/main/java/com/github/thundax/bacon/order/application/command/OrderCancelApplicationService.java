@@ -19,6 +19,7 @@ import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import com.github.thundax.bacon.payment.api.request.PaymentCloseFacadeRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderCancelApplicationService {
@@ -44,6 +45,7 @@ public class OrderCancelApplicationService {
         this.orderDerivedDataPersistenceSupport = orderDerivedDataPersistenceSupport;
     }
 
+    @Transactional
     public void cancel(OrderNo orderNo, String reason) {
         BaconContextHolder.requireTenantId();
         String resolvedReason = reason == null || reason.isBlank() ? "USER_CANCELLED" : reason;

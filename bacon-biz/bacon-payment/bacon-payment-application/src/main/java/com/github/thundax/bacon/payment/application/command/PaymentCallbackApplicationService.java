@@ -19,6 +19,7 @@ import com.github.thundax.bacon.payment.domain.repository.PaymentCallbackRecordR
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PaymentCallbackApplicationService {
@@ -44,6 +45,7 @@ public class PaymentCallbackApplicationService {
         this.idGenerator = idGenerator;
     }
 
+    @Transactional
     public void callbackPaid(
             String channelCode,
             String paymentNo,
@@ -115,6 +117,7 @@ public class PaymentCallbackApplicationService {
                 paidTime)));
     }
 
+    @Transactional
     public void callbackFailed(
             String channelCode, String paymentNo, String channelStatus, String rawPayload, String reason) {
         BaconContextHolder.requireTenantId();

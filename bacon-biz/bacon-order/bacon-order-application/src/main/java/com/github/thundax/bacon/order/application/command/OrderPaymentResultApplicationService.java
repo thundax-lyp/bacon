@@ -22,6 +22,7 @@ import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderPaymentResultApplicationService {
@@ -46,6 +47,7 @@ public class OrderPaymentResultApplicationService {
         this.orderDerivedDataPersistenceSupport = orderDerivedDataPersistenceSupport;
     }
 
+    @Transactional
     public void markPaid(
             OrderNo orderNo, PaymentNo paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
         BaconContextHolder.requireTenantId();
@@ -56,6 +58,7 @@ public class OrderPaymentResultApplicationService {
                 () -> doMarkPaid(orderNo, paymentNo, channelCode, paidAmount, paidTime));
     }
 
+    @Transactional
     public void markPaymentFailed(
             OrderNo orderNo, PaymentNo paymentNo, String reason, String channelStatus, Instant failedTime) {
         BaconContextHolder.requireTenantId();

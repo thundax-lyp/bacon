@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class InventoryAuditReplayTaskApplicationService {
@@ -42,6 +43,7 @@ public class InventoryAuditReplayTaskApplicationService {
         this.idGenerator = idGenerator;
     }
 
+    @Transactional
     public InventoryAuditReplayTaskDTO createReplayTask(
             Long operatorId, String replayKeyPrefix, List<Long> deadLetterIds) {
         if (deadLetterIds == null || deadLetterIds.isEmpty()) {
@@ -89,6 +91,7 @@ public class InventoryAuditReplayTaskApplicationService {
         return InventoryAuditReplayTaskAssembler.toDto(task);
     }
 
+    @Transactional
     public InventoryAuditReplayTaskDTO pauseReplayTask(TaskId taskId, OperatorId operatorId) {
         long tenantId = BaconContextHolder.requireTenantId();
         InventoryAuditReplayTask task = getTaskById(taskId);
@@ -104,6 +107,7 @@ public class InventoryAuditReplayTaskApplicationService {
         return InventoryAuditReplayTaskAssembler.toDto(getTaskById(taskId));
     }
 
+    @Transactional
     public InventoryAuditReplayTaskDTO resumeReplayTask(TaskId taskId, OperatorId operatorId) {
         long tenantId = BaconContextHolder.requireTenantId();
         InventoryAuditReplayTask task = getTaskById(taskId);

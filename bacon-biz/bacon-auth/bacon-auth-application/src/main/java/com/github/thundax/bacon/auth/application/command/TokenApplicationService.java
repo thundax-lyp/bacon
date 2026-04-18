@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TokenApplicationService {
@@ -32,6 +33,7 @@ public class TokenApplicationService {
         this.authAuditApplicationService = authAuditApplicationService;
     }
 
+    @Transactional
     public UserTokenRefreshDTO refresh(String refreshToken) {
         RefreshTokenSession refreshTokenSession = authSessionRepository
                 .findByHash(tokenCodec.sha256(refreshToken))
@@ -60,6 +62,7 @@ public class TokenApplicationService {
                 newAccessToken, newRefreshToken, "Bearer", ACCESS_TOKEN_TTL_SECONDS, authSession.getSessionId());
     }
 
+    @Transactional
     public SessionValidationDTO verifyAccessToken(String accessToken) {
         Optional<String> sessionId = tokenCodec.parseSessionId(accessToken);
         if (sessionId.isEmpty()) {

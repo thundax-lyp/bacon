@@ -8,6 +8,7 @@ import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SessionApplicationService {
@@ -35,6 +36,7 @@ public class SessionApplicationService {
         return tokenApplicationService.getSessionContext(sessionId);
     }
 
+    @Transactional
     public void logout(String accessToken) {
         String sessionId = tokenCodec
                 .parseSessionId(accessToken)
@@ -48,6 +50,7 @@ public class SessionApplicationService {
         authAuditApplicationService.record("LOGOUT", "SUCCESS", sessionId);
     }
 
+    @Transactional
     public void invalidateUserSessions(Long tenantId, Long userId, String reason) {
         List<AuthSession> sessions = authSessionRepository.listByTenantIdAndUserId(tenantId, userId);
         sessions.forEach(session -> {
@@ -58,6 +61,7 @@ public class SessionApplicationService {
         authAuditApplicationService.record("INVALIDATE_USER_SESSIONS", "SUCCESS", tenantId + ":" + userId);
     }
 
+    @Transactional
     public void invalidateTenantSessions(Long tenantId, String reason) {
         List<AuthSession> sessions = authSessionRepository.listByTenantId(tenantId);
         sessions.forEach(session -> {
@@ -68,6 +72,7 @@ public class SessionApplicationService {
         authAuditApplicationService.record("INVALIDATE_TENANT_SESSIONS", "SUCCESS", String.valueOf(tenantId));
     }
 
+    @Transactional
     public void invalidateSession(String sessionId, String reason) {
         AuthSession authSession = authSessionRepository
                 .findBySessionId(sessionId)

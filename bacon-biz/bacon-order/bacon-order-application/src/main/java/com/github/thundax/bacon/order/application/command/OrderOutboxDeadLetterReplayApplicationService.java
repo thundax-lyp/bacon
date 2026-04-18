@@ -10,6 +10,7 @@ import com.github.thundax.bacon.order.domain.model.valueobject.OrderOutboxDeadLe
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxDeadLetterRepository;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderOutboxDeadLetterReplayApplicationService {
@@ -24,6 +25,7 @@ public class OrderOutboxDeadLetterReplayApplicationService {
         this.orderOutboxActionExecutor = orderOutboxActionExecutor;
     }
 
+    @Transactional
     public OrderOutboxDeadLetterReplayResult replay(OrderOutboxDeadLetterId deadLetterId) {
         BaconContextHolder.requireTenantId();
         OrderOutboxDeadLetter deadLetter = orderOutboxDeadLetterRepository

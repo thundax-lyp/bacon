@@ -21,6 +21,7 @@ import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderCreateApplicationService {
@@ -47,6 +48,7 @@ public class OrderCreateApplicationService {
         this.idGenerator = idGenerator;
     }
 
+    @Transactional
     public OrderSummaryDTO create(CreateOrderCommand command) {
         if (command.userId() == null) {
             throw new BadRequestException("userId is required");

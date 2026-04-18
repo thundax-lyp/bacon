@@ -22,6 +22,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class LoginApplicationService {
@@ -56,6 +57,7 @@ public class LoginApplicationService {
         return loginSecurityApplicationService.issuePasswordLoginChallenge();
     }
 
+    @Transactional
     public UserLoginDTO loginByPassword(PasswordLoginCommand command) {
         TenantId tenantId = normalizeTenantId(command.getTenantId());
         // 密码登录按“校验验证码 -> 解密密码 -> 查询凭据 -> 校验状态和口令”的顺序执行，
@@ -78,14 +80,17 @@ public class LoginApplicationService {
                 credential.isNeedChangePassword());
     }
 
+    @Transactional
     public UserLoginDTO loginBySms(String phone, String smsCaptcha) {
         return createLoginSession(1001L, 2002L, 3002L, "PHONE", "SMS", null);
     }
 
+    @Transactional
     public UserLoginDTO loginByWecom(String code) {
         return createLoginSession(1001L, 2003L, 3003L, "WECOM", "WECOM", null);
     }
 
+    @Transactional
     public UserLoginDTO loginByGithub(String code) {
         return createLoginSession(1001L, 2004L, 3004L, "GITHUB", "GITHUB", null);
     }

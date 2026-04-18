@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
@@ -12,13 +13,17 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.infra.persistence.assembler.UserPersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserCredentialDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserIdentityDO;
+import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserRoleRelDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserCredentialMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserIdentityMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserMapper;
+import com.github.thundax.bacon.upms.infra.persistence.mapper.UserRoleRelMapper;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -30,15 +35,25 @@ import org.springframework.stereotype.Component;
 @Profile("!test")
 class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
+    private static final String USER_ROLE_REL_ID_BIZ_TAG = "upms_user_role_rel";
+
     private final UserMapper userMapper;
     private final UserIdentityMapper userIdentityMapper;
     private final UserCredentialMapper userCredentialMapper;
+    private final UserRoleRelMapper userRoleRelMapper;
+    private final IdGenerator idGenerator;
 
     UserPersistenceSupport(
-            UserMapper userMapper, UserIdentityMapper userIdentityMapper, UserCredentialMapper userCredentialMapper) {
+            UserMapper userMapper,
+            UserIdentityMapper userIdentityMapper,
+            UserCredentialMapper userCredentialMapper,
+            UserRoleRelMapper userRoleRelMapper,
+            IdGenerator idGenerator) {
         this.userMapper = userMapper;
         this.userIdentityMapper = userIdentityMapper;
         this.userCredentialMapper = userCredentialMapper;
+        this.userRoleRelMapper = userRoleRelMapper;
+        this.idGenerator = idGenerator;
     }
 
     Optional<User> findById(UserId userId) {
@@ -162,6 +177,23 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         }
         userDO.setDeleted(true);
         userMapper.updateById(userDO);
+    }
+
+    void replaceUserRoles(UserId userId, Collection<RoleId> roleIds) {
+        TenantId tenantId = requireTenantId();
+        deleteUserRolesByUser(userId);
+        if (roleIds == null || roleIds.isEmpty()) {
+            return;
+        }
+        for (RoleId roleId : new LinkedHashSet<>(roleIds)) {
+            userRoleRelMapper.insert(new UserRoleRelDO(
+                    idGenerator.nextId(USER_ROLE_REL_ID_BIZ_TAG), tenantId.value(), userId.value(), roleId.value()));
+        }
+    }
+
+    void deleteUserRolesByUser(UserId userId) {
+        requireTenantId();
+        userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery().eq(UserRoleRelDO::getUserId, userId.value()));
     }
 
     void deleteUserIdentitiesByUser(TenantId tenantId, UserId userId) {

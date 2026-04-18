@@ -15,6 +15,7 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserCredentialMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserIdentityMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserMapper;
+import com.github.thundax.bacon.upms.infra.persistence.mapper.UserRoleRelMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,12 +36,20 @@ class UserPersistenceSupportTest {
     @Mock
     private UserCredentialMapper userCredentialMapper;
 
+    @Mock
+    private UserRoleRelMapper userRoleRelMapper;
+
     private UserPersistenceSupport support;
 
     @BeforeEach
     void setUp() {
         BaconContextHolder.set(new BaconContextHolder.BaconContext(1001L, 2001L));
-        support = new UserPersistenceSupport(userMapper, userIdentityMapper, userCredentialMapper);
+        support = new UserPersistenceSupport(
+                userMapper,
+                userIdentityMapper,
+                userCredentialMapper,
+                userRoleRelMapper,
+                bizTag -> 1000L);
     }
 
     @AfterEach

@@ -4,6 +4,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
+import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -15,9 +16,9 @@ import org.springframework.stereotype.Repository;
 public class DepartmentRepositoryImpl implements DepartmentRepository {
 
     private final DepartmentPersistenceSupport support;
-    private final UserRepositoryImpl userRepository;
+    private final UserRepository userRepository;
 
-    public DepartmentRepositoryImpl(DepartmentPersistenceSupport support, UserRepositoryImpl userRepository) {
+    public DepartmentRepositoryImpl(DepartmentPersistenceSupport support, UserRepository userRepository) {
         this.support = support;
         this.userRepository = userRepository;
     }
@@ -64,6 +65,6 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
 
     @Override
     public boolean existsUser(DepartmentId departmentId) {
-        return userRepository.hasActiveUserInDepartment(departmentId);
+        return userRepository.existsActiveByDepartmentId(departmentId);
     }
 }

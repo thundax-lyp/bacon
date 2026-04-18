@@ -132,20 +132,6 @@ public class RoleRepositoryImpl implements RoleRepository {
         return normalizedAssignment;
     }
 
-    void bindUserRoles(TenantId tenantId, UserId userId, List<Role> assignedRoles) {
-        support.replaceUserRoles(userId, assignedRoles.stream().map(Role::getId).toList());
-        cacheSupport.evictUserPermission(tenantId, userId);
-    }
-
-    void clearUserRoles(TenantId tenantId, UserId userId) {
-        support.deleteUserRolesByUser(userId);
-        cacheSupport.evictUserPermission(tenantId, userId);
-    }
-
-    void removeMenuFromAssignments(MenuId menuId) {
-        support.removeMenuFromAssignments(menuId);
-    }
-
     private TenantId requireTenantId() {
         return TenantId.of(BaconContextHolder.requireTenantId());
     }

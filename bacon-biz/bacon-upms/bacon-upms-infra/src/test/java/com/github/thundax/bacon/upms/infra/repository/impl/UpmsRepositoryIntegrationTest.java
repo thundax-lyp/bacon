@@ -674,8 +674,11 @@ class UpmsRepositoryIntegrationTest {
         UserPersistenceSupport userPersistenceSupport(
                 UserMapper userMapper,
                 UserIdentityMapper userIdentityMapper,
-                UserCredentialMapper userCredentialMapper) {
-            return new UserPersistenceSupport(userMapper, userIdentityMapper, userCredentialMapper);
+                UserCredentialMapper userCredentialMapper,
+                UserRoleRelMapper userRoleRelMapper,
+                IdGenerator idGenerator) {
+            return new UserPersistenceSupport(
+                    userMapper, userIdentityMapper, userCredentialMapper, userRoleRelMapper, idGenerator);
         }
 
         @Bean
@@ -711,8 +714,9 @@ class UpmsRepositoryIntegrationTest {
         }
 
         @Bean
-        MenuPersistenceSupport menuPersistenceSupport(MenuMapper menuMapper) {
-            return new MenuPersistenceSupport(menuMapper);
+        MenuPersistenceSupport menuPersistenceSupport(
+                MenuMapper menuMapper, RoleMenuRelMapper roleMenuRelMapper) {
+            return new MenuPersistenceSupport(menuMapper, roleMenuRelMapper);
         }
 
         @Bean
@@ -738,14 +742,14 @@ class UpmsRepositoryIntegrationTest {
 
         @Bean
         DepartmentRepository departmentRepository(
-                DepartmentPersistenceSupport departmentPersistenceSupport, UserRepositoryImpl userRepository) {
+                DepartmentPersistenceSupport departmentPersistenceSupport, UserRepository userRepository) {
             return new DepartmentRepositoryImpl(departmentPersistenceSupport, userRepository);
         }
 
         @Bean
         UserRepositoryImpl userRepositoryImpl(
                 UserPersistenceSupport userPersistenceSupport,
-                RoleRepositoryImpl roleRepository,
+                RoleRepository roleRepository,
                 PasswordEncoder passwordEncoder,
                 UpmsPermissionCacheSupport upmsPermissionCacheSupport,
                 Ids ids,
@@ -767,8 +771,8 @@ class UpmsRepositoryIntegrationTest {
 
         @Bean
         PermissionRepository permissionRepository(
-                MenuRepositoryImpl menuRepository,
-                RoleRepositoryImpl roleRepository,
+                MenuRepository menuRepository,
+                RoleRepository roleRepository,
                 UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
             return new PermissionRepositoryImpl(menuRepository, roleRepository, upmsPermissionCacheSupport);
         }
@@ -776,10 +780,9 @@ class UpmsRepositoryIntegrationTest {
         @Bean
         MenuRepositoryImpl menuRepositoryImpl(
                 MenuPersistenceSupport menuPersistenceSupport,
-                RoleRepositoryImpl roleRepository,
                 UpmsPermissionCacheSupport upmsPermissionCacheSupport,
                 IdGenerator idGenerator) {
-            return new MenuRepositoryImpl(menuPersistenceSupport, roleRepository, upmsPermissionCacheSupport);
+            return new MenuRepositoryImpl(menuPersistenceSupport, upmsPermissionCacheSupport);
         }
     }
 

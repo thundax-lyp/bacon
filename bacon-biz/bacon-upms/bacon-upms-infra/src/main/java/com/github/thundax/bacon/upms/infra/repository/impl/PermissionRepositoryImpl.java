@@ -10,7 +10,9 @@ import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleDataScopeAssignment;
+import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
+import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -27,13 +29,13 @@ import org.springframework.stereotype.Repository;
 @Profile("!test")
 public class PermissionRepositoryImpl implements PermissionRepository {
 
-    private final MenuRepositoryImpl menuRepository;
-    private final RoleRepositoryImpl roleRepository;
+    private final MenuRepository menuRepository;
+    private final RoleRepository roleRepository;
     private final UpmsPermissionCacheSupport cacheSupport;
 
     public PermissionRepositoryImpl(
-            MenuRepositoryImpl menuRepository,
-            RoleRepositoryImpl roleRepository,
+            MenuRepository menuRepository,
+            RoleRepository roleRepository,
             UpmsPermissionCacheSupport cacheSupport) {
         this.menuRepository = menuRepository;
         this.roleRepository = roleRepository;

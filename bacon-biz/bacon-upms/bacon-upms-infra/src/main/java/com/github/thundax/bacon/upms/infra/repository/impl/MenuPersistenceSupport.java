@@ -7,7 +7,9 @@ import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.infra.persistence.assembler.MenuPersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.MenuDO;
+import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleMenuRelDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.MenuMapper;
+import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleMenuRelMapper;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Profile;
@@ -18,9 +20,11 @@ import org.springframework.stereotype.Component;
 class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     private final MenuMapper menuMapper;
+    private final RoleMenuRelMapper roleMenuRelMapper;
 
-    MenuPersistenceSupport(MenuMapper menuMapper) {
+    MenuPersistenceSupport(MenuMapper menuMapper, RoleMenuRelMapper roleMenuRelMapper) {
         this.menuMapper = menuMapper;
+        this.roleMenuRelMapper = roleMenuRelMapper;
     }
 
     List<Menu> list() {
@@ -52,6 +56,11 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
     void delete(MenuId menuId) {
         requireTenantId();
         menuMapper.delete(Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getId, menuId.value()));
+    }
+
+    void deleteRoleMenusByMenuId(MenuId menuId) {
+        requireTenantId();
+        roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery().eq(RoleMenuRelDO::getMenuId, menuId.value()));
     }
 
     boolean existsChild(MenuId menuId) {

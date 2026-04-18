@@ -10,6 +10,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +32,8 @@ public interface UserRepository {
     long count(String account, String name, String phone, UserStatus status);
 
     List<User> list(String account, String name, String phone, UserStatus status);
+
+    boolean existsActiveByDepartmentId(DepartmentId departmentId);
 
     User insert(
             User user,

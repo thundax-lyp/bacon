@@ -19,6 +19,7 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
+import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.time.Instant;
@@ -41,13 +42,13 @@ public class UserRepositoryImpl implements UserRepository {
     private static final UserIdentityStatus ACTIVE_IDENTITY_STATUS = UserIdentityStatus.ACTIVE;
 
     private final UserPersistenceSupport support;
-    private final RoleRepositoryImpl roleRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final UpmsPermissionCacheSupport cacheSupport;
 
     public UserRepositoryImpl(
             UserPersistenceSupport support,
-            RoleRepositoryImpl roleRepository,
+            RoleRepository roleRepository,
             PasswordEncoder passwordEncoder,
             UpmsPermissionCacheSupport cacheSupport) {
         this.support = support;
@@ -95,6 +96,11 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public List<User> list(String account, String name, String phone, UserStatus status) {
         return support.listUsers(account, name, phone, status, 1, Integer.MAX_VALUE);
+    }
+
+    @Override
+    public boolean existsActiveByDepartmentId(DepartmentId departmentId) {
+        return support.hasActiveUserInDepartment(departmentId);
     }
 
     @Override
@@ -170,7 +176,7 @@ public class UserRepositoryImpl implements UserRepository {
                         .findById(roleId)
                         .orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value())))
                 .toList();
-        roleRepository.bindUserRoles(tenantId, userId, roles);
+        support.replaceUserRoles(userId, roles.stream().map(Role::getId).toList());
         cacheSupport.evictUserPermission(tenantId, userId);
         return roles;
     }
@@ -179,7 +185,7 @@ public class UserRepositoryImpl implements UserRepository {
     public void delete(UserId userId) {
         TenantId tenantId = requireTenantId();
         support.delete(userId);
-        roleRepository.clearUserRoles(tenantId, userId);
+        support.deleteUserRolesByUser(userId);
         support.deleteUserIdentitiesByUser(tenantId, userId);
         support.deleteUserCredentialsByUser(tenantId, userId);
         cacheSupport.evictUserPermission(tenantId, userId);
@@ -277,14 +283,6 @@ public class UserRepositoryImpl implements UserRepository {
         currentCredential.bindIdentity(accountIdentity.getId());
         currentCredential.replacePassword(passwordHash, newUser || needChangePassword, passwordExpiresAt);
         support.saveUserCredential(currentCredential);
-    }
-
-    boolean hasActiveUserInDepartment(TenantId tenantId, DepartmentId departmentId) {
-        return support.hasActiveUserInDepartment(departmentId);
-    }
-
-    boolean hasActiveUserInDepartment(DepartmentId departmentId) {
-        return support.hasActiveUserInDepartment(departmentId);
     }
 
     private TenantId requireTenantId() {

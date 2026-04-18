@@ -16,15 +16,10 @@ import org.springframework.stereotype.Repository;
 public class MenuRepositoryImpl implements MenuRepository {
 
     private final MenuPersistenceSupport support;
-    private final RoleRepositoryImpl roleRepository;
     private final UpmsPermissionCacheSupport cacheSupport;
 
-    public MenuRepositoryImpl(
-            MenuPersistenceSupport support,
-            RoleRepositoryImpl roleRepository,
-            UpmsPermissionCacheSupport cacheSupport) {
+    public MenuRepositoryImpl(MenuPersistenceSupport support, UpmsPermissionCacheSupport cacheSupport) {
         this.support = support;
-        this.roleRepository = roleRepository;
         this.cacheSupport = cacheSupport;
     }
 
@@ -58,7 +53,7 @@ public class MenuRepositoryImpl implements MenuRepository {
     public void delete(MenuId menuId) {
         TenantId tenantId = requireTenantId();
         support.delete(menuId);
-        roleRepository.removeMenuFromAssignments(menuId);
+        support.deleteRoleMenusByMenuId(menuId);
         cacheSupport.evictTenantPermission(tenantId);
     }
 

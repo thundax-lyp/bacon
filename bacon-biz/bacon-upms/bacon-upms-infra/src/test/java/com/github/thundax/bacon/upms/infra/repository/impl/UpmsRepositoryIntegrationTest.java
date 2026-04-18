@@ -678,9 +678,9 @@ class UpmsRepositoryIntegrationTest {
         }
 
         @Bean
-        UserRoleRelPersistenceSupport userRoleRelPersistenceSupport(
+        UserRolePersistenceSupport userRolePersistenceSupport(
                 UserRoleRelMapper userRoleRelMapper, IdGenerator idGenerator) {
-            return new UserRoleRelPersistenceSupport(userRoleRelMapper, idGenerator);
+            return new UserRolePersistenceSupport(userRoleRelMapper, idGenerator);
         }
 
         @Bean
@@ -700,15 +700,15 @@ class UpmsRepositoryIntegrationTest {
         }
 
         @Bean
-        RoleMenuRelPersistenceSupport roleMenuRelPersistenceSupport(
+        RoleMenuPersistenceSupport roleMenuPersistenceSupport(
                 RoleMenuRelMapper roleMenuRelMapper, IdGenerator idGenerator) {
-            return new RoleMenuRelPersistenceSupport(roleMenuRelMapper, idGenerator);
+            return new RoleMenuPersistenceSupport(roleMenuRelMapper, idGenerator);
         }
 
         @Bean
-        RoleResourceRelPersistenceSupport roleResourceRelPersistenceSupport(
+        RoleResourcePersistenceSupport roleResourcePersistenceSupport(
                 ResourceMapper resourceMapper, RoleResourceRelMapper roleResourceRelMapper, IdGenerator idGenerator) {
-            return new RoleResourceRelPersistenceSupport(resourceMapper, roleResourceRelMapper, idGenerator);
+            return new RoleResourcePersistenceSupport(resourceMapper, roleResourceRelMapper, idGenerator);
         }
 
         @Bean
@@ -743,19 +743,18 @@ class UpmsRepositoryIntegrationTest {
         @Bean
         RoleMenuRepository roleMenuRepository(
                 RolePersistenceSupport rolePersistenceSupport,
-                RoleMenuRelPersistenceSupport roleMenuRelPersistenceSupport,
+                RoleMenuPersistenceSupport roleMenuPersistenceSupport,
                 UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
-            return new RoleMenuRepositoryImpl(
-                    rolePersistenceSupport, roleMenuRelPersistenceSupport, upmsPermissionCacheSupport);
+            return new RoleMenuRepositoryImpl(rolePersistenceSupport, roleMenuPersistenceSupport, upmsPermissionCacheSupport);
         }
 
         @Bean
         RoleResourceRepository roleResourceRepository(
                 RolePersistenceSupport rolePersistenceSupport,
-                RoleResourceRelPersistenceSupport roleResourceRelPersistenceSupport,
+                RoleResourcePersistenceSupport roleResourcePersistenceSupport,
                 UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
             return new RoleResourceRepositoryImpl(
-                    rolePersistenceSupport, roleResourceRelPersistenceSupport, upmsPermissionCacheSupport);
+                    rolePersistenceSupport, roleResourcePersistenceSupport, upmsPermissionCacheSupport);
         }
 
         @Bean
@@ -785,7 +784,7 @@ class UpmsRepositoryIntegrationTest {
                 UserPersistenceSupport userPersistenceSupport,
                 UserIdentityPersistenceSupport userIdentityPersistenceSupport,
                 UserCredentialPersistenceSupport userCredentialPersistenceSupport,
-                UserRoleRelPersistenceSupport userRoleRelPersistenceSupport,
+                UserRolePersistenceSupport userRolePersistenceSupport,
                 PasswordEncoder passwordEncoder,
                 UpmsPermissionCacheSupport upmsPermissionCacheSupport,
                 Ids ids,
@@ -794,7 +793,7 @@ class UpmsRepositoryIntegrationTest {
                     userPersistenceSupport,
                     userIdentityPersistenceSupport,
                     userCredentialPersistenceSupport,
-                    userRoleRelPersistenceSupport,
+                    userRolePersistenceSupport,
                     passwordEncoder,
                     upmsPermissionCacheSupport);
         }
@@ -812,11 +811,10 @@ class UpmsRepositoryIntegrationTest {
 
         @Bean
         UserRoleRepository userRoleRepository(
-                UserRoleRelPersistenceSupport userRoleRelPersistenceSupport,
+                UserRolePersistenceSupport userRolePersistenceSupport,
                 RoleRepository roleRepository,
                 UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
-            return new UserRoleRepositoryImpl(
-                    userRoleRelPersistenceSupport, roleRepository, upmsPermissionCacheSupport);
+            return new UserRoleRepositoryImpl(userRolePersistenceSupport, roleRepository, upmsPermissionCacheSupport);
         }
 
         @Bean

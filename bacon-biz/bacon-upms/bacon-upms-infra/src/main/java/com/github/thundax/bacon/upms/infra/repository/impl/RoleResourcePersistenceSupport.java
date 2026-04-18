@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Profile("!test")
-class RoleResourceRelPersistenceSupport extends AbstractUpmsPersistenceSupport {
+class RoleResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     private static final String ROLE_RESOURCE_REL_ID_BIZ_TAG = "upms-role-resource-rel-id";
 
@@ -29,7 +29,7 @@ class RoleResourceRelPersistenceSupport extends AbstractUpmsPersistenceSupport {
     private final RoleResourceRelMapper roleResourceRelMapper;
     private final IdGenerator idGenerator;
 
-    RoleResourceRelPersistenceSupport(
+    RoleResourcePersistenceSupport(
             ResourceMapper resourceMapper, RoleResourceRelMapper roleResourceRelMapper, IdGenerator idGenerator) {
         this.resourceMapper = resourceMapper;
         this.roleResourceRelMapper = roleResourceRelMapper;

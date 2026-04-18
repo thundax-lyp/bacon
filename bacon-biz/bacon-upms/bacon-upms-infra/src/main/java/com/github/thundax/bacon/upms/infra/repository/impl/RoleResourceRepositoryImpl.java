@@ -16,12 +16,12 @@ import org.springframework.stereotype.Repository;
 public class RoleResourceRepositoryImpl implements RoleResourceRepository {
 
     private final RolePersistenceSupport roleSupport;
-    private final RoleResourceRelPersistenceSupport support;
+    private final RoleResourcePersistenceSupport support;
     private final UpmsPermissionCacheSupport cacheSupport;
 
     public RoleResourceRepositoryImpl(
             RolePersistenceSupport roleSupport,
-            RoleResourceRelPersistenceSupport support,
+            RoleResourcePersistenceSupport support,
             UpmsPermissionCacheSupport cacheSupport) {
         this.roleSupport = roleSupport;
         this.support = support;

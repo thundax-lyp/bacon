@@ -15,14 +15,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Profile("!test")
-class UserRoleRelPersistenceSupport extends AbstractUpmsPersistenceSupport {
+class UserRolePersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     private static final String USER_ROLE_REL_ID_BIZ_TAG = "upms_user_role_rel";
 
     private final UserRoleRelMapper userRoleRelMapper;
     private final IdGenerator idGenerator;
 
-    UserRoleRelPersistenceSupport(UserRoleRelMapper userRoleRelMapper, IdGenerator idGenerator) {
+    UserRolePersistenceSupport(UserRoleRelMapper userRoleRelMapper, IdGenerator idGenerator) {
         this.userRoleRelMapper = userRoleRelMapper;
         this.idGenerator = idGenerator;
     }

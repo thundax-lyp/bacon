@@ -50,13 +50,13 @@ class RolePersistenceSupportTest {
     private IdGenerator idGenerator;
 
     private RoleDataScopePersistenceSupport dataScopeSupport;
-    private RoleResourceRelPersistenceSupport resourceSupport;
+    private RoleResourcePersistenceSupport resourceSupport;
 
     @BeforeEach
     void setUp() {
         BaconContextHolder.set(new BaconContextHolder.BaconContext(1001L, 2001L));
         dataScopeSupport = new RoleDataScopePersistenceSupport(dataPermissionRuleMapper, roleDataScopeRelMapper, idGenerator);
-        resourceSupport = new RoleResourceRelPersistenceSupport(resourceMapper, roleResourceRelMapper, idGenerator);
+        resourceSupport = new RoleResourcePersistenceSupport(resourceMapper, roleResourceRelMapper, idGenerator);
         Mockito.lenient().when(idGenerator.nextId(any())).thenReturn(1001L, 1002L, 1003L, 1004L, 1005L);
     }
 

@@ -36,7 +36,7 @@ public class UserRepositoryImpl implements UserRepository {
     private final UserPersistenceSupport userSupport;
     private final UserIdentityPersistenceSupport userIdentitySupport;
     private final UserCredentialPersistenceSupport userCredentialSupport;
-    private final UserRoleRelPersistenceSupport userRoleRelSupport;
+    private final UserRolePersistenceSupport userRoleSupport;
     private final PasswordEncoder passwordEncoder;
     private final UpmsPermissionCacheSupport cacheSupport;
 
@@ -44,13 +44,13 @@ public class UserRepositoryImpl implements UserRepository {
             UserPersistenceSupport userSupport,
             UserIdentityPersistenceSupport userIdentitySupport,
             UserCredentialPersistenceSupport userCredentialSupport,
-            UserRoleRelPersistenceSupport userRoleRelSupport,
+            UserRolePersistenceSupport userRoleSupport,
             PasswordEncoder passwordEncoder,
             UpmsPermissionCacheSupport cacheSupport) {
         this.userSupport = userSupport;
         this.userIdentitySupport = userIdentitySupport;
         this.userCredentialSupport = userCredentialSupport;
-        this.userRoleRelSupport = userRoleRelSupport;
+        this.userRoleSupport = userRoleSupport;
         this.passwordEncoder = passwordEncoder;
         this.cacheSupport = cacheSupport;
     }
@@ -159,7 +159,7 @@ public class UserRepositoryImpl implements UserRepository {
     public void delete(UserId userId) {
         TenantId tenantId = BaconIdContextHelper.requireTenantId();
         userSupport.delete(userId);
-        userRoleRelSupport.deleteRoleIdsByUserId(userId);
+        userRoleSupport.deleteRoleIdsByUserId(userId);
         userIdentitySupport.deleteIdentitiesByUserId(userId);
         userCredentialSupport.deleteCredentialsByUserId(userId);
         cacheSupport.evictUserPermission(tenantId, userId);

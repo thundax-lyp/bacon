@@ -17,12 +17,12 @@ import org.springframework.stereotype.Repository;
 @Profile("!test")
 public class UserRoleRepositoryImpl implements UserRoleRepository {
 
-    private final UserRoleRelPersistenceSupport support;
+    private final UserRolePersistenceSupport support;
     private final RoleRepository roleRepository;
     private final UpmsPermissionCacheSupport cacheSupport;
 
     public UserRoleRepositoryImpl(
-            UserRoleRelPersistenceSupport support,
+            UserRolePersistenceSupport support,
             RoleRepository roleRepository,
             UpmsPermissionCacheSupport cacheSupport) {
         this.support = support;

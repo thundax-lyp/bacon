@@ -18,14 +18,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Profile("!test")
-class RoleMenuRelPersistenceSupport extends AbstractUpmsPersistenceSupport {
+class RoleMenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     private static final String ROLE_MENU_REL_ID_BIZ_TAG = "upms-role-menu-rel-id";
 
     private final RoleMenuRelMapper roleMenuRelMapper;
     private final IdGenerator idGenerator;
 
-    RoleMenuRelPersistenceSupport(RoleMenuRelMapper roleMenuRelMapper, IdGenerator idGenerator) {
+    RoleMenuPersistenceSupport(RoleMenuRelMapper roleMenuRelMapper, IdGenerator idGenerator) {
         this.roleMenuRelMapper = roleMenuRelMapper;
         this.idGenerator = idGenerator;
     }

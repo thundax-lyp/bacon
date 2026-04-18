@@ -158,22 +158,22 @@ public final class NamingAndPlacementRuleSupport {
                 .haveSimpleNameEndingWith("RepositoryImpl")
                 .and()
                 .resideInAPackage(basePackage + ".infra.repository.impl..")
-                .should(new ArchCondition<>("depend only on own aggregate PersistenceSupport") {
+                .should(new ArchCondition<>("avoid dependency on other aggregate PersistenceSupport") {
                     @Override
                     public void check(JavaClass item, ConditionEvents events) {
-                        String allowedSupportSimpleName = ownPersistenceSupportSimpleName(item.getSimpleName());
+                        String aggregatePrefix = aggregatePrefix(item.getSimpleName());
                         findSimpleTypeReferences(item, "PersistenceSupport").stream()
-                                .filter(typeName -> !allowedSupportSimpleName.equals(typeName))
+                                .filter(typeName -> !typeName.startsWith(aggregatePrefix))
                                 .forEach(typeName -> events.add(SimpleConditionEvent.violated(
                                         item,
                                         item.getFullName() + " references " + typeName
-                                                + " violates RULE NAME_REPOSITORY_IMPL_NO_CROSS_SUPPORT_DEP; allowed support is "
-                                                + allowedSupportSimpleName)));
+                                                + " violates RULE NAME_REPOSITORY_IMPL_NO_CROSS_SUPPORT_DEP; allowed aggregate prefix is "
+                                                + aggregatePrefix)));
                     }
                 })
                 .allowEmptyShould(true)
                 .because(
-                        "RULE NAME_REPOSITORY_IMPL_NO_CROSS_SUPPORT_DEP: RepositoryImpl must depend only on own aggregate PersistenceSupport");
+                        "RULE NAME_REPOSITORY_IMPL_NO_CROSS_SUPPORT_DEP: RepositoryImpl must not depend on other aggregate PersistenceSupport");
     }
 
     public static ArchRule repositoryMethodShouldUseWhitelistedPrefix(String basePackage) {
@@ -733,9 +733,14 @@ public final class NamingAndPlacementRuleSupport {
         return index >= 0 ? basePackage.substring(index + 1) : basePackage;
     }
 
-    private static String ownPersistenceSupportSimpleName(String repositoryImplSimpleName) {
-        return repositoryImplSimpleName.substring(0, repositoryImplSimpleName.length() - "RepositoryImpl".length())
-                + "PersistenceSupport";
+    private static String aggregatePrefix(String repositoryImplSimpleName) {
+        String stem = repositoryImplSimpleName.substring(0, repositoryImplSimpleName.length() - "RepositoryImpl".length());
+        for (int i = 1; i < stem.length(); i++) {
+            if (Character.isUpperCase(stem.charAt(i))) {
+                return stem.substring(0, i);
+            }
+        }
+        return stem;
     }
 
     private static List<String> findSimpleTypeReferences(JavaClass item, String suffix) {

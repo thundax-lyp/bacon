@@ -32,15 +32,10 @@ public class User {
     private UserStatus status;
 
     public static User create(
-            UserId id,
-            String nickname,
-            AvatarStoredObjectNo avatarStoredObjectNo,
-            DepartmentId departmentId,
-            UserStatus status) {
+            UserId id, String nickname, AvatarStoredObjectNo avatarStoredObjectNo, DepartmentId departmentId) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(nickname, "nickname must not be null");
-        Objects.requireNonNull(status, "status must not be null");
-        return new User(id, nickname, avatarStoredObjectNo, departmentId, status);
+        return new User(id, nickname, avatarStoredObjectNo, departmentId, UserStatus.ACTIVE);
     }
 
     public static User reconstruct(

@@ -15,7 +15,7 @@ class UserTest {
 
     @Test
     void shouldRenameUser() {
-        User user = User.create(UserId.of(101L), "Alice", null, null, UserStatus.ACTIVE);
+        User user = User.create(UserId.of(101L), "Alice", null, null);
 
         user.rename("Alice New");
 
@@ -24,7 +24,7 @@ class UserTest {
 
     @Test
     void shouldChangeAndRemoveAvatar() {
-        User user = User.create(UserId.of(101L), "Alice", null, null, UserStatus.ACTIVE);
+        User user = User.create(UserId.of(101L), "Alice", null, null);
 
         user.useAvatar(AvatarStoredObjectNo.of("storage-20260327100000-000001"));
         assertThat(user.getAvatarStoredObjectNo()).isEqualTo(AvatarStoredObjectNo.of("storage-20260327100000-000001"));
@@ -35,7 +35,7 @@ class UserTest {
 
     @Test
     void shouldChangeAndClearDepartment() {
-        User user = User.create(UserId.of(101L), "Alice", null, null, UserStatus.ACTIVE);
+        User user = User.create(UserId.of(101L), "Alice", null, null);
 
         user.assignDepartment(DepartmentId.of(201L));
         assertThat(user.getDepartmentId()).isEqualTo(DepartmentId.of(201L));
@@ -46,8 +46,8 @@ class UserTest {
 
     @Test
     void shouldReportAndAssertActiveStatus() {
-        User activeUser = User.create(UserId.of(101L), "Alice", null, null, UserStatus.ACTIVE);
-        User disabledUser = User.create(UserId.of(102L), "Bob", null, null, UserStatus.DISABLED);
+        User activeUser = User.create(UserId.of(101L), "Alice", null, null);
+        User disabledUser = User.reconstruct(UserId.of(102L), "Bob", null, null, UserStatus.DISABLED);
 
         assertThat(activeUser.isActive()).isTrue();
         assertThat(disabledUser.isActive()).isFalse();

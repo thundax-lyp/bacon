@@ -18,8 +18,7 @@ class ResourceTest {
                 "Read User",
                 ResourceType.API,
                 "GET",
-                "/sys/users/{id}",
-                ResourceStatus.ENABLED);
+                "/sys/users/{id}");
 
         resource.recodeAs(ResourceCode.of("user:write"));
         resource.rename("Write User");
@@ -41,8 +40,7 @@ class ResourceTest {
                 "Read User",
                 ResourceType.API,
                 "GET",
-                "/sys/users/{id}",
-                ResourceStatus.ENABLED);
+                "/sys/users/{id}");
 
         resource.disable();
         assertThat(resource.getStatus()).isEqualTo(ResourceStatus.DISABLED);
@@ -59,8 +57,7 @@ class ResourceTest {
                 "Read User",
                 ResourceType.API,
                 "GET",
-                "/sys/users/{id}",
-                ResourceStatus.ENABLED);
+                "/sys/users/{id}");
 
         resource.recodeAs(ResourceCode.of("user:write"));
 

@@ -19,12 +19,7 @@ class RoleTest {
     @Test
     void shouldRenameRoleUsingTrimmedName() {
         Role role = Role.create(
-                RoleId.of(101L),
-                RoleCode.of("ADMIN"),
-                "Admin",
-                RoleType.SYSTEM_ROLE,
-                RoleDataScopeType.ALL,
-                RoleStatus.ACTIVE);
+                RoleId.of(101L), RoleCode.of("ADMIN"), "Admin", RoleType.SYSTEM_ROLE, RoleDataScopeType.ALL);
 
         role.rename("  Platform Admin  ");
 
@@ -34,12 +29,7 @@ class RoleTest {
     @Test
     void shouldRejectBlankRoleName() {
         Role role = Role.create(
-                RoleId.of(101L),
-                RoleCode.of("ADMIN"),
-                "Admin",
-                RoleType.SYSTEM_ROLE,
-                RoleDataScopeType.ALL,
-                RoleStatus.ACTIVE);
+                RoleId.of(101L), RoleCode.of("ADMIN"), "Admin", RoleType.SYSTEM_ROLE, RoleDataScopeType.ALL);
 
         assertThatThrownBy(() -> role.rename("   "))
                 .isInstanceOf(UpmsDomainException.class)
@@ -49,15 +39,11 @@ class RoleTest {
     @Test
     void shouldChangeRoleScopeAndReportPredicates() {
         Role role = Role.create(
-                RoleId.of(101L),
-                RoleCode.of("ADMIN"),
-                "Admin",
-                RoleType.SYSTEM_ROLE,
-                RoleDataScopeType.ALL,
-                RoleStatus.ACTIVE);
+                RoleId.of(101L), RoleCode.of("ADMIN"), "Admin", RoleType.SYSTEM_ROLE, RoleDataScopeType.ALL);
 
         assertThat(role.isSystemRole()).isTrue();
         assertThat(role.hasAllDataAccess()).isTrue();
+        assertThat(role.getStatus()).isEqualTo(RoleStatus.ACTIVE);
 
         role.assignDataScope(RoleDataScopeType.DEPARTMENT, Set.of());
         assertThat(role.hasDepartmentDataAccess()).isTrue();
@@ -70,45 +56,30 @@ class RoleTest {
     @Test
     void shouldAssignCustomDataScopeWithDepartments() {
         Role role = Role.create(
-                RoleId.of(101L),
-                RoleCode.of("ADMIN"),
-                "Admin",
-                RoleType.SYSTEM_ROLE,
-                RoleDataScopeType.ALL,
-                RoleStatus.ACTIVE);
+                RoleId.of(101L), RoleCode.of("ADMIN"), "Admin", RoleType.SYSTEM_ROLE, RoleDataScopeType.ALL);
 
-        Set<DepartmentId> assignedDepartments =
+        Set<DepartmentId> assignedDepartmentIds =
                 role.assignDataScope(RoleDataScopeType.CUSTOM, Set.of(DepartmentId.of(11L), DepartmentId.of(12L)));
 
         assertThat(role.getDataScopeType()).isEqualTo(RoleDataScopeType.CUSTOM);
-        assertThat(assignedDepartments).containsExactlyInAnyOrder(DepartmentId.of(11L), DepartmentId.of(12L));
+        assertThat(assignedDepartmentIds).containsExactlyInAnyOrder(DepartmentId.of(11L), DepartmentId.of(12L));
     }
 
     @Test
     void shouldClearDepartmentsForNonCustomDataScope() {
         Role role = Role.create(
-                RoleId.of(101L),
-                RoleCode.of("ADMIN"),
-                "Admin",
-                RoleType.SYSTEM_ROLE,
-                RoleDataScopeType.CUSTOM,
-                RoleStatus.ACTIVE);
+                RoleId.of(101L), RoleCode.of("ADMIN"), "Admin", RoleType.SYSTEM_ROLE, RoleDataScopeType.CUSTOM);
 
-        Set<DepartmentId> assignedDepartments = role.assignDataScope(RoleDataScopeType.ALL, Set.of(DepartmentId.of(11L)));
+        Set<DepartmentId> assignedDepartmentIds = role.assignDataScope(RoleDataScopeType.ALL, Set.of(DepartmentId.of(11L)));
 
         assertThat(role.getDataScopeType()).isEqualTo(RoleDataScopeType.ALL);
-        assertThat(assignedDepartments).isEmpty();
+        assertThat(assignedDepartmentIds).isEmpty();
     }
 
     @Test
     void shouldRejectEmptyDepartmentsForCustomDataScope() {
         Role role = Role.create(
-                RoleId.of(101L),
-                RoleCode.of("ADMIN"),
-                "Admin",
-                RoleType.SYSTEM_ROLE,
-                RoleDataScopeType.ALL,
-                RoleStatus.ACTIVE);
+                RoleId.of(101L), RoleCode.of("ADMIN"), "Admin", RoleType.SYSTEM_ROLE, RoleDataScopeType.ALL);
 
         assertThatThrownBy(() -> role.assignDataScope(RoleDataScopeType.CUSTOM, Set.of()))
                 .isInstanceOf(UpmsDomainException.class)
@@ -117,7 +88,7 @@ class RoleTest {
 
     @Test
     void shouldToggleAndAssertRoleStatus() {
-        Role role = Role.create(
+        Role role = Role.reconstruct(
                 RoleId.of(101L),
                 RoleCode.of("ADMIN"),
                 "Admin",
@@ -139,12 +110,7 @@ class RoleTest {
     @Test
     void shouldChangeRoleCode() {
         Role role = Role.create(
-                RoleId.of(101L),
-                RoleCode.of("ADMIN"),
-                "Admin",
-                RoleType.SYSTEM_ROLE,
-                RoleDataScopeType.ALL,
-                RoleStatus.ACTIVE);
+                RoleId.of(101L), RoleCode.of("ADMIN"), "Admin", RoleType.SYSTEM_ROLE, RoleDataScopeType.ALL);
 
         role.recodeAs(RoleCode.of("PLATFORM_ADMIN"));
 

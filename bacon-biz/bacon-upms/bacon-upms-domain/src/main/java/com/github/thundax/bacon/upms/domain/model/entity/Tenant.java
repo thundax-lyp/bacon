@@ -31,13 +31,11 @@ public class Tenant {
     /** 过期时间。 */
     private Instant expiredAt;
 
-    public static Tenant create(
-            TenantId id, String name, TenantCode code, TenantStatus status, Instant expiredAt) {
+    public static Tenant create(TenantId id, String name, TenantCode code, Instant expiredAt) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(code, "code must not be null");
-        Objects.requireNonNull(status, "status must not be null");
-        return new Tenant(id, name, code, status, expiredAt);
+        return new Tenant(id, name, code, TenantStatus.ACTIVE, expiredAt);
     }
 
     public static Tenant reconstruct(

@@ -14,15 +14,14 @@ class UserIdentityTest {
 
     @Test
     void shouldAllowActiveIdentity() {
-        UserIdentity identity = UserIdentity.create(
-                UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.ACTIVE);
+        UserIdentity identity = UserIdentity.create(UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice");
 
         assertThatCode(identity::assertUsable).doesNotThrowAnyException();
     }
 
     @Test
     void shouldRejectDisabledIdentity() {
-        UserIdentity identity = UserIdentity.create(
+        UserIdentity identity = UserIdentity.reconstruct(
                 UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.DISABLED);
 
         assertThatThrownBy(identity::assertUsable)
@@ -32,8 +31,7 @@ class UserIdentityTest {
 
     @Test
     void shouldActivateAndDisableIdentity() {
-        UserIdentity identity = UserIdentity.create(
-                UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.ACTIVE);
+        UserIdentity identity = UserIdentity.create(UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice");
 
         identity.disable();
         org.assertj.core.api.Assertions.assertThat(identity.getStatus()).isEqualTo(UserIdentityStatus.DISABLED);
@@ -44,8 +42,7 @@ class UserIdentityTest {
 
     @Test
     void shouldChangeAccount() {
-        UserIdentity identity = UserIdentity.create(
-                UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.ACTIVE);
+        UserIdentity identity = UserIdentity.create(UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice");
 
         identity.changeAccount("alice.new");
 
@@ -55,7 +52,7 @@ class UserIdentityTest {
     @Test
     void shouldChangePhone() {
         UserIdentity identity = UserIdentity.create(
-                UserIdentityId.of(102L), UserId.of(201L), UserIdentityType.PHONE, "13800000001", UserIdentityStatus.ACTIVE);
+                UserIdentityId.of(102L), UserId.of(201L), UserIdentityType.PHONE, "13800000001");
 
         identity.changePhone("13900000002");
 
@@ -63,9 +60,28 @@ class UserIdentityTest {
     }
 
     @Test
+    void shouldRejectChangingAccountOnNonAccountIdentity() {
+        UserIdentity identity =
+                UserIdentity.create(UserIdentityId.of(102L), UserId.of(201L), UserIdentityType.PHONE, "13800000001");
+
+        assertThatThrownBy(() -> identity.changeAccount("alice.new"))
+                .isInstanceOf(UpmsDomainException.class)
+                .hasMessage("User identity type does not match");
+    }
+
+    @Test
+    void shouldRejectChangingPhoneOnNonPhoneIdentity() {
+        UserIdentity identity =
+                UserIdentity.create(UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice");
+
+        assertThatThrownBy(() -> identity.changePhone("13900000002"))
+                .isInstanceOf(UpmsDomainException.class)
+                .hasMessage("User identity type does not match");
+    }
+
+    @Test
     void shouldRevokeIdentity() {
-        UserIdentity identity = UserIdentity.create(
-                UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.ACTIVE);
+        UserIdentity identity = UserIdentity.create(UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice");
 
         identity.revoke();
 
@@ -74,8 +90,7 @@ class UserIdentityTest {
 
     @Test
     void shouldMatchIdentityValue() {
-        UserIdentity identity = UserIdentity.create(
-                UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.ACTIVE);
+        UserIdentity identity = UserIdentity.create(UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice");
 
         org.assertj.core.api.Assertions.assertThat(identity.matches("alice")).isTrue();
         org.assertj.core.api.Assertions.assertThat(identity.matches("bob")).isFalse();
@@ -83,12 +98,12 @@ class UserIdentityTest {
 
     @Test
     void shouldReportIdentityTypePredicates() {
-        UserIdentity usernameIdentity = UserIdentity.create(
-                UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.ACTIVE);
-        UserIdentity phoneIdentity = UserIdentity.create(
-                UserIdentityId.of(102L), UserId.of(201L), UserIdentityType.PHONE, "13800000001", UserIdentityStatus.ACTIVE);
+        UserIdentity usernameIdentity =
+                UserIdentity.create(UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice");
+        UserIdentity phoneIdentity =
+                UserIdentity.create(UserIdentityId.of(102L), UserId.of(201L), UserIdentityType.PHONE, "13800000001");
         UserIdentity emailIdentity = UserIdentity.create(
-                UserIdentityId.of(103L), UserId.of(201L), UserIdentityType.EMAIL, "alice@example.com", UserIdentityStatus.ACTIVE);
+                UserIdentityId.of(103L), UserId.of(201L), UserIdentityType.EMAIL, "alice@example.com");
 
         org.assertj.core.api.Assertions.assertThat(usernameIdentity.isUsername()).isTrue();
         org.assertj.core.api.Assertions.assertThat(usernameIdentity.isPhone()).isFalse();
@@ -105,9 +120,9 @@ class UserIdentityTest {
 
     @Test
     void shouldReportWhetherIdentityCanLogin() {
-        UserIdentity activeIdentity = UserIdentity.create(
-                UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.ACTIVE);
-        UserIdentity disabledIdentity = UserIdentity.create(
+        UserIdentity activeIdentity =
+                UserIdentity.create(UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice");
+        UserIdentity disabledIdentity = UserIdentity.reconstruct(
                 UserIdentityId.of(102L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.DISABLED);
 
         org.assertj.core.api.Assertions.assertThat(activeIdentity.canLogin()).isTrue();
@@ -116,7 +131,7 @@ class UserIdentityTest {
 
     @Test
     void shouldRejectLoginWhenIdentityIsDisabled() {
-        UserIdentity identity = UserIdentity.create(
+        UserIdentity identity = UserIdentity.reconstruct(
                 UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.DISABLED);
 
         assertThatThrownBy(identity::assertLoginAllowed)

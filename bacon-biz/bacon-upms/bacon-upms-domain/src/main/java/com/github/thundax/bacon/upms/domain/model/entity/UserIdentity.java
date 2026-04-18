@@ -32,17 +32,12 @@ public class UserIdentity {
     private UserIdentityStatus status;
 
     public static UserIdentity create(
-            UserIdentityId id,
-            UserId userId,
-            UserIdentityType identityType,
-            String identityValue,
-            UserIdentityStatus status) {
+            UserIdentityId id, UserId userId, UserIdentityType identityType, String identityValue) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(userId, "userId must not be null");
         Objects.requireNonNull(identityType, "identityType must not be null");
         Objects.requireNonNull(identityValue, "identityValue must not be null");
-        Objects.requireNonNull(status, "status must not be null");
-        return new UserIdentity(id, userId, identityType, identityValue, status);
+        return new UserIdentity(id, userId, identityType, identityValue, UserIdentityStatus.ACTIVE);
     }
 
     public static UserIdentity reconstruct(
@@ -89,11 +84,13 @@ public class UserIdentity {
 
     public void changeAccount(String account) {
         Objects.requireNonNull(account, "account must not be null");
+        assertAccountIdentity();
         this.identityValue = account;
     }
 
     public void changePhone(String phone) {
         Objects.requireNonNull(phone, "phone must not be null");
+        assertPhoneIdentity();
         this.identityValue = phone;
     }
 
@@ -107,5 +104,17 @@ public class UserIdentity {
 
     public void revoke() {
         this.status = UserIdentityStatus.DISABLED;
+    }
+
+    private void assertAccountIdentity() {
+        if (!isUsername()) {
+            throw new UpmsDomainException(UserIdentityErrorCode.USER_IDENTITY_TYPE_MISMATCH);
+        }
+    }
+
+    private void assertPhoneIdentity() {
+        if (!isPhone()) {
+            throw new UpmsDomainException(UserIdentityErrorCode.USER_IDENTITY_TYPE_MISMATCH);
+        }
     }
 }

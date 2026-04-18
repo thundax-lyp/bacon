@@ -39,14 +39,12 @@ public class Resource {
             String name,
             ResourceType resourceType,
             String httpMethod,
-            String uri,
-            ResourceStatus status) {
+            String uri) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(code, "code must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(resourceType, "resourceType must not be null");
-        Objects.requireNonNull(status, "status must not be null");
-        return new Resource(id, code, name, resourceType, httpMethod, uri, status);
+        return new Resource(id, code, name, resourceType, httpMethod, uri, ResourceStatus.ENABLED);
     }
 
     public static Resource reconstruct(

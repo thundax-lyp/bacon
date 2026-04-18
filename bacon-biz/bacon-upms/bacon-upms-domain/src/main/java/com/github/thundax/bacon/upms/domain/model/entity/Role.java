@@ -37,18 +37,13 @@ public class Role {
     private RoleStatus status;
 
     public static Role create(
-            RoleId id,
-            RoleCode code,
-            String name,
-            RoleType roleType,
-            RoleDataScopeType dataScopeType,
-            RoleStatus status) {
+            RoleId id, RoleCode code, String name, RoleType roleType, RoleDataScopeType dataScopeType) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(code, "code must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(roleType, "roleType must not be null");
-        Objects.requireNonNull(status, "status must not be null");
-        return new Role(id, code, name, roleType, dataScopeType, status);
+        Objects.requireNonNull(dataScopeType, "dataScopeType must not be null");
+        return new Role(id, code, name, roleType, dataScopeType, RoleStatus.ACTIVE);
     }
 
     public static Role reconstruct(

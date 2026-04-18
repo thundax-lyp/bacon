@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.upms.domain.exception.MenuErrorCode;
 import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
+import com.github.thundax.bacon.upms.domain.model.enums.MenuType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ public class Menu {
     /** 菜单主键。 */
     private MenuId id;
     /** 菜单类型。 */
-    private String menuType;
+    private MenuType menuType;
     /** 菜单名称。 */
     private String name;
     /** 父菜单主键，根节点为 null。 */
@@ -42,7 +43,7 @@ public class Menu {
 
     public static Menu create(
             MenuId id,
-            String menuType,
+            MenuType menuType,
             String name,
             MenuId parentId,
             String routePath,
@@ -59,7 +60,7 @@ public class Menu {
 
     public static Menu reconstruct(
             MenuId id,
-            String menuType,
+            MenuType menuType,
             String name,
             MenuId parentId,
             String routePath,
@@ -72,7 +73,7 @@ public class Menu {
 
     public static Menu reconstruct(
             MenuId id,
-            String menuType,
+            MenuType menuType,
             String name,
             MenuId parentId,
             String routePath,
@@ -81,6 +82,7 @@ public class Menu {
             Integer sort,
             String permissionCode,
             List<Menu> children) {
+        Objects.requireNonNull(children, "children must not be null");
         return new Menu(
                 id,
                 menuType,
@@ -91,10 +93,10 @@ public class Menu {
                 icon,
                 sort,
                 permissionCode,
-                new ArrayList<>(Objects.requireNonNull(children, "children must not be null")));
+                new ArrayList<>(children));
     }
 
-    public void retypeAs(String menuType) {
+    public void retypeAs(MenuType menuType) {
         Objects.requireNonNull(menuType, "menuType must not be null");
         this.menuType = menuType;
     }

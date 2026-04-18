@@ -15,7 +15,7 @@ class TenantTest {
 
     @Test
     void shouldToggleTenantStatus() {
-        Tenant tenant = Tenant.create(TenantId.of(101L), "Demo Tenant", TenantCode.of("TENANT_DEMO"), TenantStatus.ACTIVE, null);
+        Tenant tenant = Tenant.create(TenantId.of(101L), "Demo Tenant", TenantCode.of("TENANT_DEMO"), null);
 
         tenant.disable();
         assertThat(tenant.getStatus()).isEqualTo(TenantStatus.DISABLED);
@@ -30,7 +30,6 @@ class TenantTest {
                 TenantId.of(101L),
                 "Demo Tenant",
                 TenantCode.of("TENANT_DEMO"),
-                TenantStatus.ACTIVE,
                 Instant.parse("2099-01-01T00:00:00Z"));
 
         assertThatCode(() -> tenant.assertActive(Instant.parse("2026-01-01T00:00:00Z"))).doesNotThrowAnyException();
@@ -38,7 +37,8 @@ class TenantTest {
 
     @Test
     void shouldRejectInactiveTenant() {
-        Tenant tenant = Tenant.create(TenantId.of(101L), "Demo Tenant", TenantCode.of("TENANT_DEMO"), TenantStatus.DISABLED, null);
+        Tenant tenant = Tenant.reconstruct(
+                TenantId.of(101L), "Demo Tenant", TenantCode.of("TENANT_DEMO"), TenantStatus.DISABLED, null);
 
         assertThatThrownBy(() -> tenant.assertActive(Instant.parse("2026-01-01T00:00:00Z")))
                 .isInstanceOf(UpmsDomainException.class)
@@ -51,7 +51,6 @@ class TenantTest {
                 TenantId.of(101L),
                 "Demo Tenant",
                 TenantCode.of("TENANT_DEMO"),
-                TenantStatus.ACTIVE,
                 Instant.parse("2025-12-31T23:59:59Z"));
 
         assertThatThrownBy(() -> tenant.assertActive(Instant.parse("2026-01-01T00:00:00Z")))
@@ -66,15 +65,13 @@ class TenantTest {
                 TenantId.of(101L),
                 "Demo Tenant",
                 TenantCode.of("TENANT_DEMO"),
-                TenantStatus.ACTIVE,
                 Instant.parse("2099-01-01T00:00:00Z"));
         Tenant expiredTenant = Tenant.create(
                 TenantId.of(102L),
                 "Demo Tenant",
                 TenantCode.of("TENANT_DEMO"),
-                TenantStatus.ACTIVE,
                 Instant.parse("2025-12-31T23:59:59Z"));
-        Tenant disabledTenant = Tenant.create(
+        Tenant disabledTenant = Tenant.reconstruct(
                 TenantId.of(103L),
                 "Demo Tenant",
                 TenantCode.of("TENANT_DEMO"),
@@ -92,7 +89,6 @@ class TenantTest {
                 TenantId.of(101L),
                 "Demo Tenant",
                 TenantCode.of("TENANT_DEMO"),
-                TenantStatus.ACTIVE,
                 Instant.parse("2026-01-01T00:00:00Z"));
 
         assertThat(tenant.isExpired(Instant.parse("2025-12-31T23:59:59Z"))).isFalse();
@@ -108,7 +104,6 @@ class TenantTest {
                 TenantId.of(101L),
                 "Demo Tenant",
                 TenantCode.of("TENANT_DEMO"),
-                TenantStatus.ACTIVE,
                 Instant.parse("2026-01-01T00:00:00Z"));
 
         tenant.renewTo(newExpiredAt, now);
@@ -122,7 +117,6 @@ class TenantTest {
                 TenantId.of(101L),
                 "Demo Tenant",
                 TenantCode.of("TENANT_DEMO"),
-                TenantStatus.ACTIVE,
                 Instant.parse("2026-01-01T00:00:00Z"));
 
         tenant.rename("Demo Tenant New");
@@ -141,7 +135,6 @@ class TenantTest {
                 TenantId.of(101L),
                 "Demo Tenant",
                 TenantCode.of("TENANT_DEMO"),
-                TenantStatus.ACTIVE,
                 Instant.parse("2026-01-01T00:00:00Z"));
 
         assertThatThrownBy(() -> tenant.renewTo(now.minusSeconds(1), now))

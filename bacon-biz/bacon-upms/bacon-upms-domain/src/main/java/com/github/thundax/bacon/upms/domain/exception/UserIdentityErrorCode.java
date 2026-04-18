@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.core.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 public enum UserIdentityErrorCode implements ErrorCode {
+    USER_IDENTITY_TYPE_MISMATCH("UPMS-IDENTITY-409003", "User identity type does not match", HttpStatus.CONFLICT),
     USER_IDENTITY_LOGIN_NOT_ALLOWED(
             "UPMS-IDENTITY-409002", "User identity login is not allowed", HttpStatus.CONFLICT),
     USER_IDENTITY_NOT_USABLE("UPMS-IDENTITY-409001", "User identity is not usable", HttpStatus.CONFLICT);

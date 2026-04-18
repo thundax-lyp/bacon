@@ -29,12 +29,11 @@ public class Post {
     /** 岗位状态。 */
     private PostStatus status;
 
-    public static Post create(PostId id, PostCode code, String name, DepartmentId departmentId, PostStatus status) {
+    public static Post create(PostId id, PostCode code, String name, DepartmentId departmentId) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(code, "code must not be null");
         Objects.requireNonNull(name, "name must not be null");
-        Objects.requireNonNull(status, "status must not be null");
-        return new Post(id, code, name, departmentId, status);
+        return new Post(id, code, name, departmentId, PostStatus.ENABLED);
     }
 
     public static Post reconstruct(PostId id, PostCode code, String name, DepartmentId departmentId, PostStatus status) {

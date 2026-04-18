@@ -17,6 +17,31 @@ import org.junit.jupiter.api.Test;
 class UserCredentialTest {
 
     @Test
+    void shouldCreatePasswordCredentialWithDefaults() {
+        Instant expiresAt = Instant.parse("2099-01-01T00:00:00Z");
+
+        UserCredential credential = UserCredential.createPassword(
+                UserCredentialId.of(101L),
+                UserId.of(201L),
+                UserIdentityId.of(301L),
+                "{noop}secret",
+                true,
+                5,
+                expiresAt);
+
+        assertThat(credential.getCredentialType()).isEqualTo(UserCredentialType.PASSWORD);
+        assertThat(credential.getFactorLevel()).isEqualTo(UserCredentialFactorLevel.PRIMARY);
+        assertThat(credential.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
+        assertThat(credential.isNeedChangePassword()).isTrue();
+        assertThat(credential.getFailedCount()).isZero();
+        assertThat(credential.getFailedLimit()).isEqualTo(5);
+        assertThat(credential.getLockReason()).isNull();
+        assertThat(credential.getLockedUntil()).isNull();
+        assertThat(credential.getExpiresAt()).isEqualTo(expiresAt);
+        assertThat(credential.getLastVerifiedAt()).isNull();
+    }
+
+    @Test
     void shouldAllowActiveUnlockedUnexpiredCredential() {
         UserCredential credential = credential(UserCredentialStatus.ACTIVE, null, Instant.parse("2099-01-01T00:00:00Z"));
 

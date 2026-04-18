@@ -12,8 +12,7 @@ class PostTest {
 
     @Test
     void shouldChangePostFields() {
-        Post post = Post.create(
-                PostId.of(101L), PostCode.of("OPS_LEADER"), "Ops Leader", DepartmentId.of(201L), PostStatus.ENABLED);
+        Post post = Post.create(PostId.of(101L), PostCode.of("OPS_LEADER"), "Ops Leader", DepartmentId.of(201L));
 
         post.recodeAs(PostCode.of("OPS_MANAGER"));
         post.rename("Ops Manager");
@@ -26,8 +25,7 @@ class PostTest {
 
     @Test
     void shouldTogglePostStatus() {
-        Post post = Post.create(
-                PostId.of(101L), PostCode.of("OPS_LEADER"), "Ops Leader", DepartmentId.of(201L), PostStatus.ENABLED);
+        Post post = Post.create(PostId.of(101L), PostCode.of("OPS_LEADER"), "Ops Leader", DepartmentId.of(201L));
 
         post.disable();
         assertThat(post.getStatus()).isEqualTo(PostStatus.DISABLED);
@@ -38,8 +36,7 @@ class PostTest {
 
     @Test
     void shouldChangePostCode() {
-        Post post = Post.create(
-                PostId.of(101L), PostCode.of("OPS_LEADER"), "Ops Leader", DepartmentId.of(201L), PostStatus.ENABLED);
+        Post post = Post.create(PostId.of(101L), PostCode.of("OPS_LEADER"), "Ops Leader", DepartmentId.of(201L));
 
         post.recodeAs(PostCode.of("OPS_MANAGER"));
 

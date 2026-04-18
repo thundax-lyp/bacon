@@ -52,6 +52,35 @@ public class UserCredential {
     /** 最近验证时间。 */
     private Instant lastVerifiedAt;
 
+    public static UserCredential createPassword(
+            UserCredentialId id,
+            UserId userId,
+            UserIdentityId identityId,
+            String encodedPassword,
+            boolean needChangePassword,
+            int failedLimit,
+            Instant expiresAt) {
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(userId, "userId must not be null");
+        Objects.requireNonNull(identityId, "identityId must not be null");
+        Objects.requireNonNull(encodedPassword, "encodedPassword must not be null");
+        return new UserCredential(
+                id,
+                userId,
+                identityId,
+                UserCredentialType.PASSWORD,
+                UserCredentialFactorLevel.PRIMARY,
+                encodedPassword,
+                UserCredentialStatus.ACTIVE,
+                needChangePassword,
+                0,
+                failedLimit,
+                null,
+                null,
+                expiresAt,
+                null);
+    }
+
     public static UserCredential create(
             UserCredentialId id,
             UserId userId,

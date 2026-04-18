@@ -23,13 +23,13 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public Optional<Post> findById(PostId postId) {
-        return support.findPostById(postId);
+        return support.findById(postId);
     }
 
     @Override
     public List<Post> page(
             PostCode code, String name, DepartmentId departmentId, PostStatus status, int pageNo, int pageSize) {
-        return support.listPosts(code, name, departmentId, status, pageNo, pageSize);
+        return support.page(code, name, departmentId, status, pageNo, pageSize);
     }
 
     @Override
@@ -39,16 +39,16 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public Post insert(Post post) {
-        return support.insertPost(post);
+        return support.insert(post);
     }
 
     @Override
     public Post update(Post post) {
-        return support.updatePost(post);
+        return support.update(post);
     }
 
     @Override
     public void delete(PostId postId) {
-        support.deletePost(postId);
+        support.delete(postId);
     }
 }

@@ -18,11 +18,11 @@ public class PaymentAuditLogRepositoryImpl implements PaymentAuditLogRepository 
 
     @Override
     public void insert(PaymentAuditLog auditLog) {
-        support.saveAuditLog(auditLog);
+        support.insert(auditLog);
     }
 
     @Override
     public List<PaymentAuditLog> listLogsByPaymentNo(String paymentNo) {
-        return support.listAuditLogsByPaymentNo(paymentNo);
+        return support.listLogsByPaymentNo(paymentNo);
     }
 }

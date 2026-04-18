@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
@@ -35,25 +35,24 @@ public class MenuRepositoryImpl implements MenuRepository {
 
     @Override
     public Menu insert(Menu menu) {
-        TenantId tenantId = requireTenantId();
-        Menu savedMenu = support.insertMenu(menu);
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
+        Menu savedMenu = support.insert(menu);
         cacheSupport.evictTenantPermission(tenantId);
         return savedMenu;
     }
 
     @Override
     public Menu update(Menu menu) {
-        TenantId tenantId = requireTenantId();
-        Menu savedMenu = support.updateMenu(menu);
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
+        Menu savedMenu = support.update(menu);
         cacheSupport.evictTenantPermission(tenantId);
         return savedMenu;
     }
 
     @Override
     public void delete(MenuId menuId) {
-        TenantId tenantId = requireTenantId();
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         support.delete(menuId);
-        support.deleteRoleMenusByMenuId(menuId);
         cacheSupport.evictTenantPermission(tenantId);
     }
 
@@ -62,7 +61,4 @@ public class MenuRepositoryImpl implements MenuRepository {
         return support.existsChild(menuId);
     }
 
-    private TenantId requireTenantId() {
-        return TenantId.of(BaconContextHolder.requireTenantId());
-    }
 }

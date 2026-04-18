@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -78,14 +79,14 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Optional<Role> findById(RoleId roleId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         return Optional.ofNullable(
                         roleMapper.selectOne(Wrappers.<RoleDO>lambdaQuery().eq(RoleDO::getId, roleId.value())))
                 .map(RolePersistenceAssembler::toDomain);
     }
 
     List<Role> findByUserId(UserId userId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         List<Long> roleIds =
                 userRoleRelMapper
                         .selectList(Wrappers.<UserRoleRelDO>lambdaQuery().eq(UserRoleRelDO::getUserId, userId.value()))
@@ -104,7 +105,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    List<UserId> findAssignedUserIds(TenantId tenantId, RoleId roleId) {
+    List<UserId> findAssignedUserIds(RoleId roleId) {
         return userRoleRelMapper
                 .selectList(Wrappers.<UserRoleRelDO>lambdaQuery().eq(UserRoleRelDO::getRoleId, roleId.value()))
                 .stream()
@@ -114,7 +115,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    List<Role> listRoles(RoleCode code, String name, RoleType roleType, RoleStatus status, int pageNo, int pageSize) {
+    List<Role> page(RoleCode code, String name, RoleType roleType, RoleStatus status, int pageNo, int pageSize) {
         return roleMapper
                 .selectList(Wrappers.<RoleDO>lambdaQuery()
                         .like(code != null, RoleDO::getCode, code == null ? null : code.value())
@@ -137,7 +138,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .orElse(0L);
     }
 
-    Role insertRole(Role role) {
+    Role insert(Role role) {
         RoleDO roleDO = RolePersistenceAssembler.toDataObject(role);
         roleMapper.insert(roleDO);
         upsertDataPermissionRule(
@@ -147,7 +148,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         return RolePersistenceAssembler.toDomain(roleDO);
     }
 
-    Role updateRole(Role role) {
+    Role update(Role role) {
         RoleDO roleDO = RolePersistenceAssembler.toDataObject(role);
         roleMapper.updateById(roleDO);
         upsertDataPermissionRule(
@@ -158,7 +159,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void delete(RoleId roleId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         roleMapper.delete(Wrappers.<RoleDO>lambdaQuery().eq(RoleDO::getId, roleId.value()));
         userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery().eq(UserRoleRelDO::getRoleId, roleId.value()));
         roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery().eq(RoleMenuRelDO::getRoleId, roleId.value()));
@@ -171,7 +172,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void replaceUserRoles(UserId userId, Collection<RoleId> roleIds) {
-        TenantId tenantId = requireTenantId();
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery().eq(UserRoleRelDO::getUserId, userId.value()));
         if (roleIds == null || roleIds.isEmpty()) {
             return;
@@ -183,12 +184,12 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void deleteUserRolesByUser(UserId userId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery().eq(UserRoleRelDO::getUserId, userId.value()));
     }
 
-    Set<MenuId> getAssignedMenuIds(RoleId roleId) {
-        requireTenantId();
+    Set<MenuId> findMenuIds(RoleId roleId) {
+        BaconContextHolder.requireTenantId();
         return roleMenuRelMapper
                 .selectList(Wrappers.<RoleMenuRelDO>lambdaQuery().eq(RoleMenuRelDO::getRoleId, roleId.value()))
                 .stream()
@@ -198,7 +199,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void replaceRoleMenus(RoleId roleId, Collection<MenuId> menuIds) {
-        TenantId tenantId = requireTenantId();
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery().eq(RoleMenuRelDO::getRoleId, roleId.value()));
         if (menuIds == null || menuIds.isEmpty()) {
             return;
@@ -209,8 +210,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         }
     }
 
-    Set<ResourceCode> getAssignedResourceCodes(RoleId roleId) {
-        requireTenantId();
+    Set<ResourceCode> findResourceCodes(RoleId roleId) {
+        BaconContextHolder.requireTenantId();
         List<Long> resourceIds = roleResourceRelMapper
                 .selectList(Wrappers.<RoleResourceRelDO>lambdaQuery().eq(RoleResourceRelDO::getRoleId, roleId.value()))
                 .stream()
@@ -226,7 +227,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void replaceRoleResources(RoleId roleId, Collection<ResourceCode> resourceCodes) {
-        TenantId tenantId = requireTenantId();
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         roleResourceRelMapper.delete(
                 Wrappers.<RoleResourceRelDO>lambdaQuery().eq(RoleResourceRelDO::getRoleId, roleId.value()));
         if (resourceCodes == null || resourceCodes.isEmpty()) {
@@ -245,8 +246,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         }
     }
 
-    RoleDataScopeAssignment findAssignedDataScope(RoleId roleId) {
-        requireTenantId();
+    RoleDataScopeAssignment findDataScope(RoleId roleId) {
+        BaconContextHolder.requireTenantId();
         RoleDataScopeType dataScopeType = Optional.ofNullable(dataPermissionRuleMapper.selectOne(
                         Wrappers.<DataPermissionRuleDO>lambdaQuery().eq(DataPermissionRuleDO::getRoleId, roleId.value())))
                 .map(DataPermissionRuleDO::getDataScopeType)
@@ -263,7 +264,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void replaceRoleDataScope(RoleId roleId, RoleDataScopeType dataScopeType, Collection<DepartmentId> departmentIds) {
-        TenantId tenantId = requireTenantId();
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         upsertDataPermissionRule(tenantId, roleId, dataScopeType);
         roleDataScopeRelMapper.delete(
                 Wrappers.<RoleDataScopeRelDO>lambdaQuery().eq(RoleDataScopeRelDO::getRoleId, roleId.value()));
@@ -280,7 +281,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void removeMenuFromAssignments(MenuId menuId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery().eq(RoleMenuRelDO::getMenuId, menuId.value()));
     }
 
@@ -299,7 +300,4 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         dataPermissionRuleMapper.updateById(existing);
     }
 
-    private TenantId requireTenantId() {
-        return TenantId.of(BaconContextHolder.requireTenantId());
-    }
 }

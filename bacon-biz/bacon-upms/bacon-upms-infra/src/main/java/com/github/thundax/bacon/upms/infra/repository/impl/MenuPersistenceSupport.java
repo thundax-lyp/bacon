@@ -2,7 +2,6 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.infra.persistence.assembler.MenuPersistenceAssembler;
@@ -28,50 +27,42 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     List<Menu> list() {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         return menuMapper.selectList(Wrappers.<MenuDO>lambdaQuery().orderByAsc(MenuDO::getSort, MenuDO::getId)).stream()
                 .map(MenuPersistenceAssembler::toDomain)
                 .toList();
     }
 
     Optional<Menu> findById(MenuId menuId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         return Optional.ofNullable(
                         menuMapper.selectOne(Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getId, menuId.value())))
                 .map(MenuPersistenceAssembler::toDomain);
     }
 
-    Menu insertMenu(Menu menu) {
+    Menu insert(Menu menu) {
         MenuDO dataObject = MenuPersistenceAssembler.toDataObject(menu);
         menuMapper.insert(dataObject);
         return MenuPersistenceAssembler.toDomain(dataObject);
     }
 
-    Menu updateMenu(Menu menu) {
+    Menu update(Menu menu) {
         MenuDO dataObject = MenuPersistenceAssembler.toDataObject(menu);
         menuMapper.updateById(dataObject);
         return MenuPersistenceAssembler.toDomain(dataObject);
     }
 
     void delete(MenuId menuId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
+        roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery().eq(RoleMenuRelDO::getMenuId, menuId.value()));
         menuMapper.delete(Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getId, menuId.value()));
     }
 
-    void deleteRoleMenusByMenuId(MenuId menuId) {
-        requireTenantId();
-        roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery().eq(RoleMenuRelDO::getMenuId, menuId.value()));
-    }
-
     boolean existsChild(MenuId menuId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         return Optional.ofNullable(menuMapper.selectCount(
                                 Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getParentId, menuId.value())))
                         .orElse(0L)
                 > 0L;
-    }
-
-    private TenantId requireTenantId() {
-        return TenantId.of(BaconContextHolder.requireTenantId());
     }
 }

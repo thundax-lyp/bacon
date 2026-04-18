@@ -21,21 +21,17 @@ class SysLogPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.sysLogRecordMapper = sysLogRecordMapper;
     }
 
-    void saveSysLog(SysLogRecord sysLogRecord) {
+    void insert(SysLogRecord sysLogRecord) {
         SysLogRecordDO dataObject = SysLogRecordPersistenceAssembler.toDataObject(sysLogRecord);
-        if (dataObject.getId() == null) {
-            sysLogRecordMapper.insert(dataObject);
-        } else {
-            sysLogRecordMapper.updateById(dataObject);
-        }
+        sysLogRecordMapper.insert(dataObject);
     }
 
-    Optional<SysLogRecord> findSysLogById(SysLogId logId) {
+    Optional<SysLogRecord> findById(SysLogId logId) {
         return Optional.ofNullable(sysLogRecordMapper.selectById(logId.value()))
                 .map(SysLogRecordPersistenceAssembler::toDomain);
     }
 
-    List<SysLogRecord> listSysLogs(
+    List<SysLogRecord> page(
             String module, String eventType, String result, String operatorName, int pageNo, int pageSize) {
         return sysLogRecordMapper
                 .selectList(Wrappers.<SysLogRecordDO>lambdaQuery()

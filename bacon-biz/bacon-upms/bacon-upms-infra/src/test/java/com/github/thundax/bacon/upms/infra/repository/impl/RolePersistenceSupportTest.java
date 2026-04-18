@@ -115,7 +115,7 @@ class RolePersistenceSupportTest {
                         new ResourceDO(21L, 1001L, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE"),
                         new ResourceDO(22L, 1001L, "upms:user:edit", "User Edit", "API", "POST", "/users", "ACTIVE")));
 
-        Set<ResourceCode> assignedResourceCodes = support.getAssignedResourceCodes(RoleId.of(9L));
+        Set<ResourceCode> assignedResourceCodes = support.findResourceCodes(RoleId.of(9L));
 
         assertThat(assignedResourceCodes).containsExactlyInAnyOrder(
                 ResourceCode.of("upms:user:view"), ResourceCode.of("upms:user:edit"));

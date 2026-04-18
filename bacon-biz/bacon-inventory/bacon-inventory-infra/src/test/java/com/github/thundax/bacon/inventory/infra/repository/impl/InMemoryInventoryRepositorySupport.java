@@ -5,6 +5,7 @@ import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -376,7 +377,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public List<InventoryAuditDeadLetter> page(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
-        TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
@@ -395,7 +396,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public long count(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
-        TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
@@ -405,7 +406,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public Optional<InventoryAuditDeadLetter> findById(DeadLetterId id) {
-        TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
@@ -420,7 +421,7 @@ public class InMemoryInventoryRepositorySupport {
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,
             Instant replayAt) {
-        TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         return findById(id)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
                 .filter(item -> InventoryAuditReplayStatus.PENDING.equals(item.getReplayStatus())

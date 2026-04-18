@@ -55,22 +55,27 @@ public class PaymentRepositorySupport {
         log.info("Using MyBatis-Plus payment repository");
     }
 
-    public PaymentOrder saveOrder(PaymentOrder paymentOrder) {
+    public PaymentOrder insert(PaymentOrder paymentOrder) {
         Instant now = Instant.now();
         PaymentOrderDO dataObject = paymentOrderPersistenceAssembler.toDataObject(paymentOrder, now);
         if (dataObject.getId() == null) {
             throw new IllegalArgumentException("payment order id must not be null");
         }
-        PaymentOrderDO existing = paymentOrderMapper.selectById(dataObject.getId());
-        if (existing == null) {
-            paymentOrderMapper.insert(dataObject);
-        } else {
-            // 更新 0 行直接视为持久化冲突，避免应用层把“对象已保存”误判成成功。
-            if (paymentOrderMapper.updateById(dataObject) == 0) {
-                throw new PaymentDomainException(
-                        PaymentErrorCode.PAYMENT_PERSISTENCE_CONFLICT,
-                        paymentOrder.getPaymentNo().value());
-            }
+        paymentOrderMapper.insert(dataObject);
+        return paymentOrderPersistenceAssembler.toDomain(dataObject);
+    }
+
+    public PaymentOrder update(PaymentOrder paymentOrder) {
+        Instant now = Instant.now();
+        PaymentOrderDO dataObject = paymentOrderPersistenceAssembler.toDataObject(paymentOrder, now);
+        if (dataObject.getId() == null) {
+            throw new IllegalArgumentException("payment order id must not be null");
+        }
+        // 更新 0 行直接视为持久化冲突，避免应用层把“对象已保存”误判成成功。
+        if (paymentOrderMapper.updateById(dataObject) == 0) {
+            throw new PaymentDomainException(
+                    PaymentErrorCode.PAYMENT_PERSISTENCE_CONFLICT,
+                    paymentOrder.getPaymentNo().value());
         }
         return paymentOrderPersistenceAssembler.toDomain(dataObject);
     }
@@ -89,7 +94,7 @@ public class PaymentRepositorySupport {
                 .map(paymentOrderPersistenceAssembler::toDomain);
     }
 
-    public PaymentCallbackRecord saveCallbackRecord(PaymentCallbackRecord callbackRecord) {
+    public PaymentCallbackRecord insert(PaymentCallbackRecord callbackRecord) {
         PaymentCallbackRecordDO dataObject = paymentCallbackRecordPersistenceAssembler.toDataObject(callbackRecord);
         // 回调记录是证据追加模型；带上上游生成的 id 后直接插入，不在仓储层做“空 id 补发号”。
         if (dataObject.getId() == null) {
@@ -132,7 +137,7 @@ public class PaymentRepositorySupport {
                 .toList();
     }
 
-    public void saveAuditLog(PaymentAuditLog auditLog) {
+    public void insert(PaymentAuditLog auditLog) {
         PaymentAuditLogDO dataObject = paymentAuditLogPersistenceAssembler.toDataObject(auditLog);
         // 支付审计 id 由上游发号后带入，这里只负责追加落库，不再在仓储层补发 id。
         if (dataObject.getId() == null) {
@@ -141,7 +146,7 @@ public class PaymentRepositorySupport {
         paymentAuditLogMapper.insert(dataObject);
     }
 
-    public List<PaymentAuditLog> listAuditLogsByPaymentNo(String paymentNo) {
+    public List<PaymentAuditLog> listLogsByPaymentNo(String paymentNo) {
         BaconContextHolder.requireTenantId();
         return paymentAuditLogMapper
                 .selectList(Wrappers.<PaymentAuditLogDO>lambdaQuery()

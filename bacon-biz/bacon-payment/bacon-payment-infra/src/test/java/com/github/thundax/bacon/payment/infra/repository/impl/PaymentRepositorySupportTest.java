@@ -59,7 +59,7 @@ class PaymentRepositorySupportTest {
                 new PaymentAuditLogPersistenceAssembler());
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        PaymentOrder persisted = support.saveOrder(PaymentOrder.create(
+        PaymentOrder persisted = support.insert(PaymentOrder.create(
                 PaymentOrderId.of(8001L),
                 PaymentNo.of("PAY-10001"),
                 OrderNo.of("ORD-10001"),
@@ -107,7 +107,7 @@ class PaymentRepositorySupportTest {
                 null);
         paymentOrder.close(Instant.parse("2026-03-27T10:15:00Z"));
 
-        PaymentOrder persisted = support.saveOrder(paymentOrder);
+        PaymentOrder persisted = support.update(paymentOrder);
 
         assertNotNull(updatedRef.get());
         assertEquals(9001L, updatedRef.get().getId());
@@ -145,7 +145,7 @@ class PaymentRepositorySupportTest {
                 null);
         paymentOrder.close(Instant.parse("2026-03-27T10:15:00Z"));
 
-        PaymentDomainException ex = assertThrows(PaymentDomainException.class, () -> support.saveOrder(paymentOrder));
+        PaymentDomainException ex = assertThrows(PaymentDomainException.class, () -> support.update(paymentOrder));
 
         assertEquals(PaymentErrorCode.PAYMENT_PERSISTENCE_CONFLICT.code(), ex.getCode());
     }
@@ -212,7 +212,7 @@ class PaymentRepositorySupportTest {
         PaymentOrder paymentOrder = support.findByPaymentNo("PAY-10003").orElseThrow();
         PaymentCallbackRecord latestCallback =
                 support.findLatestByPaymentNo("PAY-10003").orElseThrow();
-        List<PaymentAuditLog> auditLogs = support.listAuditLogsByPaymentNo("PAY-10003");
+        List<PaymentAuditLog> auditLogs = support.listLogsByPaymentNo("PAY-10003");
 
         assertEquals(PaymentStatus.PAID.value(), paymentOrder.getPaymentStatus().value());
         assertEquals("TXN-10003", latestCallback.getChannelTransactionNo());

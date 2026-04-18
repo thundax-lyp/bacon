@@ -29,7 +29,7 @@ public class SysLogRepositoryImpl implements SysLogRepository {
 
     @Override
     public void insertToDatabase(SysLogRecord sysLogRecord) {
-        support.saveSysLog(sysLogRecord);
+        support.insert(sysLogRecord);
     }
 
     @Override
@@ -53,13 +53,13 @@ public class SysLogRepositoryImpl implements SysLogRepository {
 
     @Override
     public Optional<SysLogRecord> findById(SysLogId logId) {
-        return support.findSysLogById(logId);
+        return support.findById(logId);
     }
 
     @Override
     public List<SysLogRecord> page(
             String module, String eventType, String result, String operatorName, int pageNo, int pageSize) {
-        return support.listSysLogs(module, eventType, result, operatorName, pageNo, pageSize);
+        return support.page(module, eventType, result, operatorName, pageNo, pageSize);
     }
 
     @Override

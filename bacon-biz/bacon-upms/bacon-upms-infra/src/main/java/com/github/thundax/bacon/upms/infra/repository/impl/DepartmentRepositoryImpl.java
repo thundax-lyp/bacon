@@ -45,12 +45,12 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
 
     @Override
     public Department insert(Department department) {
-        return support.insertDepartment(department);
+        return support.insert(department);
     }
 
     @Override
     public Department update(Department department) {
-        return support.updateDepartment(department);
+        return support.update(department);
     }
 
     @Override

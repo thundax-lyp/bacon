@@ -34,7 +34,7 @@ public class InMemoryPaymentRepositorySupport {
         log.info("Using in-memory payment repository");
     }
 
-    public PaymentOrder saveOrder(PaymentOrder paymentOrder) {
+    public PaymentOrder insert(PaymentOrder paymentOrder) {
         PaymentOrder persisted = paymentOrder.getId() == null
                 ? PaymentOrder.reconstruct(
                         PaymentOrderId.of(paymentOrderIdGenerator.getAndIncrement()),
@@ -60,6 +60,14 @@ public class InMemoryPaymentRepositorySupport {
         return persisted;
     }
 
+    public PaymentOrder update(PaymentOrder paymentOrder) {
+        PaymentOrder persisted = paymentOrder;
+        paymentsByPaymentNo.put(
+                paymentKey(currentTenantId(), persisted.getPaymentNo().value()), persisted);
+        paymentsByOrderNo.put(orderKey(currentTenantId(), persisted.getOrderNo().value()), persisted);
+        return persisted;
+    }
+
     public Optional<PaymentOrder> findByPaymentNo(String paymentNo) {
         return Optional.ofNullable(paymentsByPaymentNo.get(paymentKey(currentTenantId(), paymentNo)));
     }
@@ -68,7 +76,7 @@ public class InMemoryPaymentRepositorySupport {
         return Optional.ofNullable(paymentsByOrderNo.get(orderKey(currentTenantId(), orderNo)));
     }
 
-    public PaymentCallbackRecord saveCallbackRecord(PaymentCallbackRecord callbackRecord) {
+    public PaymentCallbackRecord insert(PaymentCallbackRecord callbackRecord) {
         PaymentCallbackRecord persisted = callbackRecord.getId() == null
                 ? PaymentCallbackRecord.reconstruct(
                         callbackRecordIdGenerator.getAndIncrement(),
@@ -110,7 +118,7 @@ public class InMemoryPaymentRepositorySupport {
                 callbackRecordsByPaymentNo.getOrDefault(paymentKey(currentTenantId(), paymentNo), List.of()));
     }
 
-    public void saveAuditLog(PaymentAuditLog auditLog) {
+    public void insert(PaymentAuditLog auditLog) {
         PaymentAuditLog persisted = auditLog.getId() == null
                 ? PaymentAuditLog.reconstruct(
                         auditLogIdGenerator.getAndIncrement(),
@@ -128,7 +136,7 @@ public class InMemoryPaymentRepositorySupport {
                 .add(persisted);
     }
 
-    public List<PaymentAuditLog> listAuditLogsByPaymentNo(String paymentNo) {
+    public List<PaymentAuditLog> listLogsByPaymentNo(String paymentNo) {
         return List.copyOf(auditLogsByPaymentNo.getOrDefault(paymentKey(currentTenantId(), paymentNo), List.of()));
     }
 

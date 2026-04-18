@@ -21,7 +21,7 @@ public class InMemoryPaymentCallbackRecordRepositoryImpl implements PaymentCallb
 
     @Override
     public PaymentCallbackRecord insert(PaymentCallbackRecord callbackRecord) {
-        return support.saveCallbackRecord(callbackRecord);
+        return support.insert(callbackRecord);
     }
 
     @Override

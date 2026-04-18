@@ -51,7 +51,7 @@ class InMemoryPaymentRepositorySupportTest {
                 Instant.parse("2026-03-27T10:00:00Z"));
         paymentOrder.markPaying();
 
-        PaymentOrder persisted = repository.saveOrder(paymentOrder);
+        PaymentOrder persisted = repository.insert(paymentOrder);
 
         assertEquals(PaymentOrderId.of(1000L), persisted.getId());
         assertEquals(
@@ -76,7 +76,7 @@ class InMemoryPaymentRepositorySupportTest {
         Instant first = Instant.parse("2026-03-27T10:01:00Z");
         Instant second = Instant.parse("2026-03-27T10:02:00Z");
 
-        repository.saveCallbackRecord(PaymentCallbackRecord.create(
+        repository.insert(PaymentCallbackRecord.create(
                 1000L,
                 PaymentNo.of("PAY-10002"),
                 OrderNo.of("ORD-10002"),
@@ -85,7 +85,7 @@ class InMemoryPaymentRepositorySupportTest {
                 PaymentChannelStatus.PAYING,
                 "{\"tradeStatus\":\"PROCESSING\"}",
                 first));
-        repository.saveCallbackRecord(PaymentCallbackRecord.create(
+        repository.insert(PaymentCallbackRecord.create(
                 1001L,
                 PaymentNo.of("PAY-10002"),
                 OrderNo.of("ORD-10002"),
@@ -95,7 +95,7 @@ class InMemoryPaymentRepositorySupportTest {
                 "{\"tradeStatus\":\"SUCCESS\"}",
                 second));
 
-        repository.saveAuditLog(PaymentAuditLog.create(
+        repository.insert(PaymentAuditLog.create(
                 1000L,
                 PaymentNo.of("PAY-10002"),
                 PaymentAuditActionType.CREATE,
@@ -104,7 +104,7 @@ class InMemoryPaymentRepositorySupportTest {
                 PaymentAuditOperatorType.SYSTEM,
                 "0",
                 first));
-        repository.saveAuditLog(PaymentAuditLog.create(
+        repository.insert(PaymentAuditLog.create(
                 1001L,
                 PaymentNo.of("PAY-10002"),
                 PaymentAuditActionType.CALLBACK_PAID,
@@ -117,7 +117,7 @@ class InMemoryPaymentRepositorySupportTest {
         PaymentCallbackRecord latest =
                 repository.findLatestByPaymentNo("PAY-10002").orElseThrow();
         List<PaymentCallbackRecord> callbacks = repository.listByPaymentNo("PAY-10002");
-        List<PaymentAuditLog> auditLogs = repository.listAuditLogsByPaymentNo("PAY-10002");
+        List<PaymentAuditLog> auditLogs = repository.listLogsByPaymentNo("PAY-10002");
 
         assertEquals("TXN-2", latest.getChannelTransactionNo());
         assertEquals(2, callbacks.size());
@@ -129,7 +129,7 @@ class InMemoryPaymentRepositorySupportTest {
     @Test
     void shouldFindCallbackByChannelTransactionNo() {
         InMemoryPaymentRepositorySupport repository = new InMemoryPaymentRepositorySupport();
-        repository.saveCallbackRecord(PaymentCallbackRecord.create(
+        repository.insert(PaymentCallbackRecord.create(
                 1002L,
                 PaymentNo.of("PAY-10003"),
                 OrderNo.of("ORD-10003"),

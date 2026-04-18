@@ -133,9 +133,9 @@ class PaymentRepositorySupportIntegrationTest {
                 Instant.parse("2026-03-27T10:00:00Z"));
         paymentOrder.markPaying();
 
-        PaymentOrder persistedOrder = paymentRepositorySupport.saveOrder(paymentOrder);
+        PaymentOrder persistedOrder = paymentRepositorySupport.insert(paymentOrder);
         PaymentCallbackRecord persistedCallback =
-                paymentRepositorySupport.saveCallbackRecord(PaymentCallbackRecord.create(
+                paymentRepositorySupport.insert(PaymentCallbackRecord.create(
                         1L,
                         persistedOrder.getPaymentNo(),
                         persistedOrder.getOrderNo(),
@@ -144,7 +144,7 @@ class PaymentRepositorySupportIntegrationTest {
                         PaymentChannelStatus.SUCCESS,
                         "{\"tradeStatus\":\"SUCCESS\"}",
                         Instant.parse("2026-03-27T10:01:00Z")));
-        paymentRepositorySupport.saveAuditLog(PaymentAuditLog.create(
+        paymentRepositorySupport.insert(PaymentAuditLog.create(
                 1L,
                 persistedOrder.getPaymentNo(),
                 PaymentAuditActionType.CREATE,

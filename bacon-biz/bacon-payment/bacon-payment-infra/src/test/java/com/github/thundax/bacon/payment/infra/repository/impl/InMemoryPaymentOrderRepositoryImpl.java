@@ -20,12 +20,12 @@ public class InMemoryPaymentOrderRepositoryImpl implements PaymentOrderRepositor
 
     @Override
     public PaymentOrder insert(PaymentOrder paymentOrder) {
-        return support.saveOrder(paymentOrder);
+        return support.insert(paymentOrder);
     }
 
     @Override
     public PaymentOrder update(PaymentOrder paymentOrder) {
-        return support.saveOrder(paymentOrder);
+        return support.update(paymentOrder);
     }
 
     @Override

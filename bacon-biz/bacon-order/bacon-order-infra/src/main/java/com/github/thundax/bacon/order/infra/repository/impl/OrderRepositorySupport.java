@@ -99,11 +99,11 @@ public class OrderRepositorySupport {
         return order;
     }
 
-    public Optional<Order> findOrderById(Long id) {
+    public Optional<Order> findById(Long id) {
         return Optional.ofNullable(orderMapper.selectById(id)).map(this::toDomainWithSnapshots);
     }
 
-    public Optional<Order> findOrderByOrderNo(String orderNo) {
+    public Optional<Order> findByOrderNo(String orderNo) {
         BaconContextHolder.requireTenantId();
         return Optional.ofNullable(
                         orderMapper.selectOne(Wrappers.<OrderDO>lambdaQuery().eq(OrderDO::getOrderNo, orderNo)))

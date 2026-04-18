@@ -34,12 +34,12 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Optional<Order> findById(Long id) {
-        return support.findOrderById(id);
+        return support.findById(id);
     }
 
     @Override
     public Optional<Order> findByOrderNo(String orderNo) {
-        return support.findOrderByOrderNo(orderNo);
+        return support.findByOrderNo(orderNo);
     }
 
     @Override

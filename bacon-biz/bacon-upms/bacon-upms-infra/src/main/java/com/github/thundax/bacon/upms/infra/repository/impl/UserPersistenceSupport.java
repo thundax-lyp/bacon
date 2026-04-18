@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
@@ -57,7 +58,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Optional<User> findById(UserId userId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         return Optional.ofNullable(userMapper.selectOne(Wrappers.<UserDO>lambdaQuery()
                         .eq(UserDO::getId, userId.value())
                         .eq(UserDO::getDeleted, false)))
@@ -70,7 +71,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Optional<UserIdentity> findIdentity(UserIdentityType identityType, String identityValue) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         return Optional.ofNullable(userIdentityMapper.selectOne(Wrappers.<UserIdentityDO>lambdaQuery()
                         .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value())
                         .eq(UserIdentityDO::getIdentityValue, identityValue)
@@ -78,8 +79,8 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(UserPersistenceAssembler::toDomain);
     }
 
-    Optional<UserIdentity> findIdentityByUserId(UserId userId, UserIdentityType identityType) {
-        requireTenantId();
+    Optional<UserIdentity> findIdentity(UserId userId, UserIdentityType identityType) {
+        BaconContextHolder.requireTenantId();
         return Optional.ofNullable(userIdentityMapper.selectOne(Wrappers.<UserIdentityDO>lambdaQuery()
                         .eq(UserIdentityDO::getUserId, userId.value())
                         .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value())
@@ -87,8 +88,8 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(UserPersistenceAssembler::toDomain);
     }
 
-    Optional<UserCredential> findCredentialByUserId(UserId userId, UserCredentialType credentialType) {
-        requireTenantId();
+    Optional<UserCredential> findCredential(UserId userId, UserCredentialType credentialType) {
+        BaconContextHolder.requireTenantId();
         return Optional.ofNullable(userCredentialMapper.selectOne(Wrappers.<UserCredentialDO>lambdaQuery()
                         .eq(UserCredentialDO::getUserId, userId.value())
                         .eq(
@@ -97,7 +98,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(UserPersistenceAssembler::toDomain);
     }
 
-    List<User> listUsers(String account, String name, String phone, UserStatus status, int pageNo, int pageSize) {
+    List<User> page(String account, String name, String phone, UserStatus status, int pageNo, int pageSize) {
         Set<Long> userIds = resolveUserIdsByIdentityFilters(account, phone);
         if (userIds != null && userIds.isEmpty()) {
             return List.of();
@@ -169,7 +170,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void delete(UserId userId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         UserDO userDO = userMapper.selectOne(
                 Wrappers.<UserDO>lambdaQuery().eq(UserDO::getId, userId.value()).eq(UserDO::getDeleted, false));
         if (userDO == null) {
@@ -180,7 +181,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void replaceUserRoles(UserId userId, Collection<RoleId> roleIds) {
-        TenantId tenantId = requireTenantId();
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         deleteUserRolesByUser(userId);
         if (roleIds == null || roleIds.isEmpty()) {
             return;
@@ -192,21 +193,21 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void deleteUserRolesByUser(UserId userId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery().eq(UserRoleRelDO::getUserId, userId.value()));
     }
 
-    void deleteUserIdentitiesByUser(TenantId tenantId, UserId userId) {
+    void deleteUserIdentitiesByUser(UserId userId) {
         userIdentityMapper.delete(Wrappers.<UserIdentityDO>lambdaQuery().eq(UserIdentityDO::getUserId, userId.value()));
     }
 
-    void deleteUserIdentitiesByUserAndType(TenantId tenantId, UserId userId, UserIdentityType identityType) {
+    void deleteUserIdentitiesByUserAndType(UserId userId, UserIdentityType identityType) {
         userIdentityMapper.delete(Wrappers.<UserIdentityDO>lambdaQuery()
                 .eq(UserIdentityDO::getUserId, userId.value())
                 .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value()));
     }
 
-    UserIdentity saveUserIdentity(UserIdentity userIdentity) {
+    UserIdentity saveIdentity(UserIdentity userIdentity) {
         UserIdentityDO dataObject = UserPersistenceAssembler.toDataObject(userIdentity);
         if (dataObject.getId() == null || userIdentityMapper.selectById(dataObject.getId()) == null) {
             userIdentityMapper.insert(dataObject);
@@ -216,7 +217,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return UserPersistenceAssembler.toDomain(dataObject);
     }
 
-    UserCredential saveUserCredential(UserCredential userCredential) {
+    UserCredential saveCredential(UserCredential userCredential) {
         UserCredentialDO dataObject = UserPersistenceAssembler.toDataObject(userCredential);
         if (dataObject.getId() == null || userCredentialMapper.selectById(dataObject.getId()) == null) {
             userCredentialMapper.insert(dataObject);
@@ -226,21 +227,17 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return UserPersistenceAssembler.toDomain(dataObject);
     }
 
-    void deleteUserCredentialsByUser(TenantId tenantId, UserId userId) {
+    void deleteUserCredentialsByUser(UserId userId) {
         userCredentialMapper.delete(
                 Wrappers.<UserCredentialDO>lambdaQuery().eq(UserCredentialDO::getUserId, userId.value()));
     }
 
     boolean hasActiveUserInDepartment(DepartmentId departmentId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         return Optional.ofNullable(userMapper.selectCount(Wrappers.<UserDO>lambdaQuery()
                                 .eq(UserDO::getDepartmentId, departmentId.value())
                                 .eq(UserDO::getDeleted, false)))
                         .orElse(0L)
                 > 0L;
-    }
-
-    private TenantId requireTenantId() {
-        return TenantId.of(BaconContextHolder.requireTenantId());
     }
 }

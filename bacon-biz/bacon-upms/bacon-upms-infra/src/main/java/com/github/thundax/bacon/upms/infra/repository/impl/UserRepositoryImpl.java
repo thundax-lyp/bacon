@@ -2,9 +2,9 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -74,18 +74,18 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public Optional<UserIdentity> findIdentityByUserId(UserId userId, UserIdentityType identityType) {
-        return support.findIdentityByUserId(userId, identityType);
+        return support.findIdentity(userId, identityType);
     }
 
     @Override
     public Optional<UserCredential> findCredentialByUserId(UserId userId, UserCredentialType credentialType) {
-        return support.findCredentialByUserId(userId, credentialType);
+        return support.findCredential(userId, credentialType);
     }
 
     @Override
     public List<User> page(
             String account, String name, String phone, UserStatus status, int pageNo, int pageSize) {
-        return support.listUsers(account, name, phone, status, pageNo, pageSize);
+        return support.page(account, name, phone, status, pageNo, pageSize);
     }
 
     @Override
@@ -95,7 +95,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public List<User> list(String account, String name, String phone, UserStatus status) {
-        return support.listUsers(account, name, phone, status, 1, Integer.MAX_VALUE);
+        return support.page(account, name, phone, status, 1, Integer.MAX_VALUE);
     }
 
     @Override
@@ -135,25 +135,23 @@ public class UserRepositoryImpl implements UserRepository {
             UserIdentityId phoneIdentityId,
             UserCredentialId passwordCredentialIdIfAbsent,
             boolean newUser) {
-        TenantId tenantId = requireTenantId();
         User savedUser = copyUser(user);
         savedUser = newUser ? support.insertUser(savedUser) : support.updateUser(savedUser);
-        UserIdentity accountIdentity = replaceAccountIdentity(tenantId, savedUser, account, accountIdentityId);
+        UserIdentity accountIdentity = replaceAccountIdentity(savedUser, account, accountIdentityId);
         upsertPasswordCredential(
                 savedUser,
                 accountIdentity,
-                resolvePasswordHash(tenantId, savedUser, newUser),
+                resolvePasswordHash(savedUser, newUser),
                 newUser,
                 false,
                 passwordCredentialIdIfAbsent);
-        replacePhoneIdentity(tenantId, savedUser, phone, phoneIdentityId);
+        replacePhoneIdentity(BaconIdContextHelper.requireTenantId(), savedUser, phone, phoneIdentityId);
         return savedUser;
     }
 
     @Override
     public User updatePassword(
             UserId userId, String password, boolean needChangePassword, UserCredentialId passwordCredentialIdIfAbsent) {
-        TenantId tenantId = requireTenantId();
         User currentUser =
                 findById(userId).orElseThrow(() -> new NotFoundException("User not found: " + userId));
         User savedUser = support.updateUser(copyUser(currentUser));
@@ -170,7 +168,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public List<Role> updateRoleIds(UserId userId, List<RoleId> roleIds) {
-        TenantId tenantId = requireTenantId();
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         List<Role> roles = roleIds.stream()
                 .map(roleId -> roleRepository
                         .findById(roleId)
@@ -183,11 +181,11 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public void delete(UserId userId) {
-        TenantId tenantId = requireTenantId();
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         support.delete(userId);
         support.deleteUserRolesByUser(userId);
-        support.deleteUserIdentitiesByUser(tenantId, userId);
-        support.deleteUserCredentialsByUser(tenantId, userId);
+        support.deleteUserIdentitiesByUser(userId);
+        support.deleteUserCredentialsByUser(userId);
         cacheSupport.evictUserPermission(tenantId, userId);
     }
 
@@ -200,38 +198,37 @@ public class UserRepositoryImpl implements UserRepository {
                 user.getStatus());
     }
 
-    private UserIdentity replaceAccountIdentity(
-            TenantId tenantId, User user, String account, UserIdentityId accountIdentityId) {
+    private UserIdentity replaceAccountIdentity(User user, String account, UserIdentityId accountIdentityId) {
         String normalizedAccount = requireIdentityValue(account, UserIdentityType.ACCOUNT);
-        UserIdentity currentIdentity = support.findIdentityByUserId(user.getId(), UserIdentityType.ACCOUNT)
+        UserIdentity currentIdentity = support.findIdentity(user.getId(), UserIdentityType.ACCOUNT)
                 .orElse(null);
         if (currentIdentity == null) {
-            return support.saveUserIdentity(UserIdentity.create(
+            return support.saveIdentity(UserIdentity.create(
                     accountIdentityId, user.getId(), UserIdentityType.ACCOUNT, normalizedAccount, ACTIVE_IDENTITY_STATUS));
         }
         currentIdentity.changeAccount(normalizedAccount);
-        return support.saveUserIdentity(currentIdentity);
+        return support.saveIdentity(currentIdentity);
     }
 
     private void replacePhoneIdentity(TenantId tenantId, User user, String phone, UserIdentityId phoneIdentityId) {
         if (phone == null || phone.isBlank()) {
-            support.deleteUserIdentitiesByUserAndType(tenantId, user.getId(), UserIdentityType.PHONE);
+            support.deleteUserIdentitiesByUserAndType(user.getId(), UserIdentityType.PHONE);
             return;
         }
         String normalizedPhone = phone.trim();
-        UserIdentity currentIdentity = support.findIdentityByUserId(user.getId(), UserIdentityType.PHONE)
+        UserIdentity currentIdentity = support.findIdentity(user.getId(), UserIdentityType.PHONE)
                 .orElse(null);
         if (currentIdentity == null) {
-            support.saveUserIdentity(UserIdentity.create(
+            support.saveIdentity(UserIdentity.create(
                     phoneIdentityId, user.getId(), UserIdentityType.PHONE, normalizedPhone, ACTIVE_IDENTITY_STATUS));
             return;
         }
         currentIdentity.changePhone(normalizedPhone);
-        support.saveUserIdentity(currentIdentity);
+        support.saveIdentity(currentIdentity);
     }
 
     private UserIdentity requireUserIdentity(UserId userId, UserIdentityType identityType) {
-        return support.findIdentityByUserId(userId, identityType)
+        return support.findIdentity(userId, identityType)
                 .orElseThrow(() -> new NotFoundException(
                         "User identity not found: " + userId + "/" + identityType.value()));
     }
@@ -243,11 +240,11 @@ public class UserRepositoryImpl implements UserRepository {
         return identityValue.trim();
     }
 
-    private String resolvePasswordHash(TenantId tenantId, User user, boolean newUser) {
+    private String resolvePasswordHash(User user, boolean newUser) {
         if (newUser) {
             return passwordEncoder.encode(DEFAULT_PASSWORD);
         }
-        return support.findCredentialByUserId(user.getId(), PASSWORD_CREDENTIAL_TYPE)
+        return support.findCredential(user.getId(), PASSWORD_CREDENTIAL_TYPE)
                 .map(UserCredential::getCredentialValue)
                 .orElseGet(() -> passwordEncoder.encode(DEFAULT_PASSWORD));
     }
@@ -259,11 +256,11 @@ public class UserRepositoryImpl implements UserRepository {
             boolean newUser,
             boolean needChangePassword,
             UserCredentialId passwordCredentialIdIfAbsent) {
-        UserCredential currentCredential = support.findCredentialByUserId(user.getId(), PASSWORD_CREDENTIAL_TYPE)
+        UserCredential currentCredential = support.findCredential(user.getId(), PASSWORD_CREDENTIAL_TYPE)
                 .orElse(null);
         Instant passwordExpiresAt = Instant.now().plus(PASSWORD_EXPIRE_DAYS, ChronoUnit.DAYS);
         if (currentCredential == null) {
-            support.saveUserCredential(UserCredential.create(
+            support.saveCredential(UserCredential.create(
                     passwordCredentialIdIfAbsent,
                     user.getId(),
                     accountIdentity.getId(),
@@ -282,10 +279,7 @@ public class UserRepositoryImpl implements UserRepository {
         }
         currentCredential.bindIdentity(accountIdentity.getId());
         currentCredential.replacePassword(passwordHash, newUser || needChangePassword, passwordExpiresAt);
-        support.saveUserCredential(currentCredential);
+        support.saveCredential(currentCredential);
     }
 
-    private TenantId requireTenantId() {
-        return TenantId.of(BaconContextHolder.requireTenantId());
-    }
 }

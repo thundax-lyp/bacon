@@ -32,7 +32,7 @@ public class TenantRepositoryImpl implements TenantRepository {
 
     @Override
     public List<Tenant> page(String name, TenantStatus status, int pageNo, int pageSize) {
-        return support.listTenants(name, status == null ? null : status.value(), pageNo, pageSize);
+        return support.page(name, status == null ? null : status.value(), pageNo, pageSize);
     }
 
     @Override
@@ -42,12 +42,12 @@ public class TenantRepositoryImpl implements TenantRepository {
 
     @Override
     public Tenant insert(Tenant tenant) {
-        return support.saveTenant(tenant);
+        return support.insert(tenant);
     }
 
     @Override
     public Tenant update(Tenant tenant) {
-        return support.saveTenant(tenant);
+        return support.update(tenant);
     }
 
 }

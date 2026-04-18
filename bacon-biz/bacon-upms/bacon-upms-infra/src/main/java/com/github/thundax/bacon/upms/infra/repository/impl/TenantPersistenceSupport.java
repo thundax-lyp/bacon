@@ -25,19 +25,13 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return Optional.ofNullable(tenantId).map(tenantMapper::selectById).map(TenantPersistenceAssembler::toDomain);
     }
 
-    Optional<Tenant> findTenantByTenantId(TenantId tenantId) {
-        return Optional.ofNullable(
-                        tenantMapper.selectOne(Wrappers.<TenantDO>lambdaQuery().eq(TenantDO::getId, tenantId)))
-                .map(TenantPersistenceAssembler::toDomain);
-    }
-
     Optional<Tenant> findByCode(String code) {
         return Optional.ofNullable(tenantMapper.selectOne(
                         Wrappers.<TenantDO>lambdaQuery().eq(TenantDO::getCode, trim(code))))
                 .map(TenantPersistenceAssembler::toDomain);
     }
 
-    List<Tenant> listTenants(String name, String status, int pageNo, int pageSize) {
+    List<Tenant> page(String name, String status, int pageNo, int pageSize) {
         return tenantMapper
                 .selectList(Wrappers.<TenantDO>lambdaQuery()
                         .like(hasText(name), TenantDO::getName, name)
@@ -56,13 +50,15 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .orElse(0L);
     }
 
-    Tenant saveTenant(Tenant tenant) {
+    Tenant insert(Tenant tenant) {
         TenantDO tenantDO = TenantPersistenceAssembler.toDataObject(tenant);
-        if (tenantDO.getId() == null) {
-            tenantMapper.insert(tenantDO);
-        } else {
-            tenantMapper.updateById(tenantDO);
-        }
+        tenantMapper.insert(tenantDO);
+        return TenantPersistenceAssembler.toDomain(tenantDO);
+    }
+
+    Tenant update(Tenant tenant) {
+        TenantDO tenantDO = TenantPersistenceAssembler.toDataObject(tenant);
+        tenantMapper.updateById(tenantDO);
         return TenantPersistenceAssembler.toDomain(tenantDO);
     }
 }

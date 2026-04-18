@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
@@ -44,31 +44,31 @@ public class PermissionRepositoryImpl implements PermissionRepository {
 
     @Override
     public List<Menu> list() {
-        TenantId tenantId = requireTenantId();
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         return cacheSupport.getTenantMenuTree(tenantId, () -> buildMenuTree(menuRepository.list()));
     }
 
     @Override
     public List<Menu> listMenuTreeByUserId(UserId userId) {
-        TenantId tenantId = requireTenantId();
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         return cacheSupport.listMenuTreeByUserId(tenantId, userId, () -> loadUserMenuTree(userId));
     }
 
     @Override
     public Set<String> findPermissionCodesByUserId(UserId userId) {
-        TenantId tenantId = requireTenantId();
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         return cacheSupport.findPermissionCodesByUserId(tenantId, userId, () -> loadUserPermissionCodes(userId));
     }
 
     @Override
     public Set<DepartmentId> findDepartmentIdsByUserId(UserId userId) {
-        TenantId tenantId = requireTenantId();
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         return cacheSupport.findDepartmentIdsByUserId(tenantId, userId, () -> loadUserDepartmentIds(userId));
     }
 
     @Override
     public Set<String> findScopeTypesByUserId(UserId userId) {
-        TenantId tenantId = requireTenantId();
+        TenantId tenantId = BaconIdContextHelper.requireTenantId();
         return cacheSupport.findScopeTypesByUserId(tenantId, userId, () -> loadUserScopeTypes(userId));
     }
 
@@ -168,7 +168,4 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         return roots;
     }
 
-    private TenantId requireTenantId() {
-        return TenantId.of(BaconContextHolder.requireTenantId());
-    }
 }

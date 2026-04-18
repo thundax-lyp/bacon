@@ -19,7 +19,7 @@ public class PaymentCallbackRecordRepositoryImpl implements PaymentCallbackRecor
 
     @Override
     public PaymentCallbackRecord insert(PaymentCallbackRecord callbackRecord) {
-        return support.saveCallbackRecord(callbackRecord);
+        return support.insert(callbackRecord);
     }
 
     @Override

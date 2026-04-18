@@ -3,7 +3,6 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
@@ -30,14 +29,14 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.roleResourceRelMapper = roleResourceRelMapper;
     }
 
-    Optional<Resource> findResourceById(ResourceId resourceId) {
-        requireTenantId();
+    Optional<Resource> findById(ResourceId resourceId) {
+        BaconContextHolder.requireTenantId();
         return Optional.ofNullable(resourceMapper.selectOne(
                         Wrappers.<ResourceDO>lambdaQuery().eq(ResourceDO::getId, resourceId.value())))
                 .map(ResourcePersistenceAssembler::toDomain);
     }
 
-    List<Resource> listResources(
+    List<Resource> page(
             ResourceCode code, String name, ResourceType resourceType, ResourceStatus status, int pageNo, int pageSize) {
         return resourceMapper
                 .selectList(Wrappers.<ResourceDO>lambdaQuery()
@@ -74,13 +73,9 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void deleteResource(ResourceId resourceId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         resourceMapper.delete(Wrappers.<ResourceDO>lambdaQuery().eq(ResourceDO::getId, resourceId.value()));
         roleResourceRelMapper.delete(
                 Wrappers.<RoleResourceRelDO>lambdaQuery().eq(RoleResourceRelDO::getResourceId, resourceId.value()));
-    }
-
-    private TenantId requireTenantId() {
-        return TenantId.of(BaconContextHolder.requireTenantId());
     }
 }

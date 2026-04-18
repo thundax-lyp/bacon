@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.facade;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
 import com.github.thundax.bacon.upms.api.request.UserGetFacadeRequest;
@@ -50,6 +50,6 @@ public class UserReadFacadeLocalImpl implements UserReadFacade {
     public TenantFacadeResponse getTenantByTenantId() {
         BaconContextHolder.requireTenantId();
         return TenantFacadeResponse.from(
-                userApplicationService.getTenantByTenantId(TenantId.of(BaconContextHolder.requireTenantId())));
+                userApplicationService.getTenantByTenantId(BaconIdContextHelper.requireTenantId()));
     }
 }

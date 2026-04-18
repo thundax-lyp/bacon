@@ -1,5 +1,32 @@
 ## TODO List
 
+### 当前主线顺序（按模块执行）
+
+1. `upms`
+   - 先补 interfaces 输入校验与 request Bean Validation
+   - 再拆 `UserController` / `UserApplicationService`
+   - 再回收 `UserRepositoryImpl` 中残留业务
+   - 最后处理 `upms api.dto` 下沉与 facade `Request/Response` 规约
+2. `storage`
+   - 先统一 `objectId -> storedObjectNo`
+   - 再清理 `StoredObjectPageQueryDTO` 和 interfaces/application 合同
+   - 再处理异常语义与接口校验补齐
+3. `auth`
+   - 先清理 `IllegalArgumentException`
+   - 再收口 `interfaces -> application` 合同
+   - 再评审 `auth-api` 中哪些 DTO 真正属于稳定跨域契约
+4. `order`
+   - 先拆 `OrderReadProviderController` 读写混合职责
+   - 再收口 DTO 装配到 assembler
+   - 再补 provider / application / domain 关键回归测试
+5. `payment` / `inventory`
+   - `payment` 先收口 controller 路由语义
+   - `inventory` 先处理 `InventoryLogRepository` 空壳结论
+   - 然后把 `inventory` 固化成接口层校验模板域
+6. 横切收尾
+   - 最后统一横切注解策略、租户边界与 ArchUnit 增量规则
+   - 这些规则以“前面主线稳定后再加门禁”为原则，避免先上门禁把治理动作卡死
+
 ### P0 - 2026-04-17 跨域扫描新增（统一性优先）
 
 - [ ] 统一 controller 校验基线：全域 `@Validated` + `@Valid`
@@ -59,7 +86,7 @@
   - 重要度：6/10
 
 - [ ] `order`：拆分 `OrderReadProviderController` 的读写混合职责
-  - 当前状态：类名为 `Read`，但包含 `markPaid/markPaymentFailed/closeExpired` 写操作；支付快照/库存快照/审计日志已从主仓储拆出，剩余问题集中在 provider 命名与职责边界
+  - 当前状态：类名为 `Read`，但仍包含 `markPaid/markPaymentFailed/closeExpired` 写操作；支付快照/库存快照/审计日志已从主仓储拆出，这一项只剩 provider 命名与职责边界问题
   - 处理动作：拆成 `OrderReadProviderController` 与 `OrderCommandProviderController`（或等价命名）
   - 验收点：provider 命名语义与行为一致，AI 不会因命名误导调用写接口
   - 重要度：8/10
@@ -177,9 +204,9 @@
 ### P1 - Repository 命名统一治理清单
 
 - [ ] `upms`：评审剩余 Repository 是否继续压短，先不直接批量改名
-  - 现状对比：`PermissionRepository`、`UserRepository`、`RoleRepository`、`SysLogRepository` 仍有 `listUserMenuTree`、`findUserPermissionCodes`、`updateRoleIds`、`insertToDatabase`
-  - 处理动作：逐个判断哪些属于必要条件信息，哪些属于重复业务前缀；先出评审结论再动代码
-  - 验收点：形成一份 `建议改 / 建议保留 / 暂缓` 结论，不允许无结论直接批量改名
+  - 现状对比：关系型仓储已拆出 `UserRoleRepository`、`RoleMenuRepository`、`RoleResourceRepository`、`RoleDataScopeRepository`；剩余待评审的主要是 `PermissionRepository.listMenuTreeByUserId`、`UserRoleRepository.updateRoleIds`、`SysLogRepository.insertToDatabase/insertToFile`、`DepartmentRepository.listTree`
+  - 处理动作：逐个判断哪些是必要条件信息、哪些仍然带过重业务前缀；输出结论后再改名，不做无结论扫改
+  - 验收点：形成一份 `建议改 / 建议保留 / 暂缓` 结论，且结论基于现有拆分后的仓储版图
   - 重要度：6/10
 
 - [ ] `inventory`：处理 `InventoryLogRepository` 空壳接口
@@ -286,12 +313,11 @@
   - 需要决策：仅后台管理域保留，还是其他核心域也补齐
   - 重要度：4/10
 
-### 建议执行顺序
+### 建议执行顺序（细化）
 
-1. 先处理高风险输入面：补齐 `upms/auth` 的 `@Validated`、`@Valid`、PathVariable 约束和 request Bean Validation
-2. 再处理命名语义冲突：`storage objectId -> storedObjectNo`、`order ReadProvider` 读写拆分
-3. 然后统一 `interfaces -> application` 合同（Command/Query/VO），优先 `upms/auth/storage/payment`
-4. 并行推进 `api.dto` 契约薄化（`upms` 优先、`auth` 次之）和 facade `Request/Response` 规约
-5. 继续做 DTO 装配收口（`upms/order` application service -> assembler）
-6. 再统一异常语义（`auth/storage/payment` 优先清理 `IllegalArgumentException`）
-7. 最后收敛横切策略与持续治理（`@SysLog/@HasPermission` 矩阵、ArchUnit 增量规则、空目录清理）
+1. 先走 `upms` 主线：输入校验 -> `UserController` 拆分 -> `UserApplicationService` 拆分 -> `UserRepositoryImpl` 业务外提
+2. 再走 `storage` 主线：`objectId -> storedObjectNo` -> 删除 `StoredObjectPageQueryDTO` -> 补齐 request/路径参数校验
+3. 然后处理 `auth`：统一异常语义 -> 收口应用层合同 -> 评审 `auth-api dto`
+4. 再处理 `order`：provider 读写拆分 -> assembler 收口 -> 用例补齐
+5. 然后处理 `payment` 与 `inventory` 的局部整形任务
+6. 最后再上 ArchUnit 增量门禁、注解矩阵和租户边界统一

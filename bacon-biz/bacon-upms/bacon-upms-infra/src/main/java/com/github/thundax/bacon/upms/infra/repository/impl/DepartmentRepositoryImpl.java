@@ -44,6 +44,16 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
+    public boolean existsChild(DepartmentId departmentId) {
+        return support.existsChild(departmentId);
+    }
+
+    @Override
+    public boolean existsUser(DepartmentId departmentId) {
+        return userRepository.existsActiveByDepartmentId(departmentId);
+    }
+
+    @Override
     public Department insert(Department department) {
         return support.insert(department);
     }
@@ -56,15 +66,5 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     @Override
     public void delete(DepartmentId departmentId) {
         support.delete(departmentId);
-    }
-
-    @Override
-    public boolean existsChild(DepartmentId departmentId) {
-        return support.existsChild(departmentId);
-    }
-
-    @Override
-    public boolean existsUser(DepartmentId departmentId) {
-        return userRepository.existsActiveByDepartmentId(departmentId);
     }
 }

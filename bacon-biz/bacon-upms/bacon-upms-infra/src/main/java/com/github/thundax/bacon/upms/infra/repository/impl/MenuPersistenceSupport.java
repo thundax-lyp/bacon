@@ -26,6 +26,13 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.roleMenuRelMapper = roleMenuRelMapper;
     }
 
+    Optional<Menu> findById(MenuId menuId) {
+        BaconContextHolder.requireTenantId();
+        return Optional.ofNullable(
+                        menuMapper.selectOne(Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getId, menuId.value())))
+                .map(MenuPersistenceAssembler::toDomain);
+    }
+
     List<Menu> list() {
         BaconContextHolder.requireTenantId();
         return menuMapper.selectList(Wrappers.<MenuDO>lambdaQuery().orderByAsc(MenuDO::getSort, MenuDO::getId)).stream()
@@ -33,11 +40,12 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    Optional<Menu> findById(MenuId menuId) {
+    boolean existsChild(MenuId menuId) {
         BaconContextHolder.requireTenantId();
-        return Optional.ofNullable(
-                        menuMapper.selectOne(Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getId, menuId.value())))
-                .map(MenuPersistenceAssembler::toDomain);
+        return Optional.ofNullable(menuMapper.selectCount(
+                                Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getParentId, menuId.value())))
+                        .orElse(0L)
+                > 0L;
     }
 
     Menu insert(Menu menu) {
@@ -56,13 +64,5 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
         BaconContextHolder.requireTenantId();
         roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery().eq(RoleMenuRelDO::getMenuId, menuId.value()));
         menuMapper.delete(Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getId, menuId.value()));
-    }
-
-    boolean existsChild(MenuId menuId) {
-        BaconContextHolder.requireTenantId();
-        return Optional.ofNullable(menuMapper.selectCount(
-                                Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getParentId, menuId.value())))
-                        .orElse(0L)
-                > 0L;
     }
 }

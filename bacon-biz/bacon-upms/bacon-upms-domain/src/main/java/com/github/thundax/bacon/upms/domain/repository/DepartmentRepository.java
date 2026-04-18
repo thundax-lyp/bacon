@@ -17,13 +17,13 @@ public interface DepartmentRepository {
 
     List<Department> listTree();
 
+    boolean existsChild(DepartmentId departmentId);
+
+    boolean existsUser(DepartmentId departmentId);
+
     Department insert(Department department);
 
     Department update(Department department);
 
     void delete(DepartmentId departmentId);
-
-    boolean existsChild(DepartmentId departmentId);
-
-    boolean existsUser(DepartmentId departmentId);
 }

@@ -28,6 +28,22 @@ public class SysLogRepositoryImpl implements SysLogRepository {
     }
 
     @Override
+    public Optional<SysLogRecord> findById(SysLogId logId) {
+        return support.findById(logId);
+    }
+
+    @Override
+    public List<SysLogRecord> page(
+            String module, String eventType, String result, String operatorName, int pageNo, int pageSize) {
+        return support.page(module, eventType, result, operatorName, pageNo, pageSize);
+    }
+
+    @Override
+    public long count(String module, String eventType, String result, String operatorName) {
+        return support.count(module, eventType, result, operatorName);
+    }
+
+    @Override
     public void insertToDatabase(SysLogRecord sysLogRecord) {
         support.insert(sysLogRecord);
     }
@@ -49,22 +65,6 @@ public class SysLogRepositoryImpl implements SysLogRepository {
         } catch (IOException ex) {
             throw new IllegalStateException("Failed to write sys log file", ex);
         }
-    }
-
-    @Override
-    public Optional<SysLogRecord> findById(SysLogId logId) {
-        return support.findById(logId);
-    }
-
-    @Override
-    public List<SysLogRecord> page(
-            String module, String eventType, String result, String operatorName, int pageNo, int pageSize) {
-        return support.page(module, eventType, result, operatorName, pageNo, pageSize);
-    }
-
-    @Override
-    public long count(String module, String eventType, String result, String operatorName) {
-        return support.count(module, eventType, result, operatorName);
     }
 
     private String formatLine(SysLogRecord sysLogRecord) {

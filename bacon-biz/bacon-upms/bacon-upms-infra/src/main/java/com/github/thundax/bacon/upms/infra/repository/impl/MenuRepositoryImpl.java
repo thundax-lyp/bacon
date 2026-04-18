@@ -24,13 +24,18 @@ public class MenuRepositoryImpl implements MenuRepository {
     }
 
     @Override
+    public Optional<Menu> findById(MenuId menuId) {
+        return support.findById(menuId);
+    }
+
+    @Override
     public List<Menu> list() {
         return support.list();
     }
 
     @Override
-    public Optional<Menu> findById(MenuId menuId) {
-        return support.findById(menuId);
+    public boolean existsChild(MenuId menuId) {
+        return support.existsChild(menuId);
     }
 
     @Override
@@ -55,10 +60,4 @@ public class MenuRepositoryImpl implements MenuRepository {
         support.delete(menuId);
         cacheSupport.evictTenantPermission(tenantId);
     }
-
-    @Override
-    public boolean existsChild(MenuId menuId) {
-        return support.existsChild(menuId);
-    }
-
 }

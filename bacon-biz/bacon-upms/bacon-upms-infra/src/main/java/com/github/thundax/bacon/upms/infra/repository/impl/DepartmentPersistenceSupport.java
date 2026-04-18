@@ -65,6 +65,14 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
+    boolean existsChild(DepartmentId departmentId) {
+        BaconContextHolder.requireTenantId();
+        return Optional.ofNullable(departmentMapper.selectCount(Wrappers.<DepartmentDO>lambdaQuery()
+                                .eq(DepartmentDO::getParentId, departmentId.value())))
+                        .orElse(0L)
+                > 0L;
+    }
+
     Department insert(Department department) {
         DepartmentDO dataObject = DepartmentPersistenceAssembler.toDataObject(department);
         departmentMapper.insert(dataObject);
@@ -87,13 +95,5 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
     void delete(DepartmentId departmentId) {
         BaconContextHolder.requireTenantId();
         departmentMapper.delete(Wrappers.<DepartmentDO>lambdaQuery().eq(DepartmentDO::getId, departmentId.value()));
-    }
-
-    boolean existsChild(DepartmentId departmentId) {
-        BaconContextHolder.requireTenantId();
-        return Optional.ofNullable(departmentMapper.selectCount(Wrappers.<DepartmentDO>lambdaQuery()
-                                .eq(DepartmentDO::getParentId, departmentId.value())))
-                        .orElse(0L)
-                > 0L;
     }
 }

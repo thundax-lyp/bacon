@@ -7,14 +7,14 @@ import java.util.Optional;
 
 public interface SysLogRepository {
 
-    void insertToDatabase(SysLogRecord sysLogRecord);
-
-    void insertToFile(SysLogRecord sysLogRecord);
-
     Optional<SysLogRecord> findById(SysLogId logId);
 
     List<SysLogRecord> page(
             String module, String eventType, String result, String operatorName, int pageNo, int pageSize);
 
     long count(String module, String eventType, String result, String operatorName);
+
+    void insertToDatabase(SysLogRecord sysLogRecord);
+
+    void insertToFile(SysLogRecord sysLogRecord);
 }

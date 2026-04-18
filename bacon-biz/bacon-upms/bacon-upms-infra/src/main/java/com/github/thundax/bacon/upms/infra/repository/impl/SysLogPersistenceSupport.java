@@ -21,11 +21,6 @@ class SysLogPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.sysLogRecordMapper = sysLogRecordMapper;
     }
 
-    void insert(SysLogRecord sysLogRecord) {
-        SysLogRecordDO dataObject = SysLogRecordPersistenceAssembler.toDataObject(sysLogRecord);
-        sysLogRecordMapper.insert(dataObject);
-    }
-
     Optional<SysLogRecord> findById(SysLogId logId) {
         return Optional.ofNullable(sysLogRecordMapper.selectById(logId.value()))
                 .map(SysLogRecordPersistenceAssembler::toDomain);
@@ -53,5 +48,10 @@ class SysLogPersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .eq(hasText(result), SysLogRecordDO::getResult, trim(result))
                         .like(hasText(operatorName), SysLogRecordDO::getOperatorName, operatorName)))
                 .orElse(0L);
+    }
+
+    void insert(SysLogRecord sysLogRecord) {
+        SysLogRecordDO dataObject = SysLogRecordPersistenceAssembler.toDataObject(sysLogRecord);
+        sysLogRecordMapper.insert(dataObject);
     }
 }

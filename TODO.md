@@ -3,8 +3,8 @@
 ### P0 - 2026-04-17 跨域扫描新增（统一性优先）
 
 - [ ] 统一 controller 校验基线：全域 `@Validated` + `@Valid`
-  - 现状对比：`inventory/payment/order/storage` 多数已有 `@Validated`；`upms/auth` controller 基本缺失；`upms` 大量 `@RequestBody` 未加 `@Valid`
-  - 处理动作：按域补齐类级 `@Validated`、方法参数 `@Valid`，优先 `upms`（`User/Role/Tenant/Post/Resource/Department`）
+  - 现状对比：`inventory/payment/order/storage` 多数已有基础校验；`auth` 已补部分 `@Valid`，但类级 `@Validated` 和路径/请求头参数约束仍不统一；`upms` 仍是缺口最大域
+  - 处理动作：按域补齐类级 `@Validated`、方法参数 `@Valid` 与显式参数约束，优先 `upms`（`User/Role/Tenant/Post/Resource/Department`）
   - 验收点：外部 controller 与 provider 入口参数统一在 interfaces 层拦截
   - 重要度：9/10
 
@@ -44,11 +44,6 @@
   - 验收点：各域注解策略可解释、可检查，不再出现风格割裂
   - 重要度：7/10
 
-- [ ] 固化五域统一治理看板（inventory/payment/order/storage/upms）
-  - 处理动作：每条治理任务必须标记所属域、层级、优先级、验收点
-  - 验收点：后续任务默认可分派、可并行、可追踪
-  - 重要度：6/10
-
 ### P0 - 五域风格/手法/功能对齐（inventory/payment/order/storage/upms）
 
 - [ ] `inventory`：固化为“接口层校验基准域”
@@ -70,8 +65,8 @@
   - 重要度：8/10
 
 - [ ] `storage`：统一 `objectId` 与 `storedObjectNo` 命名语义
-  - 当前状态：provider URI 参数名为 `objectId`，实际传递 `storedObjectNo`
-  - 处理动作：controller/provider/facade/request 全链路统一为 `storedObjectNo`
+  - 当前状态：`infra.facade.remote` 已切到 `storedObjectNo`，但 `interfaces.controller/provider` 仍用 `objectId` 路径变量承接业务编码
+  - 处理动作：把 `StorageController`、`StorageProviderController` 及其契约测试统一改为 `storedObjectNo` 语义
   - 验收点：接口契约不再混淆“主键ID”和“业务No”，避免跨域调用误用
   - 重要度：9/10
 
@@ -133,8 +128,9 @@
 ### P1 - 各模块 `api.dto` 残留治理清单
 
 - [ ] `storage-application`：把 `StoredObjectPageQueryDTO` 改为 `query/StoredObjectPageQuery`
-  - 影响范围：provider/controller/facade
-  - 验收点：查询对象命名与 inventory/order 新规一致
+  - 当前状态：`StoredObjectPageQueryDTO` 仍滞留在 `application.dto`，且仓内已无实际调用，属于待清理旧模型
+  - 处理动作：删除未使用的 `StoredObjectPageQueryDTO`，如仍需保留分页查询契约，则改为 `application.query.StoredObjectPageQuery`
+  - 验收点：`rg -n "StoredObjectPageQueryDTO" bacon-biz` 结果为空；查询对象命名与 inventory/order 新规一致
   - 重要度：7/10
 
 - [ ] `auth-api`：盘点 `api.dto` 是否属于稳定跨域契约，非契约模型下沉到 application
@@ -178,9 +174,20 @@
   - 验收点：upms facade 契约和 inventory/payment/order 新规一致
   - 重要度：9/10
 
-- [ ] 形成统一约束：application 公共入口优先使用 `Command / Query / VO`，禁止新增多 primitive 长参数方法
-  - 输出物：规则文档或代码检查项
+### P1 - Repository 命名统一治理清单
+
+- [ ] `upms`：评审剩余 Repository 是否继续压短，先不直接批量改名
+  - 现状对比：`PermissionRepository`、`UserRepository`、`RoleRepository`、`SysLogRepository` 仍有 `listUserMenuTree`、`findUserPermissionCodes`、`updateRoleIds`、`insertToDatabase`
+  - 处理动作：逐个判断哪些属于必要条件信息，哪些属于重复业务前缀；先出评审结论再动代码
+  - 验收点：形成一份 `建议改 / 建议保留 / 暂缓` 结论，不允许无结论直接批量改名
   - 重要度：6/10
+
+- [ ] `inventory`：处理 `InventoryLogRepository` 空壳接口
+  - 现状对比：接口职责不清，和现有 `InventoryAuditRecordRepository` 体系不在一套
+  - 处理动作：明确三选一结论：`保留并补职责 / 合并 / 删除`
+  - 验收点：不允许继续保持空壳状态悬置
+  - 回归命令：如触发代码改动，执行 `mvn -q -pl bacon-biz/bacon-inventory/bacon-inventory-interfaces -am test -DskipITs`
+  - 重要度：7/10
 
 ### P2 - DTO 装配位置统一
 
@@ -281,10 +288,6 @@
 - [ ] 评估 `@SysLog` 的统一策略
   - 需要决策：仅后台管理域保留，还是其他核心域也补齐
   - 重要度：4/10
-
-- [ ] 清理迁移遗留空目录：`order/interfaces/dto`
-  - 验收点：`interfaces` 目录下不再残留空 `dto` 目录，避免 AI/开发者误判仍在使用旧包
-  - 重要度：3/10
 
 ### 建议执行顺序
 

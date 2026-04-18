@@ -5,8 +5,10 @@ import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.order.application.codec.OrderIdCodec;
+import com.github.thundax.bacon.order.application.codec.OrderOutboxDeadLetterIdCodec;
 import com.github.thundax.bacon.order.application.command.OrderCancelApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderCreateApplicationService;
+import com.github.thundax.bacon.order.application.command.OrderOutboxDeadLetterReplayApplicationService;
 import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
@@ -15,6 +17,7 @@ import com.github.thundax.bacon.order.interfaces.request.CancelOrderRequest;
 import com.github.thundax.bacon.order.interfaces.request.CreateOrderRequest;
 import com.github.thundax.bacon.order.interfaces.request.OrderPageRequest;
 import com.github.thundax.bacon.order.interfaces.response.OrderDetailResponse;
+import com.github.thundax.bacon.order.interfaces.response.OrderOutboxDeadLetterReplayResponse;
 import com.github.thundax.bacon.order.interfaces.response.OrderPageResponse;
 import com.github.thundax.bacon.order.interfaces.response.OrderSummaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,14 +44,17 @@ public class OrderController {
     private final OrderCreateApplicationService orderCreateApplicationService;
     private final OrderQueryApplicationService orderQueryService;
     private final OrderCancelApplicationService orderCancelApplicationService;
+    private final OrderOutboxDeadLetterReplayApplicationService orderOutboxDeadLetterReplayApplicationService;
 
     public OrderController(
             OrderCreateApplicationService orderCreateApplicationService,
             OrderQueryApplicationService orderQueryService,
-            OrderCancelApplicationService orderCancelApplicationService) {
+            OrderCancelApplicationService orderCancelApplicationService,
+            OrderOutboxDeadLetterReplayApplicationService orderOutboxDeadLetterReplayApplicationService) {
         this.orderCreateApplicationService = orderCreateApplicationService;
         this.orderQueryService = orderQueryService;
         this.orderCancelApplicationService = orderCancelApplicationService;
+        this.orderOutboxDeadLetterReplayApplicationService = orderOutboxDeadLetterReplayApplicationService;
     }
 
     @Operation(summary = "创建订单")
@@ -86,5 +92,14 @@ public class OrderController {
     @PostMapping("/{orderNo}/cancel")
     public void cancel(@PathVariable @NotBlank String orderNo, @Valid @RequestBody CancelOrderRequest request) {
         orderCancelApplicationService.cancel(OrderNoCodec.toDomain(orderNo), request.reason());
+    }
+
+    @Operation(summary = "回放订单出站死信")
+    @HasPermission("order:outbox:replay")
+    @PostMapping("/outbox/dead-letters/{deadLetterId}/replay")
+    public OrderOutboxDeadLetterReplayResponse replayDeadLetter(
+            @PathVariable("deadLetterId") @Positive Long deadLetterId) {
+        return OrderOutboxDeadLetterReplayResponse.from(orderOutboxDeadLetterReplayApplicationService.replay(
+                OrderOutboxDeadLetterIdCodec.toDomain(deadLetterId)));
     }
 }

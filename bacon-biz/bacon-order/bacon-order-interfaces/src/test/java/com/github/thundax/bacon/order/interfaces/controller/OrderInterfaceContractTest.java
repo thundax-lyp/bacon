@@ -17,11 +17,13 @@ import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.order.application.command.OrderCancelApplicationService;
+import com.github.thundax.bacon.order.application.command.OrderOutboxDeadLetterReplayApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderPaymentResultApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderTimeoutApplicationService;
 import com.github.thundax.bacon.order.application.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.application.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
+import com.github.thundax.bacon.order.application.result.OrderOutboxDeadLetterReplayResult;
 import com.github.thundax.bacon.order.application.result.OrderPageResult;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
@@ -52,7 +54,8 @@ class OrderInterfaceContractTest {
         OrderController controller = new OrderController(
                 null,
                 new StubOrderQueryApplicationService(),
-                new OrderCancelApplicationService(null, null, null, null, null));
+                new OrderCancelApplicationService(null, null, null, null, null),
+                new StubOrderOutboxDeadLetterReplayApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
@@ -70,7 +73,8 @@ class OrderInterfaceContractTest {
         OrderController controller = new OrderController(
                 null,
                 new StubOrderQueryApplicationService(),
-                new OrderCancelApplicationService(null, null, null, null, null));
+                new OrderCancelApplicationService(null, null, null, null, null),
+                new StubOrderOutboxDeadLetterReplayApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
@@ -87,7 +91,8 @@ class OrderInterfaceContractTest {
         OrderController controller = new OrderController(
                 null,
                 new StubOrderQueryApplicationService(),
-                new OrderCancelApplicationService(null, null, null, null, null));
+                new OrderCancelApplicationService(null, null, null, null, null),
+                new StubOrderOutboxDeadLetterReplayApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
@@ -101,6 +106,27 @@ class OrderInterfaceContractTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
                 .andExpect(jsonPath("$.message").value("Unsupported order status: INVALID"));
+    }
+
+    @Test
+    void wrappedControllerShouldExposeDeadLetterReplayEndpoint() throws Exception {
+        OrderController controller = new OrderController(
+                null,
+                new StubOrderQueryApplicationService(),
+                new OrderCancelApplicationService(null, null, null, null, null),
+                new StubOrderOutboxDeadLetterReplayApplicationService());
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
+                .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                                "/order/outbox/dead-letters/1001/replay"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.deadLetterId").value(1001L))
+                .andExpect(jsonPath("$.data.replayStatus").value("SUCCESS"));
     }
 
     @Test
@@ -298,6 +324,21 @@ class OrderInterfaceContractTest {
                     Instant.parse("2026-03-26T10:00:00Z"),
                     Instant.parse("2026-03-26T10:30:00Z"));
             return new OrderPageResult(List.of(summary), 1, 1, 20);
+        }
+    }
+
+    private static final class StubOrderOutboxDeadLetterReplayApplicationService
+            extends OrderOutboxDeadLetterReplayApplicationService {
+
+        private StubOrderOutboxDeadLetterReplayApplicationService() {
+            super(null, null);
+        }
+
+        @Override
+        public OrderOutboxDeadLetterReplayResult replay(
+                com.github.thundax.bacon.order.domain.model.valueobject.OrderOutboxDeadLetterId deadLetterId) {
+            return new OrderOutboxDeadLetterReplayResult(
+                    deadLetterId == null ? null : deadLetterId.value(), "SUCCESS", "ok");
         }
     }
 }

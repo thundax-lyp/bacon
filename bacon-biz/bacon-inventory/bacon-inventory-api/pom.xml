@@ -11,6 +11,10 @@
     </parent>
     <artifactId>bacon-inventory-api</artifactId>
 
+    <properties>
+        <jacoco.skip>true</jacoco.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>jakarta.validation</groupId>

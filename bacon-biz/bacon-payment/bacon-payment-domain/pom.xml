@@ -11,6 +11,10 @@
     </parent>
     <artifactId>bacon-payment-domain</artifactId>
 
+    <properties>
+        <jacoco.skip>true</jacoco.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.github.thundax</groupId>

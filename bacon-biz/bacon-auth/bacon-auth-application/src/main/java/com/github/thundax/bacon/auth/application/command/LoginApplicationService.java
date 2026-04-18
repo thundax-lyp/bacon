@@ -70,14 +70,14 @@ public class LoginApplicationService {
                 () -> userReadFacade.getUserLoginCredential(
                         new UserLoginCredentialGetFacadeRequest("ACCOUNT", command.getAccount())));
         UserLoginCredentialDTO credential = response == null ? null : response.getUserLoginCredential();
-        validatePasswordLoginCredential(credential, plainPassword);
+        UserLoginCredentialDTO validatedCredential = validatePasswordLoginCredential(credential, plainPassword);
         return createLoginSession(
                 tenantId.value(),
-                credential.getUserId(),
-                credential.getIdentityId(),
-                credential.getIdentityType(),
+                validatedCredential.getUserId(),
+                validatedCredential.getIdentityId(),
+                validatedCredential.getIdentityType(),
                 "PASSWORD",
-                credential.isNeedChangePassword());
+                validatedCredential.isNeedChangePassword());
     }
 
     @Transactional
@@ -95,7 +95,8 @@ public class LoginApplicationService {
         return createLoginSession(1001L, 2004L, 3004L, "GITHUB", "GITHUB", null);
     }
 
-    private void validatePasswordLoginCredential(UserLoginCredentialDTO credential, String plainPassword) {
+    private UserLoginCredentialDTO validatePasswordLoginCredential(
+            UserLoginCredentialDTO credential, String plainPassword) {
         if (credential == null) {
             throw new BadRequestException("Invalid account or password");
         }
@@ -115,6 +116,7 @@ public class LoginApplicationService {
         if (!passwordEncoder.matches(plainPassword, credential.getPasswordHash())) {
             throw new BadRequestException("Invalid account or password");
         }
+        return credential;
     }
 
     private UserLoginDTO createLoginSession(

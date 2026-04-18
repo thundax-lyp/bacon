@@ -13,6 +13,10 @@
 
     <artifactId>bacon-auth-interfaces</artifactId>
 
+    <properties>
+        <jacoco.skip>true</jacoco.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.github.thundax</groupId>

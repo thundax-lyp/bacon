@@ -21,7 +21,10 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditRepla
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditReplayTaskRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -189,7 +192,11 @@ class InventoryAuditCompensationApplicationServiceTest {
         }
     }
 
-    private static final class TestLogRepository implements InventoryLogRepository {
+    private static final class TestLogRepository
+            implements InventoryAuditRecordRepository,
+                    InventoryAuditOutboxRepository,
+                    InventoryAuditDeadLetterRepository,
+                    InventoryAuditReplayTaskRepository {
 
         private final Map<Long, InventoryAuditDeadLetter> deadLetters = new ConcurrentHashMap<>();
         private final List<InventoryAuditLog> auditLogs = new ArrayList<>();

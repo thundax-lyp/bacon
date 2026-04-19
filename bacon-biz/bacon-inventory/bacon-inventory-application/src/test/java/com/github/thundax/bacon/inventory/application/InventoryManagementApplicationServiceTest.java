@@ -17,7 +17,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OnHandQuantity;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservedQuantity;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
@@ -66,7 +66,7 @@ class InventoryManagementApplicationServiceTest {
     }
 
     private static final class TestInventoryRepository
-            implements InventoryStockRepository, InventoryReservationRepository, InventoryLogRepository {
+            implements InventoryStockRepository, InventoryReservationRepository, InventoryAuditRecordRepository {
 
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
 

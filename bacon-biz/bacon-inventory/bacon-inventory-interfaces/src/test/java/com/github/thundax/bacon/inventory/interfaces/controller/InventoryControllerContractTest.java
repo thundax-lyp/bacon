@@ -24,7 +24,9 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OnHandQuantity;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservedQuantity;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
@@ -120,7 +122,11 @@ class InventoryControllerContractTest {
     }
 
     private static final class StubInventoryRepository
-            implements InventoryStockRepository, InventoryReservationRepository, InventoryLogRepository {
+            implements InventoryStockRepository,
+                    InventoryReservationRepository,
+                    InventoryAuditRecordRepository,
+                    InventoryAuditOutboxRepository,
+                    InventoryAuditDeadLetterRepository {
 
         private Long capturedTenantId;
         private Long capturedUserId;

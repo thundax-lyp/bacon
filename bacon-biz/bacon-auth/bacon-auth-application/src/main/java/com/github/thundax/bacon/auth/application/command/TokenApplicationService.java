@@ -5,6 +5,8 @@ import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
 import com.github.thundax.bacon.auth.api.dto.UserTokenRefreshDTO;
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
@@ -39,12 +41,12 @@ public class TokenApplicationService {
                 .findByHash(tokenCodec.sha256(refreshToken))
                 .filter(RefreshTokenSession::isActive)
                 .filter(token -> token.getExpireAt().isAfter(Instant.now()))
-                .orElseThrow(() -> new IllegalArgumentException("Refresh token invalid"));
+                .orElseThrow(() -> new BadRequestException("Refresh token invalid"));
 
         AuthSession authSession = authSessionRepository
                 .findBySessionId(refreshTokenSession.getSessionIdValue())
                 .filter(AuthSession::isActive)
-                .orElseThrow(() -> new IllegalArgumentException("Session invalid"));
+                .orElseThrow(() -> new BadRequestException("Session invalid"));
 
         // refresh token 采用一次性轮转：旧 token 先失效，再签发新的一对 token，降低长期凭证被重放的窗口。
         refreshTokenSession.markUsed(Instant.now());
@@ -93,7 +95,7 @@ public class TokenApplicationService {
     public CurrentSessionDTO getSessionContext(String sessionId) {
         AuthSession authSession = authSessionRepository
                 .findBySessionId(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
+                .orElseThrow(() -> new NotFoundException("Session not found: " + sessionId));
         // 这里返回的是仓储里的当前会话快照，不重新解析 access token，避免出现 token 与服务端会话状态不一致。
         return new CurrentSessionDTO(
                 authSession.getSessionId(),

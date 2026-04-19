@@ -3,6 +3,8 @@ package com.github.thundax.bacon.auth.application.command;
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import java.time.Instant;
@@ -32,7 +34,7 @@ public class SessionApplicationService {
     public CurrentSessionDTO currentSession(String accessToken) {
         String sessionId = tokenCodec
                 .parseSessionId(accessToken)
-                .orElseThrow(() -> new IllegalArgumentException("Access token invalid"));
+                .orElseThrow(() -> new BadRequestException("Access token invalid"));
         return tokenApplicationService.getSessionContext(sessionId);
     }
 
@@ -40,10 +42,10 @@ public class SessionApplicationService {
     public void logout(String accessToken) {
         String sessionId = tokenCodec
                 .parseSessionId(accessToken)
-                .orElseThrow(() -> new IllegalArgumentException("Access token invalid"));
+                .orElseThrow(() -> new BadRequestException("Access token invalid"));
         AuthSession authSession = authSessionRepository
                 .findBySessionId(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
+                .orElseThrow(() -> new NotFoundException("Session not found: " + sessionId));
         authSession.logout(Instant.now());
         authSessionRepository.update(authSession);
         authSessionRepository.markInvalidBySessionId(sessionId);
@@ -76,7 +78,7 @@ public class SessionApplicationService {
     public void invalidateSession(String sessionId, String reason) {
         AuthSession authSession = authSessionRepository
                 .findBySessionId(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
+                .orElseThrow(() -> new NotFoundException("Session not found: " + sessionId));
         authSession.invalidate(reason);
         authSessionRepository.update(authSession);
         authSessionRepository.markInvalidBySessionId(sessionId);

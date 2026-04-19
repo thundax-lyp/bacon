@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.storage.application.support;
 
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.storage.application.config.StorageUploadLimitProperties;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,7 @@ public class StorageUploadLimitValidator {
     public void validateSingleUpload(Long size) {
         requirePositive(size, "single upload size");
         if (size > properties.getSingleUploadMaxSizeBytes()) {
-            throw new IllegalArgumentException("Single upload size exceeds configured limit");
+            throw new BadRequestException("Single upload size exceeds configured limit");
         }
     }
 
@@ -27,29 +28,29 @@ public class StorageUploadLimitValidator {
         requirePositive(totalSize, "multipart totalSize");
         requirePositive(partSize, "multipart partSize");
         if (totalSize > properties.getMultipartMaxTotalSizeBytes()) {
-            throw new IllegalArgumentException("Multipart totalSize exceeds configured limit");
+            throw new BadRequestException("Multipart totalSize exceeds configured limit");
         }
         if (partSize != properties.getMultipartPartSizeBytes()) {
-            throw new IllegalArgumentException("Multipart partSize must equal configured size");
+            throw new BadRequestException("Multipart partSize must equal configured size");
         }
     }
 
     public void validateMultipartPartUpload(MultipartUploadSession session, Long size) {
         requirePositive(size, "multipart part size");
         if (session.getPartSize() != properties.getMultipartPartSizeBytes()) {
-            throw new IllegalArgumentException("Multipart session partSize does not match configured size");
+            throw new BadRequestException("Multipart session partSize does not match configured size");
         }
         if (size > properties.getMultipartPartSizeBytes()) {
-            throw new IllegalArgumentException("Multipart part size exceeds configured size");
+            throw new BadRequestException("Multipart part size exceeds configured size");
         }
         if (size > session.getPartSize()) {
-            throw new IllegalArgumentException("Multipart part size exceeds session partSize");
+            throw new BadRequestException("Multipart part size exceeds session partSize");
         }
     }
 
     private void requirePositive(Long value, String fieldName) {
         if (value == null || value <= 0L) {
-            throw new IllegalArgumentException(fieldName + " must be positive");
+            throw new BadRequestException(fieldName + " must be positive");
         }
     }
 }

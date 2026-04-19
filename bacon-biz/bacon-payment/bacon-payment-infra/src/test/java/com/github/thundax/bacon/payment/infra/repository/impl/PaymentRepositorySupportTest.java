@@ -9,6 +9,7 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
@@ -19,6 +20,7 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditOperatorType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
 import com.github.thundax.bacon.payment.infra.persistence.assembler.PaymentAuditLogPersistenceAssembler;
@@ -148,6 +150,82 @@ class PaymentRepositorySupportTest {
         PaymentDomainException ex = assertThrows(PaymentDomainException.class, () -> support.update(paymentOrder));
 
         assertEquals(PaymentErrorCode.PAYMENT_PERSISTENCE_CONFLICT.code(), ex.getCode());
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenInsertingPaymentOrderWithoutId() {
+        PaymentRepositorySupport support = new PaymentRepositorySupport(
+                createOrderMapper(new AtomicReference<>(), null, null),
+                createCallbackMapper(null, null, null),
+                createAuditLogMapper(null, null),
+                createIdGenerator(),
+                new PaymentOrderPersistenceAssembler(),
+                new PaymentCallbackRecordPersistenceAssembler(),
+                new PaymentAuditLogPersistenceAssembler());
+        BaconContextHolder.set(new BaconContext(1001L, 2010L));
+
+        PaymentOrder paymentOrder = PaymentOrder.create(
+                null,
+                PaymentNo.of("PAY-NULL-ID"),
+                OrderNo.of("ORD-NULL-ID"),
+                UserId.of(2010L),
+                PaymentChannelCode.MOCK,
+                Money.of(new BigDecimal("12.34")),
+                "missing-id",
+                Instant.parse("2026-03-27T10:30:00Z"),
+                Instant.parse("2026-03-27T10:00:00Z"));
+
+        assertThrows(BadRequestException.class, () -> support.insert(paymentOrder));
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenInsertingAuditLogWithoutId() {
+        PaymentRepositorySupport support = new PaymentRepositorySupport(
+                createOrderMapper(null, null, null),
+                createCallbackMapper(null, null, null),
+                createAuditLogMapper(new AtomicReference<>(), null),
+                createIdGenerator(),
+                new PaymentOrderPersistenceAssembler(),
+                new PaymentCallbackRecordPersistenceAssembler(),
+                new PaymentAuditLogPersistenceAssembler());
+        BaconContextHolder.set(new BaconContext(1001L, 2011L));
+
+        PaymentAuditLog auditLog = PaymentAuditLog.create(
+                null,
+                PaymentNo.of("PAY-AUDIT-NULL-ID"),
+                PaymentAuditActionType.CREATE,
+                null,
+                PaymentStatus.CREATED,
+                PaymentAuditOperatorType.SYSTEM,
+                "0",
+                Instant.parse("2026-03-27T10:00:00Z"));
+
+        assertThrows(BadRequestException.class, () -> support.insert(auditLog));
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenInsertingCallbackRecordWithoutId() {
+        PaymentRepositorySupport support = new PaymentRepositorySupport(
+                createOrderMapper(null, null, null),
+                createCallbackMapper(null, null, null),
+                createAuditLogMapper(null, null),
+                createIdGenerator(),
+                new PaymentOrderPersistenceAssembler(),
+                new PaymentCallbackRecordPersistenceAssembler(),
+                new PaymentAuditLogPersistenceAssembler());
+        BaconContextHolder.set(new BaconContext(1001L, 2012L));
+
+        PaymentCallbackRecord callbackRecord = PaymentCallbackRecord.create(
+                null,
+                PaymentNo.of("PAY-CALLBACK-NULL-ID"),
+                OrderNo.of("ORD-CALLBACK-NULL-ID"),
+                PaymentChannelCode.MOCK,
+                "TXN-CALLBACK-NULL-ID",
+                PaymentChannelStatus.SUCCESS,
+                "{\"tradeStatus\":\"SUCCESS\"}",
+                Instant.parse("2026-03-27T10:12:00Z"));
+
+        assertThrows(BadRequestException.class, () -> support.insert(callbackRecord));
     }
 
     @Test

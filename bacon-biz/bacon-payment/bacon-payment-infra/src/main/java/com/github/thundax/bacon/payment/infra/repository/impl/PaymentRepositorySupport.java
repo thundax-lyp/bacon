@@ -2,6 +2,7 @@ package com.github.thundax.bacon.payment.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
@@ -59,7 +60,7 @@ public class PaymentRepositorySupport {
         Instant now = Instant.now();
         PaymentOrderDO dataObject = paymentOrderPersistenceAssembler.toDataObject(paymentOrder, now);
         if (dataObject.getId() == null) {
-            throw new IllegalArgumentException("payment order id must not be null");
+            throw new BadRequestException("payment order id must not be null");
         }
         paymentOrderMapper.insert(dataObject);
         return paymentOrderPersistenceAssembler.toDomain(dataObject);
@@ -69,7 +70,7 @@ public class PaymentRepositorySupport {
         Instant now = Instant.now();
         PaymentOrderDO dataObject = paymentOrderPersistenceAssembler.toDataObject(paymentOrder, now);
         if (dataObject.getId() == null) {
-            throw new IllegalArgumentException("payment order id must not be null");
+            throw new BadRequestException("payment order id must not be null");
         }
         // 更新 0 行直接视为持久化冲突，避免应用层把“对象已保存”误判成成功。
         if (paymentOrderMapper.updateById(dataObject) == 0) {
@@ -98,7 +99,7 @@ public class PaymentRepositorySupport {
         PaymentCallbackRecordDO dataObject = paymentCallbackRecordPersistenceAssembler.toDataObject(callbackRecord);
         // 回调记录是证据追加模型；带上上游生成的 id 后直接插入，不在仓储层做“空 id 补发号”。
         if (dataObject.getId() == null) {
-            throw new IllegalArgumentException("payment callback record id must not be null");
+            throw new BadRequestException("payment callback record id must not be null");
         }
         paymentCallbackRecordMapper.insert(dataObject);
         return paymentCallbackRecordPersistenceAssembler.toDomain(dataObject);
@@ -141,7 +142,7 @@ public class PaymentRepositorySupport {
         PaymentAuditLogDO dataObject = paymentAuditLogPersistenceAssembler.toDataObject(auditLog);
         // 支付审计 id 由上游发号后带入，这里只负责追加落库，不再在仓储层补发 id。
         if (dataObject.getId() == null) {
-            throw new IllegalArgumentException("payment audit log id must not be null");
+            throw new BadRequestException("payment audit log id must not be null");
         }
         paymentAuditLogMapper.insert(dataObject);
     }

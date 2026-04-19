@@ -9,6 +9,7 @@ import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.model.enums.ClientStatus;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -45,8 +46,8 @@ class OAuth2AuthorizationApplicationServiceTest {
                 tokenCodec("hash-refresh"),
                 passwordEncoder);
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
                 () -> service.token("refresh_token", null, null, "demo-client", "demo-secret", null, "refresh"));
         assertEquals("OAuth refresh token invalid", exception.getMessage());
     }
@@ -77,7 +78,7 @@ class OAuth2AuthorizationApplicationServiceTest {
                 passwordEncoder);
 
         assertThrows(
-                IllegalArgumentException.class,
+                BadRequestException.class,
                 () -> service.token("refresh_token", null, null, "demo-client", "wrong-secret", null, "refresh"));
     }
 

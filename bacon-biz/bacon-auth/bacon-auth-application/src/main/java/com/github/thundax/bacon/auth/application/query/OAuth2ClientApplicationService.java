@@ -3,6 +3,7 @@ package com.github.thundax.bacon.auth.application.query;
 import com.github.thundax.bacon.auth.api.dto.OAuthClientDTO;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,7 +18,7 @@ public class OAuth2ClientApplicationService {
     public OAuthClientDTO getClientByClientId(String clientId) {
         OAuthClient client = oAuthClientRepository
                 .findByClientCode(clientId)
-                .orElseThrow(() -> new IllegalArgumentException("OAuth client not found: " + clientId));
+                .orElseThrow(() -> new NotFoundException("OAuth client not found: " + clientId));
         return new OAuthClientDTO(
                 client.getClientCodeValue(),
                 client.getClientName(),

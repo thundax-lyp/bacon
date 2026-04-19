@@ -11,6 +11,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.application.dto.AbortMultipartUploadCommand;
@@ -105,12 +106,12 @@ class MultipartUploadApplicationServiceTest {
 
     @Test
     void shouldRejectInitWhenMultipartTotalSizeExceedsConfiguredLimit() {
-        doThrow(new IllegalArgumentException("Multipart totalSize exceeds configured limit"))
+        doThrow(new BadRequestException("Multipart totalSize exceeds configured limit"))
                 .when(storageUploadLimitValidator)
                 .validateMultipartInit(2048L, 512L);
 
         assertThrows(
-                IllegalArgumentException.class,
+                BadRequestException.class,
                 () -> service.initMultipartUpload(new InitMultipartUploadCommand(
                         "GENERIC_ATTACHMENT", "owner-1", "attachment", "a.png", "image/png", 2048L, 512L)));
         verify(storedObjectStorageRepository, never()).insertMultipartUpload(any(), any(), any());
@@ -166,12 +167,12 @@ class MultipartUploadApplicationServiceTest {
                 null,
                 null);
         when(multipartUploadSessionRepository.findByUploadId("2")).thenReturn(Optional.of(session));
-        doThrow(new IllegalArgumentException("Multipart part size exceeds configured limit"))
+        doThrow(new BadRequestException("Multipart part size exceeds configured limit"))
                 .when(storageUploadLimitValidator)
                 .validateMultipartPartUpload(session, 1024L);
 
         assertThrows(
-                IllegalArgumentException.class,
+                BadRequestException.class,
                 () -> service.uploadMultipartPart(new UploadMultipartPartCommand(
                         "2", "GENERIC_ATTACHMENT", "owner-1", 1, 1024L, new ByteArrayInputStream(new byte[] {1}))));
         verify(storedObjectStorageRepository, never()).insertPart(any(), any(), any(), any());

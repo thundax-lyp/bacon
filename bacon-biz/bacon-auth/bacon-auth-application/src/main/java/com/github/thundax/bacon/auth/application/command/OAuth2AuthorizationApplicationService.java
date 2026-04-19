@@ -10,6 +10,8 @@ import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.core.exception.UnauthorizedException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -56,11 +58,11 @@ public class OAuth2AuthorizationApplicationService {
             String codeChallengeMethod) {
         OAuthClient client = loadClient(clientId);
         if (!client.getRedirectUris().contains(redirectUri)) {
-            throw new IllegalArgumentException("Redirect uri invalid");
+            throw new BadRequestException("Redirect uri invalid");
         }
         Set<String> scopes = splitScopes(scope);
         if (!client.getScopes().containsAll(scopes)) {
-            throw new IllegalArgumentException("Scope invalid");
+            throw new BadRequestException("Scope invalid");
         }
 
         if (accessToken == null || accessToken.isBlank()) {
@@ -93,9 +95,9 @@ public class OAuth2AuthorizationApplicationService {
                 .findById(authorizationRequestId)
                 .filter(request -> !request.isUsed())
                 .filter(request -> request.getExpireAt().isAfter(Instant.now()))
-                .orElseThrow(() -> new IllegalArgumentException("Authorization request invalid"));
+                .orElseThrow(() -> new BadRequestException("Authorization request invalid"));
         if (!"APPROVE".equalsIgnoreCase(decision) && !"REJECT".equalsIgnoreCase(decision)) {
-            throw new IllegalArgumentException("Decision invalid");
+            throw new BadRequestException("Decision invalid");
         }
         authorizationRequest.markUsed();
         oAuthAuthorizationRepository.update(authorizationRequest);
@@ -129,9 +131,9 @@ public class OAuth2AuthorizationApplicationService {
             // authorization_code 交换时复用授权请求里固化的 tenant/user/scopes，避免由客户端自行提交这些敏感上下文。
             OAuthAuthorizationRequest request = oAuthAuthorizationRepository
                     .findByCode(code)
-                    .orElseThrow(() -> new IllegalArgumentException("Authorization code invalid"));
+                    .orElseThrow(() -> new BadRequestException("Authorization code invalid"));
             if (!request.getRedirectUri().equals(redirectUri)) {
-                throw new IllegalArgumentException("Redirect uri invalid");
+                throw new BadRequestException("Redirect uri invalid");
             }
             return issueOAuthTokens(
                     client,
@@ -143,7 +145,7 @@ public class OAuth2AuthorizationApplicationService {
             OAuthRefreshToken currentRefreshToken = oAuthAuthorizationRepository
                     .findByHash(tokenCodec.sha256(refreshToken))
                     .filter(token -> "ACTIVE".equals(token.getTokenStatus()))
-                    .orElseThrow(() -> new IllegalArgumentException("OAuth refresh token invalid"));
+                    .orElseThrow(() -> new BadRequestException("OAuth refresh token invalid"));
             // refresh_token 换新采用轮转模式：旧 refresh token 标记 USED，再签发新的 access/refresh 对。
             currentRefreshToken.markUsed();
             oAuthAuthorizationRepository.update(currentRefreshToken);
@@ -158,7 +160,7 @@ public class OAuth2AuthorizationApplicationService {
                             : currentRefreshToken.getUserId().value(),
                     scopes);
         }
-        throw new IllegalArgumentException("Grant type unsupported");
+        throw new BadRequestException("Grant type unsupported");
     }
 
     public OAuth2IntrospectionDTO introspect(String token, String clientId, String clientSecret) {
@@ -201,7 +203,7 @@ public class OAuth2AuthorizationApplicationService {
         OAuthAccessToken token = oAuthAuthorizationRepository
                 .findAccessByHash(tokenCodec.sha256(accessToken))
                 .filter(OAuthAccessToken::isActive)
-                .orElseThrow(() -> new IllegalArgumentException("OAuth access token invalid"));
+                .orElseThrow(() -> new BadRequestException("OAuth access token invalid"));
         Long userId = token.getUserId() == null ? null : token.getUserId().value();
         String name = token.getScopes().contains("profile") ? "demo-user-" + userId : null;
         return new OAuth2UserinfoDTO(String.valueOf(userId), token.getTenantIdValue(), name);
@@ -248,7 +250,7 @@ public class OAuth2AuthorizationApplicationService {
         return oAuthClientRepository
                 .findByClientCode(clientId)
                 .filter(OAuthClient::isEnabled)
-                .orElseThrow(() -> new IllegalArgumentException("OAuth client invalid"));
+                .orElseThrow(() -> new NotFoundException("OAuth client invalid"));
     }
 
     private OAuthClient validateClient(String clientId, String clientSecret) {
@@ -257,7 +259,7 @@ public class OAuth2AuthorizationApplicationService {
         boolean plainSecretMatches = storedSecret.equals(clientSecret);
         boolean hashedSecretMatches = passwordEncoder.matches(clientSecret, storedSecret);
         if (!plainSecretMatches && !hashedSecretMatches) {
-            throw new IllegalArgumentException("OAuth client secret invalid");
+            throw new BadRequestException("OAuth client secret invalid");
         }
         return client;
     }

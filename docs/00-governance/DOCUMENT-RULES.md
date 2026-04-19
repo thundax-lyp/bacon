@@ -124,8 +124,8 @@
   - 应用层命令入参使用 `*Command`
   - 应用层查询入参使用 `*Query`
   - 应用层结果模型使用 `*Result`
-  - 分页结果模型使用 `*PageResultDTO`
-  - 命令结果模型使用 `*ResultDTO`
+  - 分页结果模型使用 `*PageResult`
+  - 命令结果模型使用 `*Result`
 - 工程实现文档如果涉及分层命名，以 `ARCHITECTURE.md` 的工程规则为准：
   - `interfaces.dto` 使用 `*Request`
   - `interfaces.response` 使用 `*Response`

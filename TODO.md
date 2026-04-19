@@ -3,17 +3,14 @@
 ### 当前主线顺序（按模块执行）
 
 1. `upms`
-   - 先补 interfaces 输入校验与 request Bean Validation
-   - 再拆 `UserController` / `UserApplicationService`
+   - 先拆 `UserController` / `UserApplicationService`
    - 再回收 `UserRepositoryImpl` 中残留业务
    - 最后处理 `upms api.dto` 下沉与 facade `Request/Response` 规约
 2. `storage`
    - 先统一 `objectId -> storedObjectNo`
    - 再清理 `StoredObjectPageQueryDTO` 和 interfaces/application 合同
-   - 再处理异常语义与接口校验补齐
 3. `auth`
-   - 先清理 `IllegalArgumentException`
-   - 再收口 `interfaces -> application` 合同
+   - 先收口 `interfaces -> application` 合同
    - 再评审 `auth-api` 中哪些 DTO 真正属于稳定跨域契约
 4. `order`
    - 先拆 `OrderReadProviderController` 读写混合职责
@@ -29,24 +26,6 @@
 
 ### P0 - 2026-04-17 跨域扫描新增（统一性优先）
 
-- [ ] 统一 controller 校验基线：全域 `@Validated` + `@Valid`
-  - 现状对比：`inventory/payment/order/storage` 多数已有基础校验；`auth` 已补部分 `@Valid`，但类级 `@Validated` 和路径/请求头参数约束仍不统一；`upms` 仍是缺口最大域
-  - 处理动作：按域补齐类级 `@Validated`、方法参数 `@Valid` 与显式参数约束，优先 `upms`（`User/Role/Tenant/Post/Resource/Department`）
-  - 验收点：外部 controller 与 provider 入口参数统一在 interfaces 层拦截
-  - 重要度：9/10
-
-- [ ] 统一 request Bean Validation 完整度（按域补齐）
-  - 现状对比：`inventory/order/payment/auth` 相对完整；`storage` 基本空白；`upms` 35 个 request 中大量无约束
-  - 处理动作：分域建立最小约束模板（ID: `@Positive`，编码/名称: `@NotBlank+@Size`，列表: `@NotEmpty`）
-  - 验收点：`storage` 的分页/provider 请求和 `upms` 的用户/角色/租户关键写请求均具备基础约束
-  - 重要度：9/10
-
-- [ ] 统一 PathVariable / RequestParam 约束显式性
-  - 现状：`upms/storage/auth` 仍有大量 `@PathVariable Long/String` 无 `@Positive/@NotBlank`
-  - 处理动作：按 controller 清单补齐路径参数约束；字符串 ID/编码补 `@NotBlank + @Size`
-  - 验收点：接口层不再把明显非法路径参数下沉到 application
-  - 重要度：8/10
-
 - [ ] `interfaces -> application` 合同统一为 Command/Query/VO
   - 现状对比：`inventory/order` 相对稳定；`payment/storage/auth/upms` 仍有较多 primitive 参数方法
   - 处理动作：分域消减长参数方法，优先改 `upms User/Tenant/Role/Post`、`auth OAuth2/Session/Password`、`storage StoredObject*`
@@ -58,12 +37,6 @@
   - 处理动作：继续下沉到 `application.assembler`，service 仅编排事务与流程
   - 验收点：application service 代码审阅聚焦业务流程而非映射细节
   - 重要度：8/10
-
-- [ ] 统一异常语义，清理 application/infra 的 `IllegalArgumentException`
-  - 现状对比：`auth`（OAuth/Session/Password）和 `storage`（upload limit）仍大量抛 `IllegalArgumentException`；`payment` 在 infra support 仍有
-  - 处理动作：按“参数错误/不存在/冲突/权限”映射到稳定异常类型，并补单测
-  - 验收点：业务链路不再把 `IllegalArgumentException` 作为对外异常出口
-  - 重要度：9/10
 
 - [ ] 统一横切注解策略（`@SysLog/@HasPermission/@Operation`）
   - 现状对比：`upms` 注解密度远高于其他域；`auth` 基本无权限与审计注解
@@ -97,9 +70,9 @@
   - 验收点：接口契约不再混淆“主键ID”和“业务No”，避免跨域调用误用
   - 重要度：9/10
 
-- [ ] `upms`：补齐 interfaces 层参数校验后再推进服务拆分
-  - 当前状态：request 校验与 `@Valid` 缺口最多，且 `UserApplicationService` 复杂度最高
-  - 处理动作：先做输入校验收口，再做 `UserApplicationService/UserController` 拆分
+- [ ] `upms`：在 interfaces 层校验收口后推进服务拆分
+  - 当前状态：interfaces 输入校验与关键 request Bean Validation 已补齐；`UserApplicationService` / `UserController` 仍然过大
+  - 处理动作：继续做 `UserApplicationService/UserController` 拆分，拆分过程中保持现有异常语义与校验口径不回退
   - 验收点：拆分前后行为一致且异常语义稳定，回归风险可控
   - 重要度：9/10
 
@@ -315,9 +288,9 @@
 
 ### 建议执行顺序（细化）
 
-1. 先走 `upms` 主线：输入校验 -> `UserController` 拆分 -> `UserApplicationService` 拆分 -> `UserRepositoryImpl` 业务外提
-2. 再走 `storage` 主线：`objectId -> storedObjectNo` -> 删除 `StoredObjectPageQueryDTO` -> 补齐 request/路径参数校验
-3. 然后处理 `auth`：统一异常语义 -> 收口应用层合同 -> 评审 `auth-api dto`
+1. 先走 `upms` 主线：`UserController` 拆分 -> `UserApplicationService` 拆分 -> `UserRepositoryImpl` 业务外提
+2. 再走 `storage` 主线：`objectId -> storedObjectNo` -> 删除 `StoredObjectPageQueryDTO` -> 收口 interfaces/application 合同
+3. 然后处理 `auth`：收口应用层合同 -> 评审 `auth-api dto`
 4. 再处理 `order`：provider 读写拆分 -> assembler 收口 -> 用例补齐
 5. 然后处理 `payment` 与 `inventory` 的局部整形任务
 6. 最后再上 ArchUnit 增量门禁、注解矩阵和租户边界统一

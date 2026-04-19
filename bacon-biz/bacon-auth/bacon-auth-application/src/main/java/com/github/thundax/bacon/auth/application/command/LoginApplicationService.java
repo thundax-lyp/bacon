@@ -14,8 +14,8 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
 import com.github.thundax.bacon.upms.api.request.UserLoginCredentialGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.response.UserLoginCredentialDetailFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserLoginCredentialFacadeResponse;
-import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
@@ -69,15 +69,16 @@ public class LoginApplicationService {
                 tenantId.value(),
                 () -> userReadFacade.getUserLoginCredential(
                         new UserLoginCredentialGetFacadeRequest("ACCOUNT", command.getAccount())));
-        UserLoginCredentialDTO credential = response == null ? null : response.getUserLoginCredential();
-        UserLoginCredentialDTO validatedCredential = validatePasswordLoginCredential(credential, plainPassword);
+        UserLoginCredentialDetailFacadeResponse credential = response == null ? null : response.getUserLoginCredential();
+        UserLoginCredentialDetailFacadeResponse validatedCredential =
+                validatePasswordLoginCredential(credential, plainPassword);
         return createLoginSession(
                 tenantId.value(),
-                validatedCredential.getUserId(),
-                validatedCredential.getIdentityId(),
-                validatedCredential.getIdentityType(),
+                validatedCredential.userId(),
+                validatedCredential.identityId(),
+                validatedCredential.identityType(),
                 "PASSWORD",
-                validatedCredential.isNeedChangePassword());
+                validatedCredential.needChangePassword());
     }
 
     @Transactional
@@ -95,25 +96,25 @@ public class LoginApplicationService {
         return createLoginSession(1001L, 2004L, 3004L, "GITHUB", "GITHUB", null);
     }
 
-    private UserLoginCredentialDTO validatePasswordLoginCredential(
-            UserLoginCredentialDTO credential, String plainPassword) {
+    private UserLoginCredentialDetailFacadeResponse validatePasswordLoginCredential(
+            UserLoginCredentialDetailFacadeResponse credential, String plainPassword) {
         if (credential == null) {
             throw new BadRequestException("Invalid account or password");
         }
-        if (!"ACTIVE".equals(credential.getIdentityStatus())) {
+        if (!"ACTIVE".equals(credential.identityStatus())) {
             throw new BadRequestException("Current account is disabled");
         }
-        if (!EnableStatusEnum.ENABLED.matches(credential.getStatus())) {
+        if (!EnableStatusEnum.ENABLED.matches(credential.status())) {
             throw new BadRequestException("Current user is not enabled");
         }
-        if (!"ACTIVE".equals(credential.getCredentialStatus())) {
+        if (!"ACTIVE".equals(credential.credentialStatus())) {
             throw new BadRequestException("Current credential is not active");
         }
-        if (credential.getCredentialExpiresAt() != null
-                && credential.getCredentialExpiresAt().isBefore(Instant.now())) {
+        if (credential.credentialExpiresAt() != null
+                && credential.credentialExpiresAt().isBefore(Instant.now())) {
             throw new BadRequestException("Current credential has expired");
         }
-        if (!passwordEncoder.matches(plainPassword, credential.getPasswordHash())) {
+        if (!passwordEncoder.matches(plainPassword, credential.passwordHash())) {
             throw new BadRequestException("Invalid account or password");
         }
         return credential;

@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.api.response;
 
-import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,9 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserIdentityFacadeResponse {
 
-    private UserIdentityDTO userIdentity;
+    private UserIdentityDetailFacadeResponse userIdentity;
 
-    public static UserIdentityFacadeResponse from(UserIdentityDTO userIdentity) {
+    public static UserIdentityFacadeResponse from(UserIdentityDetailFacadeResponse userIdentity) {
         return new UserIdentityFacadeResponse(userIdentity);
     }
 }

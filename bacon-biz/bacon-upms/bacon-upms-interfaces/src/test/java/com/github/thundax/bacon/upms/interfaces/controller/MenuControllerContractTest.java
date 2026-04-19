@@ -9,9 +9,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.github.thundax.bacon.upms.api.dto.MenuTreeDTO;
 import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
 import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
+import com.github.thundax.bacon.upms.application.dto.MenuTreeDTO;
 import com.github.thundax.bacon.upms.domain.model.enums.MenuType;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;

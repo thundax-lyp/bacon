@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.application.assembler;
 
 import com.github.thundax.bacon.common.id.codec.OperatorIdCodec;
-import com.github.thundax.bacon.upms.api.dto.SysLogDTO;
+import com.github.thundax.bacon.upms.application.dto.SysLogDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
 
 public final class SysLogAssembler {

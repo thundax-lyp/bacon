@@ -1,12 +1,12 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
-import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
-import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.api.facade.PermissionReadFacade;
 import com.github.thundax.bacon.upms.api.request.UserPermissionGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.response.UserDataScopeDetailFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserDataScopeFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserMenuTreeFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserMenuTreeItemFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserPermissionCodeFacadeResponse;
 import java.util.List;
 import java.util.Set;
@@ -20,7 +20,7 @@ import org.springframework.web.client.RestClient;
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
 public class PermissionReadFacadeRemoteImpl implements PermissionReadFacade {
 
-    private static final ParameterizedTypeReference<List<UserMenuTreeDTO>> MENU_LIST_TYPE =
+    private static final ParameterizedTypeReference<List<UserMenuTreeItemFacadeResponse>> MENU_LIST_TYPE =
             new ParameterizedTypeReference<>() {};
     private static final ParameterizedTypeReference<Set<String>> CODE_SET_TYPE = new ParameterizedTypeReference<>() {};
     private static final String PROVIDER_TOKEN_HEADER = "X-Bacon-Provider-Token";
@@ -37,7 +37,7 @@ public class PermissionReadFacadeRemoteImpl implements PermissionReadFacade {
     @Override
     public UserMenuTreeFacadeResponse listMenuTreeByUserId(UserPermissionGetFacadeRequest request) {
         // 菜单树属于已聚合好的读取模型，客户端只透传，不在本地再次做权限裁剪。
-        List<UserMenuTreeDTO> menus = restClient
+        List<UserMenuTreeItemFacadeResponse> menus = restClient
                 .get()
                 .uri("/providers/upms/permissions/menus?userId={userId}", request.getUserId())
                 .retrieve()
@@ -59,11 +59,11 @@ public class PermissionReadFacadeRemoteImpl implements PermissionReadFacade {
     @Override
     public UserDataScopeFacadeResponse getUserDataScope(UserPermissionGetFacadeRequest request) {
         // 数据权限规则统一由 upms 侧计算，remote facade 不在消费者侧复制同样的合并逻辑。
-        UserDataScopeDTO dataScope = restClient
+        UserDataScopeDetailFacadeResponse dataScope = restClient
                 .get()
                 .uri("/providers/upms/permissions/data-scope?userId={userId}", request.getUserId())
                 .retrieve()
-                .body(UserDataScopeDTO.class);
+                .body(UserDataScopeDetailFacadeResponse.class);
         return UserDataScopeFacadeResponse.from(dataScope);
     }
 }

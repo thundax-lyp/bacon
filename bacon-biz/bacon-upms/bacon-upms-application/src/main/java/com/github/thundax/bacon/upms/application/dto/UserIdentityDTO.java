@@ -1,25 +1,20 @@
-package com.github.thundax.bacon.upms.api.dto;
+package com.github.thundax.bacon.upms.application.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 用户身份标识跨服务传输对象。
+ * 用户身份应用层读模型。
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserIdentityDTO {
 
-    /** 身份标识主键。 */
     private Long id;
-    /** 关联用户主键。 */
     private Long userId;
-    /** 身份标识类型。 */
     private String identityType;
-    /** 身份标识值。 */
     private String identityValue;
-    /** 身份状态。 */
     private String status;
 }

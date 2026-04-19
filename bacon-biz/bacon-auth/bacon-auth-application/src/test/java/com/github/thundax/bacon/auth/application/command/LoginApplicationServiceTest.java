@@ -14,8 +14,8 @@ import com.github.thundax.bacon.auth.application.support.LoginSecurityApplicatio
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
-import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
+import com.github.thundax.bacon.upms.api.response.UserLoginCredentialDetailFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserLoginCredentialFacadeResponse;
 import java.time.Instant;
 import java.util.List;
@@ -54,7 +54,7 @@ class LoginApplicationServiceTest {
 
         UserReadFacade userReadFacade = mock(UserReadFacade.class);
         when(userReadFacade.getUserLoginCredential(any())).thenReturn(UserLoginCredentialFacadeResponse.from(
-                new UserLoginCredentialDTO(
+                new UserLoginCredentialDetailFacadeResponse(
                         2001L,
                         3001L,
                         "demo",

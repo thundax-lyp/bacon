@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.api.response;
 
-import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,9 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserLoginCredentialFacadeResponse {
 
-    private UserLoginCredentialDTO userLoginCredential;
+    private UserLoginCredentialDetailFacadeResponse userLoginCredential;
 
-    public static UserLoginCredentialFacadeResponse from(UserLoginCredentialDTO userLoginCredential) {
+    public static UserLoginCredentialFacadeResponse from(UserLoginCredentialDetailFacadeResponse userLoginCredential) {
         return new UserLoginCredentialFacadeResponse(userLoginCredential);
     }
 }

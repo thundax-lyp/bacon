@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
-import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
+import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 
 /**
  * 用户身份标识查询响应对象。

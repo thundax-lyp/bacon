@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.upms.application.query;
 
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
-import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.application.assembler.UserDataScopeAssembler;
 import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
+import com.github.thundax.bacon.upms.application.dto.UserDataScopeDTO;
+import com.github.thundax.bacon.upms.application.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import java.util.List;
 import java.util.Set;

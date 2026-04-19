@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.application.assembler;
 
-import com.github.thundax.bacon.upms.api.dto.MenuTreeDTO;
-import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
+import com.github.thundax.bacon.upms.application.dto.MenuTreeDTO;
+import com.github.thundax.bacon.upms.application.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import java.util.List;
 

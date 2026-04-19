@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.application.assembler;
 
-import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
-import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
+import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
+import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;

@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
-import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
+import com.github.thundax.bacon.upms.application.dto.UserMenuTreeDTO;
 import java.util.List;
 
 /**

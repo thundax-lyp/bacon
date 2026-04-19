@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.api.response;
 
-import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,9 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserDataScopeFacadeResponse {
 
-    private UserDataScopeDTO dataScope;
+    private UserDataScopeDetailFacadeResponse dataScope;
 
-    public static UserDataScopeFacadeResponse from(UserDataScopeDTO dataScope) {
+    public static UserDataScopeFacadeResponse from(UserDataScopeDetailFacadeResponse dataScope) {
         return new UserDataScopeFacadeResponse(dataScope);
     }
 }

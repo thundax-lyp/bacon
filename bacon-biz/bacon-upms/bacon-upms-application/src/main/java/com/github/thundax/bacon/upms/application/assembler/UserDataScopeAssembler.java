@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.application.assembler;
 
-import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
+import com.github.thundax.bacon.upms.application.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import java.util.Set;
 import java.util.stream.Collectors;

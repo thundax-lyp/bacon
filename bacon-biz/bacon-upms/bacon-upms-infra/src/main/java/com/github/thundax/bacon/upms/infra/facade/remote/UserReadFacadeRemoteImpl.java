@@ -3,15 +3,15 @@ package com.github.thundax.bacon.upms.infra.facade.remote;
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
-import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
-import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
 import com.github.thundax.bacon.upms.api.request.UserGetFacadeRequest;
 import com.github.thundax.bacon.upms.api.request.UserIdentityGetFacadeRequest;
 import com.github.thundax.bacon.upms.api.request.UserLoginCredentialGetFacadeRequest;
 import com.github.thundax.bacon.upms.api.response.TenantFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserIdentityDetailFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserIdentityFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserLoginCredentialDetailFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserLoginCredentialFacadeResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -47,28 +47,28 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
     @Override
     public UserIdentityFacadeResponse getUserIdentity(UserIdentityGetFacadeRequest request) {
         // 身份映射读取只返回绑定结果，不在 remote facade 里补默认身份，避免认证链路误判“用户不存在”和“未绑定”。
-        UserIdentityDTO userIdentity = restClient
+        UserIdentityDetailFacadeResponse userIdentity = restClient
                 .get()
                 .uri(
                         "/providers/upms/user-identities?identityType={identityType}&identityValue={identityValue}",
                         request.getIdentityType(),
                         request.getIdentityValue())
                 .retrieve()
-                .body(UserIdentityDTO.class);
+                .body(UserIdentityDetailFacadeResponse.class);
         return UserIdentityFacadeResponse.from(userIdentity);
     }
 
     @Override
     public UserLoginCredentialFacadeResponse getUserLoginCredential(UserLoginCredentialGetFacadeRequest request) {
         // 登录凭据查询是 auth 登录链路的基础读操作；provider 负责决定哪些敏感字段可以下发。
-        UserLoginCredentialDTO credential = restClient
+        UserLoginCredentialDetailFacadeResponse credential = restClient
                 .get()
                 .uri(
                         "/providers/upms/user-credentials?identityType={identityType}&identityValue={identityValue}",
                         request.getIdentityType(),
                         request.getIdentityValue())
                 .retrieve()
-                .body(UserLoginCredentialDTO.class);
+                .body(UserLoginCredentialDetailFacadeResponse.class);
         return UserLoginCredentialFacadeResponse.from(credential);
     }
 

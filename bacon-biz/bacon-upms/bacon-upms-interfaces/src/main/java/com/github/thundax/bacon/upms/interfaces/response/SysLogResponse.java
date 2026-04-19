@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
-import com.github.thundax.bacon.upms.api.dto.SysLogDTO;
+import com.github.thundax.bacon.upms.application.dto.SysLogDTO;
 import java.time.Instant;
 
 /**

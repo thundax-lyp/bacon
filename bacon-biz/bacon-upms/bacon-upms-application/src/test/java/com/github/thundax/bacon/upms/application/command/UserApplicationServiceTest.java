@@ -25,7 +25,7 @@ import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeR
 import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
-import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
+import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;

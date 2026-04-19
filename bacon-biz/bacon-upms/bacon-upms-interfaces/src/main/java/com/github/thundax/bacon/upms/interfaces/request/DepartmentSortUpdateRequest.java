@@ -1,3 +1,5 @@
 package com.github.thundax.bacon.upms.interfaces.request;
 
-public record DepartmentSortUpdateRequest(Integer sort) {}
+import jakarta.validation.constraints.NotNull;
+
+public record DepartmentSortUpdateRequest(@NotNull(message = "sort must not be null") Integer sort) {}

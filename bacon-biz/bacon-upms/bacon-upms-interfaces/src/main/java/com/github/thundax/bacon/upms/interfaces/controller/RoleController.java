@@ -25,6 +25,7 @@ import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,10 +37,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @WrappedApiController
 @RequestMapping("/upms/roles")
+@Validated
 @Tag(name = "UPMS-Role", description = "角色管理接口")
 public class RoleController {
 
@@ -67,7 +70,7 @@ public class RoleController {
     @HasPermission("sys:role:create")
     @SysLog(module = "UPMS", action = "创建角色", eventType = LogEventType.CREATE)
     @PostMapping
-    public RoleResponse createRole(@RequestBody RoleCreateRequest request) {
+    public RoleResponse createRole(@Valid @RequestBody RoleCreateRequest request) {
         return RoleResponse.from(roleApplicationService.createRole(
                 request.code(),
                 request.name(),
@@ -79,7 +82,9 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "修改角色", eventType = LogEventType.UPDATE)
     @PutMapping("/{roleId}")
-    public RoleResponse updateRole(@PathVariable("roleId") Long roleId, @RequestBody RoleUpdateRequest request) {
+    public RoleResponse updateRole(
+            @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId,
+            @Valid @RequestBody RoleUpdateRequest request) {
         return RoleResponse.from(roleApplicationService.updateRole(
                 RoleIdCodec.toDomain(roleId),
                 request.code(),
@@ -92,7 +97,8 @@ public class RoleController {
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "查询角色详情", eventType = LogEventType.QUERY)
     @GetMapping("/{roleId}")
-    public RoleResponse getRoleById(@PathVariable("roleId") Long roleId) {
+    public RoleResponse getRoleById(
+            @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId) {
         return RoleResponse.from(roleApplicationService.getRoleById(RoleIdCodec.toDomain(roleId)));
     }
 
@@ -101,7 +107,8 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "变更角色状态", eventType = LogEventType.UPDATE)
     @PutMapping("/{roleId}/status")
     public RoleResponse updateRoleStatus(
-            @PathVariable("roleId") Long roleId, @RequestBody RoleStatusUpdateRequest request) {
+            @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId,
+            @Valid @RequestBody RoleStatusUpdateRequest request) {
         return RoleResponse.from(roleApplicationService.updateRoleStatus(
                 RoleIdCodec.toDomain(roleId), request.status() == null ? null : RoleStatus.from(request.status())));
     }
@@ -110,7 +117,7 @@ public class RoleController {
     @HasPermission("sys:role:delete")
     @SysLog(module = "UPMS", action = "删除角色", eventType = LogEventType.DELETE)
     @DeleteMapping("/{roleId}")
-    public void delete(@PathVariable("roleId") Long roleId) {
+    public void delete(@PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId) {
         roleApplicationService.delete(RoleIdCodec.toDomain(roleId));
     }
 
@@ -118,7 +125,8 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "分配角色菜单", eventType = LogEventType.GRANT)
     @GetMapping("/{roleId}/menus")
-    public Set<String> getAssignedMenus(@PathVariable("roleId") Long roleId) {
+    public Set<String> getAssignedMenus(
+            @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId) {
         return roleApplicationService.getMenuIds(RoleIdCodec.toDomain(roleId));
     }
 
@@ -126,7 +134,9 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "分配角色菜单", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/menus")
-    public Set<String> assignMenus(@PathVariable("roleId") Long roleId, @RequestBody RoleMenuAssignRequest request) {
+    public Set<String> assignMenus(
+            @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId,
+            @Valid @RequestBody RoleMenuAssignRequest request) {
         return roleApplicationService.updateMenuIds(
                 RoleIdCodec.toDomain(roleId),
                 request.menuIds() == null
@@ -138,7 +148,8 @@ public class RoleController {
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "查询角色资源授权", eventType = LogEventType.QUERY)
     @GetMapping("/{roleId}/resources")
-    public Set<String> getAssignedResources(@PathVariable("roleId") Long roleId) {
+    public Set<String> getAssignedResources(
+            @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId) {
         return roleApplicationService.getResourceCodes(RoleIdCodec.toDomain(roleId));
     }
 
@@ -147,7 +158,8 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "分配角色资源", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/resources")
     public Set<String> assignResources(
-            @PathVariable("roleId") Long roleId, @RequestBody RoleResourceAssignRequest request) {
+            @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId,
+            @Valid @RequestBody RoleResourceAssignRequest request) {
         return roleApplicationService.updateResourceCodes(RoleIdCodec.toDomain(roleId), request.resourceCodes());
     }
 
@@ -155,7 +167,8 @@ public class RoleController {
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "查询角色数据权限配置", eventType = LogEventType.QUERY)
     @GetMapping("/{roleId}/data-scope")
-    public RoleDataScopeResponse getAssignedDataScope(@PathVariable("roleId") Long roleId) {
+    public RoleDataScopeResponse getAssignedDataScope(
+            @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId) {
         return new RoleDataScopeResponse(
                 roleApplicationService.getDataScopeType(RoleIdCodec.toDomain(roleId)).value(),
                 roleApplicationService.getDataScopeDepartmentIds(RoleIdCodec.toDomain(roleId)).stream()
@@ -168,7 +181,8 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "配置角色数据权限", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/data-scope")
     public Set<Long> assignDataScope(
-            @PathVariable("roleId") Long roleId, @RequestBody RoleDataScopeAssignRequest request) {
+            @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId,
+            @Valid @RequestBody RoleDataScopeAssignRequest request) {
         return roleApplicationService
                 .updateDataScope(
                         RoleIdCodec.toDomain(roleId),

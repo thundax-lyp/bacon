@@ -27,6 +27,8 @@ import com.github.thundax.bacon.upms.interfaces.response.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -44,11 +46,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @WrappedApiController
 @RequestMapping("/upms/users")
+@Validated
 @Tag(name = "UPMS-User", description = "用户管理接口")
 public class UserController {
 
@@ -76,7 +80,7 @@ public class UserController {
     @HasPermission("sys:user:create")
     @SysLog(module = "UPMS", action = "创建用户", eventType = LogEventType.CREATE)
     @PostMapping
-    public UserResponse createUser(@RequestBody UserCreateRequest request) {
+    public UserResponse createUser(@Valid @RequestBody UserCreateRequest request) {
         return UserResponse.from(userApplicationService.createUser(
                 request.account(), request.name(), request.phone(), DepartmentId.of(request.departmentId())));
     }
@@ -85,7 +89,9 @@ public class UserController {
     @HasPermission("sys:user:update")
     @SysLog(module = "UPMS", action = "修改用户基本信息", eventType = LogEventType.UPDATE)
     @PutMapping("/{userId}")
-    public UserResponse updateUser(@PathVariable("userId") Long userId, @RequestBody UserUpdateRequest request) {
+    public UserResponse updateUser(
+            @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
+            @Valid @RequestBody UserUpdateRequest request) {
         return UserResponse.from(userApplicationService.updateUser(
                 UserIdCodec.toDomain(userId),
                 request.account(),
@@ -98,14 +104,16 @@ public class UserController {
     @HasPermission("sys:user:view")
     @SysLog(module = "UPMS", action = "查询用户详情", eventType = LogEventType.QUERY)
     @GetMapping("/{userId}")
-    public UserResponse getUserById(@PathVariable("userId") Long userId) {
+    public UserResponse getUserById(
+            @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
         return UserResponse.from(userApplicationService.getUserById(UserIdCodec.toDomain(userId)));
     }
 
     @Operation(summary = "访问用户头像")
     @SysLog(module = "UPMS", action = "访问用户头像", eventType = LogEventType.QUERY)
     @GetMapping("/{userId}/avatar")
-    public ResponseEntity<Void> getAvatar(@PathVariable("userId") Long userId) {
+    public ResponseEntity<Void> getAvatar(
+            @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
         Optional<String> avatarAccessUrl = userApplicationService.getAvatarAccessUrl(UserIdCodec.toDomain(userId));
         if (avatarAccessUrl.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -119,7 +127,7 @@ public class UserController {
     @HasPermission("sys:user:view")
     @SysLog(module = "UPMS", action = "查询用户身份", eventType = LogEventType.QUERY)
     @GetMapping("/identity")
-    public UserIdentityResponse getUserIdentity(@ModelAttribute UserIdentityQueryRequest request) {
+    public UserIdentityResponse getUserIdentity(@Valid @ModelAttribute UserIdentityQueryRequest request) {
         return UserIdentityResponse.from(userApplicationService.getUserIdentity(
                 UserIdentityType.from(request.getIdentityType()), request.getIdentityValue()));
     }
@@ -129,7 +137,8 @@ public class UserController {
     @SysLog(module = "UPMS", action = "变更用户状态", eventType = LogEventType.UPDATE)
     @PutMapping("/{userId}/status")
     public UserResponse updateUserStatus(
-            @PathVariable("userId") Long userId, @RequestBody UserStatusUpdateRequest request) {
+            @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
+            @Valid @RequestBody UserStatusUpdateRequest request) {
         return UserResponse.from(userApplicationService.updateUserStatus(
                 UserIdCodec.toDomain(userId), request.status() == null ? null : UserStatus.from(request.status())));
     }
@@ -138,7 +147,7 @@ public class UserController {
     @HasPermission("sys:user:delete")
     @SysLog(module = "UPMS", action = "删除用户", eventType = LogEventType.DELETE)
     @DeleteMapping("/{userId}")
-    public void delete(@PathVariable("userId") Long userId) {
+    public void delete(@PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
         userApplicationService.delete(UserIdCodec.toDomain(userId));
     }
 
@@ -146,7 +155,8 @@ public class UserController {
     @HasPermission("sys:user:update")
     @SysLog(module = "UPMS", action = "初始化用户密码", eventType = LogEventType.UPDATE)
     @PutMapping("/{userId}/passwords/init")
-    public UserResponse initPassword(@PathVariable("userId") Long userId) {
+    public UserResponse initPassword(
+            @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
         return UserResponse.from(userApplicationService.initPassword(UserIdCodec.toDomain(userId)));
     }
 
@@ -155,7 +165,8 @@ public class UserController {
     @SysLog(module = "UPMS", action = "重置用户密码", eventType = LogEventType.UPDATE)
     @PutMapping("/{userId}/passwords/reset")
     public UserResponse resetPassword(
-            @PathVariable("userId") Long userId, @RequestBody UserPasswordResetRequest request) {
+            @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
+            @Valid @RequestBody UserPasswordResetRequest request) {
         return UserResponse.from(
                 userApplicationService.resetPassword(UserIdCodec.toDomain(userId), request.newPassword()));
     }
@@ -165,7 +176,8 @@ public class UserController {
     @SysLog(module = "UPMS", action = "分配用户角色", eventType = LogEventType.GRANT)
     @PutMapping("/{userId}/roles")
     public List<RoleResponse> updateRoleIds(
-            @PathVariable("userId") Long userId, @RequestBody UserRoleAssignRequest request) {
+            @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
+            @Valid @RequestBody UserRoleAssignRequest request) {
         return userApplicationService
                 .updateRoleIds(
                         UserIdCodec.toDomain(userId),
@@ -181,7 +193,9 @@ public class UserController {
     @HasPermission("sys:user:update")
     @SysLog(module = "UPMS", action = "上传用户头像", eventType = LogEventType.UPDATE)
     @PutMapping(value = "/{userId}/avatar", consumes = "multipart/form-data")
-    public UserResponse uploadAvatar(@PathVariable("userId") Long userId, @RequestParam("file") MultipartFile file)
+    public UserResponse uploadAvatar(
+            @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
+            @RequestParam("file") @NotNull(message = "file must not be null") MultipartFile file)
             throws IOException {
         return UserResponse.from(userApplicationService.updateAvatar(
                 UserIdCodec.toDomain(userId),
@@ -195,7 +209,8 @@ public class UserController {
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "查询用户角色", eventType = LogEventType.QUERY)
     @GetMapping("/{userId}/roles")
-    public List<RoleResponse> getRolesByUserId(@PathVariable("userId") Long userId) {
+    public List<RoleResponse> getRolesByUserId(
+            @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
         return userApplicationService.getRolesByUserId(UserIdCodec.toDomain(userId)).stream()
                 .map(RoleResponse::from)
                 .toList();
@@ -205,7 +220,7 @@ public class UserController {
     @HasPermission("sys:user:create")
     @SysLog(module = "UPMS", action = "导入用户", eventType = LogEventType.IMPORT)
     @PostMapping("/import")
-    public List<UserResponse> importUsers(@RequestBody UserImportRequest request) {
+    public List<UserResponse> importUsers(@Valid @RequestBody UserImportRequest request) {
         List<UserImportItemRequest> items = request.items() == null ? List.of() : request.items();
         return userApplicationService
                 .importUsers(items.stream()
@@ -221,7 +236,7 @@ public class UserController {
     @HasPermission("sys:user:view")
     @SysLog(module = "UPMS", action = "导出用户", eventType = LogEventType.EXPORT)
     @GetMapping("/export")
-    public List<UserResponse> exportUsers(@ModelAttribute UserPageRequest request) {
+    public List<UserResponse> exportUsers(@Valid @ModelAttribute UserPageRequest request) {
         return userApplicationService
                 .exportUsers(
                         request.getAccount(),

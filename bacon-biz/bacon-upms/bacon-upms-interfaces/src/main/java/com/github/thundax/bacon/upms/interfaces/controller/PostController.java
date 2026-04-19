@@ -16,6 +16,7 @@ import com.github.thundax.bacon.upms.interfaces.response.PostResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -25,10 +26,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @WrappedApiController
 @RequestMapping("/upms/posts")
+@Validated
 @Tag(name = "UPMS-Post", description = "岗位管理接口")
 public class PostController {
 
@@ -56,16 +59,16 @@ public class PostController {
     @HasPermission("sys:post:view")
     @SysLog(module = "UPMS", action = "查询岗位详情", eventType = LogEventType.QUERY)
     @GetMapping("/{postId}")
-    public PostResponse getPostById(@PathVariable("postId") String postId) {
-        return PostResponse.from(
-                postApplicationService.getPostById(PostIdCodec.toDomain(Long.parseLong(postId.trim()))));
+    public PostResponse getPostById(
+            @PathVariable("postId") @Positive(message = "postId must be greater than 0") Long postId) {
+        return PostResponse.from(postApplicationService.getPostById(PostIdCodec.toDomain(postId)));
     }
 
     @Operation(summary = "创建岗位")
     @HasPermission("sys:post:create")
     @SysLog(module = "UPMS", action = "创建岗位", eventType = LogEventType.CREATE)
     @PostMapping
-    public PostResponse createPost(@RequestBody PostCreateRequest request) {
+    public PostResponse createPost(@Valid @RequestBody PostCreateRequest request) {
         return PostResponse.from(postApplicationService.createPost(
                 request.code(), request.name(), DepartmentIdCodec.toDomain(request.departmentId())));
     }
@@ -74,9 +77,11 @@ public class PostController {
     @HasPermission("sys:post:update")
     @SysLog(module = "UPMS", action = "修改岗位", eventType = LogEventType.UPDATE)
     @PutMapping("/{postId}")
-    public PostResponse updatePost(@PathVariable("postId") String postId, @RequestBody PostUpdateRequest request) {
+    public PostResponse updatePost(
+            @PathVariable("postId") @Positive(message = "postId must be greater than 0") Long postId,
+            @Valid @RequestBody PostUpdateRequest request) {
         return PostResponse.from(postApplicationService.updatePost(
-                PostIdCodec.toDomain(Long.parseLong(postId.trim())),
+                PostIdCodec.toDomain(postId),
                 request.code(),
                 request.name(),
                 DepartmentIdCodec.toDomain(request.departmentId()),
@@ -87,7 +92,7 @@ public class PostController {
     @HasPermission("sys:post:delete")
     @SysLog(module = "UPMS", action = "删除岗位", eventType = LogEventType.DELETE)
     @DeleteMapping("/{postId}")
-    public void deletePost(@PathVariable("postId") String postId) {
-        postApplicationService.deletePost(PostIdCodec.toDomain(Long.parseLong(postId.trim())));
+    public void deletePost(@PathVariable("postId") @Positive(message = "postId must be greater than 0") Long postId) {
+        postApplicationService.deletePost(PostIdCodec.toDomain(postId));
     }
 }

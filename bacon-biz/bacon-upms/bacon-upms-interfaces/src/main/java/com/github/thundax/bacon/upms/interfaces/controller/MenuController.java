@@ -14,6 +14,7 @@ import com.github.thundax.bacon.upms.interfaces.response.MenuTreeResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,10 +24,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @WrappedApiController
 @RequestMapping("/upms/menus")
+@Validated
 @Tag(name = "UPMS-Menu", description = "菜单管理接口")
 public class MenuController {
 
@@ -66,7 +69,8 @@ public class MenuController {
     @SysLog(module = "UPMS", action = "修改菜单", eventType = LogEventType.UPDATE)
     @PutMapping("/{menuId}")
     public MenuTreeResponse updateMenu(
-            @PathVariable("menuId") Long menuId, @Valid @RequestBody MenuUpdateRequest request) {
+            @PathVariable("menuId") @Positive(message = "menuId must be greater than 0") Long menuId,
+            @Valid @RequestBody MenuUpdateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.updateMenu(
                 MenuIdCodec.toDomain(menuId),
                 MenuType.from(trimPreservingNull(request.menuType())),
@@ -83,7 +87,7 @@ public class MenuController {
     @HasPermission("sys:menu:delete")
     @SysLog(module = "UPMS", action = "删除菜单", eventType = LogEventType.DELETE)
     @DeleteMapping("/{menuId}")
-    public void delete(@PathVariable("menuId") Long menuId) {
+    public void delete(@PathVariable("menuId") @Positive(message = "menuId must be greater than 0") Long menuId) {
         menuApplicationService.delete(MenuIdCodec.toDomain(menuId));
     }
 
@@ -92,7 +96,8 @@ public class MenuController {
     @SysLog(module = "UPMS", action = "调整菜单排序", eventType = LogEventType.UPDATE)
     @PutMapping("/{menuId}/sort")
     public MenuTreeResponse updateSort(
-            @PathVariable("menuId") Long menuId, @RequestBody MenuSortUpdateRequest request) {
+            @PathVariable("menuId") @Positive(message = "menuId must be greater than 0") Long menuId,
+            @Valid @RequestBody MenuSortUpdateRequest request) {
         return MenuTreeResponse.from(
                 menuApplicationService.updateMenuSort(MenuIdCodec.toDomain(menuId), request.sort()));
     }

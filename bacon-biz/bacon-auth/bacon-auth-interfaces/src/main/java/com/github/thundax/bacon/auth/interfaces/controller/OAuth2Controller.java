@@ -12,6 +12,7 @@ import com.github.thundax.bacon.common.web.util.BearerTokenUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,10 +21,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @WrappedApiController
 @RequestMapping("/auth/oauth2")
+@Validated
 @Tag(name = "Auth-OAuth2", description = "OAuth2 授权协议接口")
 public class OAuth2Controller {
 
@@ -37,8 +40,8 @@ public class OAuth2Controller {
     @GetMapping("/authorize")
     public OAuth2AuthorizationViewResponse authorize(
             @RequestHeader(value = "Authorization", required = false) String authorization,
-            @RequestParam("client_id") String clientId,
-            @RequestParam("redirect_uri") String redirectUri,
+            @RequestParam("client_id") @NotBlank(message = "client_id must not be blank") String clientId,
+            @RequestParam("redirect_uri") @NotBlank(message = "redirect_uri must not be blank") String redirectUri,
             @RequestParam(value = "scope", required = false) String scope,
             @RequestParam(value = "state", required = false) String state,
             @RequestParam(value = "code_challenge", required = false) String codeChallenge,
@@ -76,9 +79,9 @@ public class OAuth2Controller {
     @Operation(summary = "校验 OAuth2 令牌")
     @PostMapping("/introspections")
     public OAuth2IntrospectionResponse introspect(
-            @RequestParam("token") String token,
-            @RequestParam("client_id") String clientId,
-            @RequestParam("client_secret") String clientSecret) {
+            @RequestParam("token") @NotBlank(message = "token must not be blank") String token,
+            @RequestParam("client_id") @NotBlank(message = "client_id must not be blank") String clientId,
+            @RequestParam("client_secret") @NotBlank(message = "client_secret must not be blank") String clientSecret) {
         return OAuth2IntrospectionResponse.from(
                 oAuth2AuthorizationApplicationService.introspect(token, clientId, clientSecret));
     }
@@ -86,15 +89,17 @@ public class OAuth2Controller {
     @Operation(summary = "撤销 OAuth2 令牌")
     @PostMapping("/revocations")
     public void revoke(
-            @RequestParam("token") String token,
-            @RequestParam("client_id") String clientId,
-            @RequestParam("client_secret") String clientSecret) {
+            @RequestParam("token") @NotBlank(message = "token must not be blank") String token,
+            @RequestParam("client_id") @NotBlank(message = "client_id must not be blank") String clientId,
+            @RequestParam("client_secret") @NotBlank(message = "client_secret must not be blank") String clientSecret) {
         oAuth2AuthorizationApplicationService.revoke(token, clientId, clientSecret);
     }
 
     @Operation(summary = "获取 OAuth2 用户信息")
     @GetMapping("/userinfo")
-    public OAuth2UserinfoResponse userinfo(@RequestHeader("Authorization") String authorization) {
+    public OAuth2UserinfoResponse userinfo(
+            @RequestHeader("Authorization") @NotBlank(message = "Authorization header must not be blank")
+                    String authorization) {
         return OAuth2UserinfoResponse.from(
                 oAuth2AuthorizationApplicationService.userinfo(BearerTokenUtils.extractToken(authorization)));
     }

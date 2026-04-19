@@ -13,6 +13,7 @@ import com.github.thundax.bacon.storage.interfaces.response.StoredObjectResponse
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,14 +58,16 @@ public class StorageController {
     @Operation(summary = "查询存储对象详情")
     @HasPermission("storage:object:view")
     @GetMapping("/{objectId}")
-    public StoredObjectResponse getObjectById(@PathVariable("objectId") String objectId) {
+    public StoredObjectResponse getObjectById(
+            @PathVariable("objectId") @NotBlank(message = "objectId must not be blank") String objectId) {
         return StoredObjectResponse.from(storedObjectQueryApplicationService.getObjectByNo(objectId));
     }
 
     @Operation(summary = "删除存储对象")
     @HasPermission("storage:object:delete")
     @DeleteMapping("/{objectId}")
-    public void deleteObject(@PathVariable("objectId") String objectId) {
+    public void deleteObject(
+            @PathVariable("objectId") @NotBlank(message = "objectId must not be blank") String objectId) {
         storedObjectApplicationService.deleteObject(objectId);
     }
 }

@@ -20,6 +20,7 @@ import com.github.thundax.bacon.common.web.util.BearerTokenUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,10 +28,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @WrappedApiController
 @RequestMapping("/auth")
+@Validated
 @Tag(name = "Auth-Management", description = "认证、登录、令牌与会话接口")
 public class AuthController {
 
@@ -89,7 +92,7 @@ public class AuthController {
 
     @Operation(summary = "GitHub 登录回调")
     @GetMapping("/logins/github-callback")
-    public UserLoginResponse githubLogin(@RequestParam("code") String code) {
+    public UserLoginResponse githubLogin(@RequestParam("code") @NotBlank(message = "code must not be blank") String code) {
         return UserLoginResponse.from(loginApplicationService.loginByGithub(code));
     }
 
@@ -101,21 +104,27 @@ public class AuthController {
 
     @Operation(summary = "退出登录")
     @PostMapping("/sessions/logout")
-    public void logout(@RequestHeader("Authorization") String authorization) {
+    public void logout(
+            @RequestHeader("Authorization") @NotBlank(message = "Authorization header must not be blank")
+                    String authorization) {
         sessionApplicationService.logout(BearerTokenUtils.extractToken(authorization));
     }
 
     @Operation(summary = "修改当前用户密码")
     @PostMapping("/passwords/change")
     public void changePassword(
-            @RequestHeader("Authorization") String authorization, @Valid @RequestBody PasswordChangeRequest request) {
+            @RequestHeader("Authorization") @NotBlank(message = "Authorization header must not be blank")
+                    String authorization,
+            @Valid @RequestBody PasswordChangeRequest request) {
         passwordApplicationService.changePassword(
                 BearerTokenUtils.extractToken(authorization), request.getOldPassword(), request.getNewPassword());
     }
 
     @Operation(summary = "获取当前会话信息")
     @GetMapping("/sessions/current")
-    public CurrentSessionResponse currentSession(@RequestHeader("Authorization") String authorization) {
+    public CurrentSessionResponse currentSession(
+            @RequestHeader("Authorization") @NotBlank(message = "Authorization header must not be blank")
+                    String authorization) {
         return CurrentSessionResponse.from(
                 sessionApplicationService.currentSession(BearerTokenUtils.extractToken(authorization)));
     }

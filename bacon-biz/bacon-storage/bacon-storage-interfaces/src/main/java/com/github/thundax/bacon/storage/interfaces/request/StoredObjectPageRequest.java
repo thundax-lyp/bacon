@@ -3,6 +3,7 @@ package com.github.thundax.bacon.storage.interfaces.request;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,8 +22,10 @@ public class StoredObjectPageRequest {
     @Pattern(regexp = "UNREFERENCED|REFERENCED", message = "referenceStatus: must be UNREFERENCED or REFERENCED")
     private String referenceStatus;
 
+    @Size(max = 255, message = "originalFilename length must be <= 255")
     private String originalFilename;
 
+    @Size(max = 512, message = "objectKey length must be <= 512")
     private String objectKey;
 
     @Min(1)

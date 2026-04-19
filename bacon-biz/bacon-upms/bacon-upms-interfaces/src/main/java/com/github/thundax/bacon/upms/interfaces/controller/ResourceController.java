@@ -16,6 +16,7 @@ import com.github.thundax.bacon.upms.interfaces.response.ResourceResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -25,10 +26,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @WrappedApiController
 @RequestMapping("/upms/resources")
+@Validated
 @Tag(name = "UPMS-Resource", description = "资源权限管理接口")
 public class ResourceController {
 
@@ -56,16 +59,16 @@ public class ResourceController {
     @HasPermission("sys:resource:view")
     @SysLog(module = "UPMS", action = "查询资源详情", eventType = LogEventType.QUERY)
     @GetMapping("/{resourceId}")
-    public ResourceResponse getResourceById(@PathVariable("resourceId") String resourceId) {
-        return ResourceResponse.from(resourceApplicationService.getResourceById(
-                ResourceIdCodec.toDomain(Long.parseLong(resourceId.trim()))));
+    public ResourceResponse getResourceById(
+            @PathVariable("resourceId") @Positive(message = "resourceId must be greater than 0") Long resourceId) {
+        return ResourceResponse.from(resourceApplicationService.getResourceById(ResourceIdCodec.toDomain(resourceId)));
     }
 
     @Operation(summary = "创建资源")
     @HasPermission("sys:resource:create")
     @SysLog(module = "UPMS", action = "创建资源", eventType = LogEventType.CREATE)
     @PostMapping
-    public ResourceResponse createResource(@RequestBody ResourceCreateRequest request) {
+    public ResourceResponse createResource(@Valid @RequestBody ResourceCreateRequest request) {
         return ResourceResponse.from(resourceApplicationService.createResource(
                 request.code(),
                 request.name(),
@@ -79,9 +82,10 @@ public class ResourceController {
     @SysLog(module = "UPMS", action = "修改资源", eventType = LogEventType.UPDATE)
     @PutMapping("/{resourceId}")
     public ResourceResponse updateResource(
-            @PathVariable("resourceId") String resourceId, @RequestBody ResourceUpdateRequest request) {
+            @PathVariable("resourceId") @Positive(message = "resourceId must be greater than 0") Long resourceId,
+            @Valid @RequestBody ResourceUpdateRequest request) {
         return ResourceResponse.from(resourceApplicationService.updateResource(
-                ResourceIdCodec.toDomain(Long.parseLong(resourceId.trim())),
+                ResourceIdCodec.toDomain(resourceId),
                 request.code(),
                 request.name(),
                 ResourceType.from(request.resourceType()),
@@ -96,7 +100,8 @@ public class ResourceController {
     @HasPermission("sys:resource:delete")
     @SysLog(module = "UPMS", action = "删除资源", eventType = LogEventType.DELETE)
     @DeleteMapping("/{resourceId}")
-    public void deleteResource(@PathVariable("resourceId") String resourceId) {
-        resourceApplicationService.deleteResource(ResourceIdCodec.toDomain(Long.parseLong(resourceId.trim())));
+    public void deleteResource(
+            @PathVariable("resourceId") @Positive(message = "resourceId must be greater than 0") Long resourceId) {
+        resourceApplicationService.deleteResource(ResourceIdCodec.toDomain(resourceId));
     }
 }

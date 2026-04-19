@@ -17,6 +17,7 @@ import com.github.thundax.bacon.upms.interfaces.response.TenantResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,10 +26,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @WrappedApiController
 @RequestMapping("/upms/tenants")
+@Validated
 @Tag(name = "UPMS-Tenant", description = "租户管理接口")
 public class TenantController {
 
@@ -54,7 +57,7 @@ public class TenantController {
     @HasPermission("sys:tenant:create")
     @SysLog(module = "UPMS", action = "创建租户", eventType = LogEventType.CREATE)
     @PostMapping
-    public TenantResponse createTenant(@RequestBody TenantCreateRequest request) {
+    public TenantResponse createTenant(@Valid @RequestBody TenantCreateRequest request) {
         return TenantResponse.from(tenantApplicationService.createTenant(
                 request.name(), TenantCodeCodec.toDomain(request.code()), request.expiredAt()));
     }
@@ -64,7 +67,8 @@ public class TenantController {
     @SysLog(module = "UPMS", action = "修改租户", eventType = LogEventType.UPDATE)
     @PutMapping("/{tenantId}")
     public TenantResponse updateTenant(
-            @PathVariable("tenantId") Long tenantId, @RequestBody TenantUpdateRequest request) {
+            @PathVariable("tenantId") @Positive(message = "tenantId must be greater than 0") Long tenantId,
+            @Valid @RequestBody TenantUpdateRequest request) {
         return TenantResponse.from(tenantApplicationService.updateTenant(
                 TenantId.of(tenantId),
                 request.name(),
@@ -76,7 +80,8 @@ public class TenantController {
     @HasPermission("sys:tenant:view")
     @SysLog(module = "UPMS", action = "查询租户详情", eventType = LogEventType.QUERY)
     @GetMapping("/{tenantId}")
-    public TenantResponse getTenantByTenantId(@PathVariable("tenantId") Long tenantId) {
+    public TenantResponse getTenantByTenantId(
+            @PathVariable("tenantId") @Positive(message = "tenantId must be greater than 0") Long tenantId) {
         return TenantResponse.from(tenantApplicationService.getTenantByTenantId(TenantId.of(tenantId)));
     }
 
@@ -85,7 +90,8 @@ public class TenantController {
     @SysLog(module = "UPMS", action = "变更租户状态", eventType = LogEventType.UPDATE)
     @PutMapping("/{tenantId}/status")
     public TenantResponse updateTenantStatus(
-            @PathVariable("tenantId") Long tenantId, @RequestBody TenantStatusUpdateRequest request) {
+            @PathVariable("tenantId") @Positive(message = "tenantId must be greater than 0") Long tenantId,
+            @Valid @RequestBody TenantStatusUpdateRequest request) {
         return TenantResponse.from(tenantApplicationService.updateTenantStatus(
                 TenantId.of(tenantId), request.status() == null ? null : TenantStatus.from(request.status())));
     }

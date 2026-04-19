@@ -12,14 +12,17 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Set;
+import jakarta.validation.constraints.Positive;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @WrappedApiController
 @RequestMapping("/upms/users/{userId}")
+@Validated
 @Tag(name = "UPMS-Permission", description = "权限管理接口")
 public class PermissionController {
 
@@ -33,7 +36,8 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户菜单树", eventType = LogEventType.QUERY)
     @GetMapping("/menu-tree")
-    public List<UserMenuTreeResponse> listMenuTreeByUserId(@PathVariable("userId") Long userId) {
+    public List<UserMenuTreeResponse> listMenuTreeByUserId(
+            @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
         return permissionQueryService.listMenuTreeByUserId(UserIdCodec.toDomain(userId)).stream()
                 .map(UserMenuTreeResponse::from)
                 .toList();
@@ -43,7 +47,8 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户权限码", eventType = LogEventType.QUERY)
     @GetMapping("/permission-codes")
-    public Set<String> findPermissionCodesByUserId(@PathVariable("userId") Long userId) {
+    public Set<String> findPermissionCodesByUserId(
+            @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
         return permissionQueryService.findPermissionCodesByUserId(UserIdCodec.toDomain(userId));
     }
 
@@ -51,7 +56,8 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户数据范围", eventType = LogEventType.QUERY)
     @GetMapping("/data-scope")
-    public UserDataScopeResponse getUserDataScope(@PathVariable("userId") Long userId) {
+    public UserDataScopeResponse getUserDataScope(
+            @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
         return UserDataScopeResponse.from(permissionQueryService.getUserDataScope(UserIdCodec.toDomain(userId)));
     }
 }

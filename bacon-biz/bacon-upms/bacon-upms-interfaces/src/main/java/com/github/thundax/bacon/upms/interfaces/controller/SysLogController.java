@@ -12,15 +12,18 @@ import com.github.thundax.bacon.upms.interfaces.response.SysLogResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @WrappedApiController
 @RequestMapping("/upms/logs")
+@Validated
 @Tag(name = "UPMS-SysLog", description = "系统访问日志查询接口")
 public class SysLogController {
 
@@ -48,7 +51,8 @@ public class SysLogController {
     @HasPermission("sys:log:view")
     @SysLog(module = "UPMS", action = "查询系统日志详情", eventType = LogEventType.QUERY)
     @GetMapping("/{logId}")
-    public SysLogResponse getLogById(@PathVariable("logId") Long logId) {
+    public SysLogResponse getLogById(
+            @PathVariable("logId") @Positive(message = "logId must be greater than 0") Long logId) {
         return SysLogResponse.from(sysLogQueryService.getLogById(SysLogId.of(logId)));
     }
 }

@@ -5,11 +5,10 @@ import com.github.thundax.bacon.common.commerce.codec.SkuIdCodec;
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.codec.UserIdCodec;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
+import com.github.thundax.bacon.order.application.assembler.OrderSummaryAssembler;
 import com.github.thundax.bacon.order.application.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
@@ -34,18 +33,21 @@ public class OrderCreateApplicationService {
     private final OrderOutboxActionExecutor orderOutboxActionExecutor;
     private final OrderDerivedDataPersistenceSupport orderDerivedDataPersistenceSupport;
     private final IdGenerator idGenerator;
+    private final OrderSummaryAssembler orderSummaryAssembler;
 
     public OrderCreateApplicationService(
             OrderRepository orderRepository,
             OrderNoGenerator orderNoGenerator,
             OrderOutboxActionExecutor orderOutboxActionExecutor,
             OrderDerivedDataPersistenceSupport orderDerivedDataPersistenceSupport,
-            IdGenerator idGenerator) {
+            IdGenerator idGenerator,
+            OrderSummaryAssembler orderSummaryAssembler) {
         this.orderRepository = orderRepository;
         this.orderNoGenerator = orderNoGenerator;
         this.orderOutboxActionExecutor = orderOutboxActionExecutor;
         this.orderDerivedDataPersistenceSupport = orderDerivedDataPersistenceSupport;
         this.idGenerator = idGenerator;
+        this.orderSummaryAssembler = orderSummaryAssembler;
     }
 
     @Transactional
@@ -89,34 +91,7 @@ public class OrderCreateApplicationService {
         orderOutboxActionExecutor.enqueueReserveStock(
                 OrderNoCodec.toValue(savedOrder.getOrderNo()), command.channelCode());
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED);
-        return new OrderSummaryDTO(
-                savedOrder.getId() == null ? null : savedOrder.getId().value(),
-                OrderNoCodec.toValue(savedOrder.getOrderNo()),
-                UserIdCodec.toValue(savedOrder.getUserId()),
-                savedOrder.getOrderStatus() == null
-                        ? null
-                        : savedOrder.getOrderStatus().value(),
-                savedOrder.getPayStatus() == null
-                        ? null
-                        : savedOrder.getPayStatus().value(),
-                savedOrder.getInventoryStatus() == null
-                        ? null
-                        : savedOrder.getInventoryStatus().value(),
-                savedOrder.getPaymentNo() == null
-                        ? null
-                        : savedOrder.getPaymentNo().value(),
-                savedOrder.getReservationNo() == null
-                        ? null
-                        : ReservationNoCodec.toValue(savedOrder.getReservationNo()),
-                savedOrder.getCurrencyCode() == null
-                        ? null
-                        : savedOrder.getCurrencyCode().value(),
-                savedOrder.getTotalAmount().value(),
-                savedOrder.getPayableAmount().value(),
-                savedOrder.getCancelReason(),
-                savedOrder.getCloseReason(),
-                savedOrder.getCreatedAt(),
-                savedOrder.getExpiredAt());
+        return orderSummaryAssembler.toDto(savedOrder);
     }
 
     private OrderItem toOrderItem(CreateOrderItemCommand item, String currencyCode) {

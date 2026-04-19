@@ -9,6 +9,7 @@ import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.order.application.assembler.OrderSummaryAssembler;
 import com.github.thundax.bacon.order.application.codec.OrderIdCodec;
 import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.order.application.dto.OrderDetailDTO;
@@ -37,14 +38,17 @@ public class OrderQueryApplicationService {
     private final OrderRepository orderRepository;
     private final OrderInventorySnapshotRepository orderInventorySnapshotRepository;
     private final OrderPaymentSnapshotRepository orderPaymentSnapshotRepository;
+    private final OrderSummaryAssembler orderSummaryAssembler;
 
     public OrderQueryApplicationService(
             OrderRepository orderRepository,
             OrderInventorySnapshotRepository orderInventorySnapshotRepository,
-            OrderPaymentSnapshotRepository orderPaymentSnapshotRepository) {
+            OrderPaymentSnapshotRepository orderPaymentSnapshotRepository,
+            OrderSummaryAssembler orderSummaryAssembler) {
         this.orderRepository = orderRepository;
         this.orderInventorySnapshotRepository = orderInventorySnapshotRepository;
         this.orderPaymentSnapshotRepository = orderPaymentSnapshotRepository;
+        this.orderSummaryAssembler = orderSummaryAssembler;
     }
 
     public OrderDetailDTO getById(OrderId orderId) {
@@ -80,29 +84,8 @@ public class OrderQueryApplicationService {
                 ? List.of()
                 : orderRepository.page(
                         userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo, normalizedPageNo, normalizedPageSize);
-        List<OrderSummaryDTO> records = page.stream().map(this::toSummary).toList();
+        List<OrderSummaryDTO> records = page.stream().map(orderSummaryAssembler::toDto).toList();
         return new OrderPageResult(records, total, normalizedPageNo, normalizedPageSize);
-    }
-
-    private OrderSummaryDTO toSummary(Order order) {
-        return new OrderSummaryDTO(
-                order.getId() == null ? null : OrderIdCodec.toValue(order.getId()),
-                OrderNoCodec.toValue(order.getOrderNo()),
-                UserIdCodec.toValue(order.getUserId()),
-                order.getOrderStatus() == null ? null : order.getOrderStatus().value(),
-                order.getPayStatus() == null ? null : order.getPayStatus().value(),
-                order.getInventoryStatus() == null
-                        ? null
-                        : order.getInventoryStatus().value(),
-                PaymentNoCodec.toValue(order.getPaymentNo()),
-                order.getReservationNo() == null ? null : ReservationNoCodec.toValue(order.getReservationNo()),
-                order.getCurrencyCode() == null ? null : order.getCurrencyCode().value(),
-                order.getTotalAmount().value(),
-                order.getPayableAmount().value(),
-                order.getCancelReason(),
-                order.getCloseReason(),
-                order.getCreatedAt(),
-                order.getExpiredAt());
     }
 
     private OrderDetailDTO toDetail(Order order) {

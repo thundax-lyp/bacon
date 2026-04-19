@@ -15,6 +15,7 @@ import com.github.thundax.bacon.inventory.api.request.InventoryDeductFacadeReque
 import com.github.thundax.bacon.inventory.api.request.InventoryReleaseFacadeRequest;
 import com.github.thundax.bacon.inventory.api.request.InventoryReserveFacadeRequest;
 import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
+import com.github.thundax.bacon.order.application.assembler.OrderSummaryAssembler;
 import com.github.thundax.bacon.order.application.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
 import com.github.thundax.bacon.order.application.codec.OrderIdempotencyRecordKeyCodec;
@@ -60,6 +61,8 @@ import org.junit.jupiter.api.Test;
 
 class OrderCreateApplicationServiceTest {
 
+    private static final OrderSummaryAssembler ORDER_SUMMARY_ASSEMBLER = new OrderSummaryAssembler();
+
     @AfterEach
     void tearDown() {
         BaconContextHolder.clear();
@@ -79,8 +82,8 @@ class OrderCreateApplicationServiceTest {
                 () -> OrderNo.of("ORD-10001"),
                 new SuccessInventoryCommandFacade(),
                 new SuccessPaymentCommandFacade());
-        OrderQueryApplicationService queryService =
-                new OrderQueryApplicationService(repository, inventorySnapshotRepository, paymentSnapshotRepository);
+        OrderQueryApplicationService queryService = new OrderQueryApplicationService(
+                repository, inventorySnapshotRepository, paymentSnapshotRepository, ORDER_SUMMARY_ASSEMBLER);
 
         OrderSummaryDTO result = runWithContext(
                 1001L,
@@ -137,8 +140,8 @@ class OrderCreateApplicationServiceTest {
                         inventorySnapshotRepository,
                         paymentSnapshotRepository,
                         new TestIdGenerator()));
-        OrderQueryApplicationService queryService =
-                new OrderQueryApplicationService(repository, inventorySnapshotRepository, paymentSnapshotRepository);
+        OrderQueryApplicationService queryService = new OrderQueryApplicationService(
+                repository, inventorySnapshotRepository, paymentSnapshotRepository, ORDER_SUMMARY_ASSEMBLER);
         runWithContext(
                 1001L,
                 2001L,
@@ -319,7 +322,8 @@ class OrderCreateApplicationServiceTest {
                 new OrderOutboxActionExecutor(
                         repository, new TestOrderOutboxRepository(), inventoryFacade, paymentFacade, support),
                 support,
-                idGenerator);
+                idGenerator,
+                ORDER_SUMMARY_ASSEMBLER);
     }
 
     private static void runWithContext(Long tenantId, Long userId, Runnable action) {

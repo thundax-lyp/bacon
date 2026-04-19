@@ -20,30 +20,17 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
-import com.github.thundax.bacon.storage.api.request.StoredObjectGetFacadeRequest;
-import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
 import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
-import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
+import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
-import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
-import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
-import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
-import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
-import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
-import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
-import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
-import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
-import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
-import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserCredentialRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserIdentityRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -74,20 +61,14 @@ class UserApplicationServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private UserIdentityRepository userIdentityRepository;
-    @Mock
     private UserCredentialRepository userCredentialRepository;
     @Mock
     private UserRoleRepository userRoleRepository;
+    @Mock
+    private UserIdentityRepository userIdentityRepository;
 
     @Mock
     private DepartmentRepository departmentRepository;
-
-    @Mock
-    private RoleRepository roleRepository;
-
-    @Mock
-    private TenantRepository tenantRepository;
 
     @Mock
     private SessionCommandFacade sessionCommandFacade;
@@ -97,7 +78,6 @@ class UserApplicationServiceTest {
 
     @Mock
     private StoredObjectCommandFacade storedObjectCommandFacade;
-
     @Mock
     private StoredObjectReadFacade storedObjectReadFacade;
 
@@ -118,8 +98,6 @@ class UserApplicationServiceTest {
                 userIdentityRepository,
                 userCredentialRepository,
                 userRoleRepository,
-                roleRepository,
-                tenantRepository,
                 sessionCommandFacade,
                 passwordEncoder,
                 storedObjectCommandFacade,
@@ -212,23 +190,6 @@ class UserApplicationServiceTest {
     }
 
     @Test
-    void shouldNotResolveAvatarUrlWhenPagingUsers() {
-        User user = user(
-                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ACTIVE);
-        when(userRepository.page(null, null, null, null, 1, 20)).thenReturn(List.of(user));
-        when(userRepository.count(null, null, null, null)).thenReturn(1L);
-        mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
-        mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
-
-        PageResultDTO<UserDTO> result = service.page(null, null, null, null, 1, 20);
-
-        assertThat(result.getRecords()).hasSize(1);
-        assertThat(result.getRecords().get(0).getAvatarStoredObjectNo()).isEqualTo("storage-20260327100000-000501");
-        assertThat(result.getRecords().get(0).getAvatarUrl()).isNull();
-        verify(storedObjectReadFacade, never()).getObjectByNo(any());
-    }
-
-    @Test
     void shouldClearAvatarReferenceWhenDeletingUser() {
         User user = user(
                 101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ACTIVE);
@@ -246,44 +207,6 @@ class UserApplicationServiceTest {
     }
 
     @Test
-    void shouldResolveAvatarAccessUrl() {
-        User user = user(
-                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ACTIVE);
-        StoredObjectFacadeResponse storedObject = new StoredObjectFacadeResponse();
-        storedObject.setAccessEndpoint("https://cdn.example.com/avatar/501.png");
-        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
-        when(storedObjectReadFacade.getObjectByNo(new StoredObjectGetFacadeRequest("storage-20260327100000-000501")))
-                .thenReturn(storedObject);
-
-        assertThat(service.getAvatarAccessUrl(UserId.of(101L))).contains("https://cdn.example.com/avatar/501.png");
-    }
-
-    @Test
-    void shouldReturnLoginCredentialPasswordFromAccountIdentity() {
-        User user = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
-        UserIdentity accountIdentity = identity(201L, 101L, UserIdentityType.ACCOUNT, "alice");
-        UserIdentity phoneIdentity = identity(202L, 101L, UserIdentityType.PHONE, "13800000001");
-        UserCredential passwordCredential = credential(301L, 101L, 201L, "{noop}identity", true);
-        when(userIdentityRepository.findIdentity(UserIdentityType.ACCOUNT, "alice"))
-                .thenReturn(Optional.of(accountIdentity));
-        when(userIdentityRepository.findIdentityByUserId(UserId.of(101L), UserIdentityType.ACCOUNT))
-                .thenReturn(Optional.of(accountIdentity));
-        when(userIdentityRepository.findIdentityByUserId(UserId.of(101L), UserIdentityType.PHONE))
-                .thenReturn(Optional.of(phoneIdentity));
-        when(userCredentialRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
-                .thenReturn(Optional.of(passwordCredential));
-        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
-
-        UserLoginCredentialDTO credential = service.getUserLoginCredential(UserIdentityType.ACCOUNT, "alice");
-
-        assertThat(credential.getUserId()).isEqualTo(101L);
-        assertThat(credential.getIdentityId()).isEqualTo(201L);
-        assertThat(credential.getCredentialId()).isEqualTo(301L);
-        assertThat(credential.getPasswordHash()).isEqualTo("{noop}identity");
-        assertThat(credential.isNeedChangePassword()).isTrue();
-    }
-
-    @Test
     void shouldValidateOldPasswordAgainstAccountIdentity() {
         User user = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
         UserCredential passwordCredential = credential(301L, 101L, 201L, "{noop}identity", false);
@@ -296,40 +219,6 @@ class UserApplicationServiceTest {
         verify(userRepository).updatePassword(UserId.of(101L), "new-password", false, UserCredentialId.of(10003L));
     }
 
-    @Test
-    void shouldRejectExpiredLoginCredential() {
-        UserIdentity accountIdentity = identity(201L, 101L, UserIdentityType.ACCOUNT, "alice");
-        UserCredential passwordCredential = UserCredential.createPassword(
-                UserCredentialId.of(301L),
-                UserId.of(101L),
-                UserIdentityId.of(201L),
-                "{noop}identity",
-                false,
-                5,
-                Instant.parse("2000-01-01T00:00:00Z"));
-        when(userIdentityRepository.findIdentity(UserIdentityType.ACCOUNT, "alice"))
-                .thenReturn(Optional.of(accountIdentity));
-        when(userCredentialRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
-                .thenReturn(Optional.of(passwordCredential));
-
-        assertThatThrownBy(() -> service.getUserLoginCredential(UserIdentityType.ACCOUNT, "alice"))
-                .isInstanceOf(UpmsDomainException.class)
-                .hasMessage("User credential is expired");
-    }
-
-    private void mockIdentity(UserId userId, UserIdentityType identityType, String identityValue) {
-        when(userIdentityRepository.findIdentityByUserId(userId, identityType))
-                .thenReturn(Optional.of(identity(
-                        identityType == UserIdentityType.ACCOUNT ? 10001L : 10002L,
-                        userId.value(),
-                        identityType,
-                        identityValue)));
-    }
-
-    private static Tenant tenant(Long id, String name, String code, TenantStatus status, Instant expiredAt) {
-        return Tenant.reconstruct(TenantId.of(id), name, TenantCode.of(code), status, expiredAt);
-    }
-
     private static User user(
             Long id,
             String name,
@@ -339,8 +228,13 @@ class UserApplicationServiceTest {
         return User.reconstruct(UserId.of(id), name, avatarStoredObjectNo, departmentId, status);
     }
 
-    private static UserIdentity identity(Long id, Long userId, UserIdentityType type, String value) {
-        return UserIdentity.create(UserIdentityId.of(id), UserId.of(userId), type, value);
+    private void mockIdentity(UserId userId, UserIdentityType identityType, String identityValue) {
+        when(userIdentityRepository.findIdentityByUserId(userId, identityType))
+                .thenReturn(Optional.of(com.github.thundax.bacon.upms.domain.model.entity.UserIdentity.create(
+                        identityType == UserIdentityType.ACCOUNT ? UserIdentityId.of(10001L) : UserIdentityId.of(10002L),
+                        userId,
+                        identityType,
+                        identityValue)));
     }
 
     private static UserCredential credential(

@@ -8,10 +8,8 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
@@ -19,19 +17,12 @@ import com.github.thundax.bacon.storage.api.request.StoredObjectGetFacadeRequest
 import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
 import com.github.thundax.bacon.storage.api.request.UploadObjectFacadeRequest;
 import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
-import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
-import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
 import com.github.thundax.bacon.upms.application.assembler.RoleAssembler;
-import com.github.thundax.bacon.upms.application.assembler.TenantAssembler;
 import com.github.thundax.bacon.upms.application.assembler.UserAssembler;
-import com.github.thundax.bacon.upms.application.assembler.UserIdentityAssembler;
-import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
-import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
-import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
@@ -42,8 +33,6 @@ import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObject
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
-import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
-import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserCredentialRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserIdentityRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -52,11 +41,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.Set;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -83,8 +70,6 @@ public class UserApplicationService {
     private final UserIdentityRepository userIdentityRepository;
     private final UserCredentialRepository userCredentialRepository;
     private final UserRoleRepository userRoleRepository;
-    private final RoleRepository roleRepository;
-    private final TenantRepository tenantRepository;
     private final SessionCommandFacade sessionCommandFacade;
     private final PasswordEncoder passwordEncoder;
     private final StoredObjectCommandFacade storedObjectCommandFacade;
@@ -98,8 +83,6 @@ public class UserApplicationService {
             UserIdentityRepository userIdentityRepository,
             UserCredentialRepository userCredentialRepository,
             UserRoleRepository userRoleRepository,
-            RoleRepository roleRepository,
-            TenantRepository tenantRepository,
             SessionCommandFacade sessionCommandFacade,
             PasswordEncoder passwordEncoder,
             StoredObjectCommandFacade storedObjectCommandFacade,
@@ -111,70 +94,12 @@ public class UserApplicationService {
         this.userIdentityRepository = userIdentityRepository;
         this.userCredentialRepository = userCredentialRepository;
         this.userRoleRepository = userRoleRepository;
-        this.roleRepository = roleRepository;
-        this.tenantRepository = tenantRepository;
         this.sessionCommandFacade = sessionCommandFacade;
         this.passwordEncoder = passwordEncoder;
         this.storedObjectCommandFacade = storedObjectCommandFacade;
         this.storedObjectReadFacade = storedObjectReadFacade;
         this.ids = ids;
         this.idGenerator = idGenerator;
-    }
-
-    public UserDTO getUserById(UserId userId) {
-        User user = requireUser(userId);
-        return UserAssembler.toDto(
-                user,
-                resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT),
-                resolveIdentityValue(user.getId(), UserIdentityType.PHONE),
-                resolveAvatarUrl(user.getAvatarStoredObjectNo()));
-    }
-
-    public UserIdentityDTO getUserIdentity(UserIdentityType identityType, String identityValue) {
-        UserIdentity userIdentity = userIdentityRepository
-                .findIdentity(identityType, identityValue)
-                .orElseThrow(() -> new NotFoundException("User identity not found"));
-        return UserIdentityAssembler.toDto(userIdentity);
-    }
-
-    public UserLoginCredentialDTO getUserLoginCredential(UserIdentityType identityType, String identityValue) {
-        UserIdentity userIdentity = userIdentityRepository
-                .findIdentity(identityType, identityValue)
-                .orElseThrow(() -> new NotFoundException("User identity not found"));
-        UserCredential passwordCredential = userCredentialRepository
-                .findCredentialByUserId(userIdentity.getUserId(), UserCredentialType.PASSWORD)
-                .orElseThrow(() -> new NotFoundException("Password credential not found"));
-        passwordCredential.assertVerifiable(Instant.now());
-        User user = userRepository
-                .findById(userIdentity.getUserId())
-                .orElseThrow(() -> new NotFoundException("User not found: " + userIdentity.getUserId()));
-        String account = resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT);
-        String phone = resolveIdentityValue(user.getId(), UserIdentityType.PHONE);
-        return UserIdentityAssembler.toLoginCredentialDto(user, userIdentity, passwordCredential, account, phone);
-    }
-
-    public TenantDTO getTenantByTenantId(TenantId tenantId) {
-        Tenant tenant = tenantRepository
-                .findById(tenantId)
-                .orElseThrow(() -> new NotFoundException("Tenant not found: " + tenantId.value()));
-        return TenantAssembler.toDto(tenant);
-    }
-
-    public PageResultDTO<UserDTO> page(
-            String account, String name, String phone, UserStatus status, Integer pageNo, Integer pageSize) {
-        int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
-        int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
-        return new PageResultDTO<>(
-                userRepository.page(account, name, phone, status, normalizedPageNo, normalizedPageSize).stream()
-                        .map(user -> UserAssembler.toDto(
-                                user,
-                                resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT),
-                                resolveIdentityValue(user.getId(), UserIdentityType.PHONE),
-                                null))
-                        .toList(),
-                userRepository.count(account, name, phone, status),
-                normalizedPageNo,
-                normalizedPageSize);
     }
 
     @Transactional
@@ -258,14 +183,6 @@ public class UserApplicationService {
                 resolveAvatarUrl(savedUser.getAvatarStoredObjectNo()));
     }
 
-    public Optional<String> getAvatarAccessUrl(UserId userId) {
-        User user = requireUser(userId);
-        if (user.getAvatarStoredObjectNo() == null) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(resolveAvatarUrl(user.getAvatarStoredObjectNo()));
-    }
-
     @Transactional
     public void delete(UserId userId) {
         User currentUser = requireUser(userId);
@@ -337,13 +254,6 @@ public class UserApplicationService {
                 .toList();
     }
 
-    public List<RoleDTO> getRolesByUserId(UserId userId) {
-        requireUser(userId);
-        return roleRepository.findByUserId(userId).stream()
-                .map(RoleAssembler::toDto)
-                .toList();
-    }
-
     @Transactional
     public List<UserDTO> importUsers(List<UserImportCommand> commands) {
         if (commands == null || commands.isEmpty()) {
@@ -355,16 +265,6 @@ public class UserApplicationService {
                         command.name(),
                         command.phone(),
                         resolveDepartmentIdByCode(command.departmentCode())))
-                .toList();
-    }
-
-    public List<UserDTO> exportUsers(String account, String name, String phone, UserStatus status) {
-        return userRepository.list(account, name, phone, status).stream()
-                .map(user -> UserAssembler.toDto(
-                        user,
-                        resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT),
-                        resolveIdentityValue(user.getId(), UserIdentityType.PHONE),
-                        null))
                 .toList();
     }
 

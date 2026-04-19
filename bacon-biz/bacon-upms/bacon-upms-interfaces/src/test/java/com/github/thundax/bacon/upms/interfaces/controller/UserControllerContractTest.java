@@ -18,6 +18,7 @@ import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
+import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,7 @@ class UserControllerContractTest {
     private static final long TENANT_ID = 1001L;
 
     private UserApplicationService userApplicationService;
+    private UserQueryApplicationService userQueryApplicationService;
     private MockMvc mockMvc;
     private LocalValidatorFactoryBean validator;
 
@@ -44,9 +46,10 @@ class UserControllerContractTest {
     void setUp() {
         BaconContextHolder.set(new BaconContext(TENANT_ID, 2001L));
         userApplicationService = mock(UserApplicationService.class);
+        userQueryApplicationService = mock(UserQueryApplicationService.class);
         validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
-        mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userApplicationService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userApplicationService, userQueryApplicationService))
                 .setValidator(validator)
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
@@ -86,7 +89,7 @@ class UserControllerContractTest {
 
     @Test
     void shouldRedirectAvatarRequestToStorageAccessUrl() throws Exception {
-        when(userApplicationService.getAvatarAccessUrl(UserId.of(101L)))
+        when(userQueryApplicationService.getAvatarAccessUrl(UserId.of(101L)))
                 .thenReturn(Optional.of("https://cdn.example.com/avatar/9001.png"));
 
         mockMvc.perform(get("/upms/users/{userId}/avatar", 101L))
@@ -96,7 +99,8 @@ class UserControllerContractTest {
 
     @Test
     void shouldReturnBadRequestForIllegalStatusFilter() throws Exception {
-        MockMvc wrappedMockMvc = MockMvcBuilders.standaloneSetup(new UserController(userApplicationService))
+        MockMvc wrappedMockMvc = MockMvcBuilders.standaloneSetup(
+                        new UserController(userApplicationService, userQueryApplicationService))
                 .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
                 .setValidator(validator)
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())

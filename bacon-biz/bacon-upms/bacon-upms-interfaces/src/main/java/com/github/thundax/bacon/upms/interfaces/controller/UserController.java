@@ -7,6 +7,7 @@ import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserImportCommand;
+import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
@@ -57,9 +58,12 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
 
     private final UserApplicationService userApplicationService;
+    private final UserQueryApplicationService userQueryApplicationService;
 
-    public UserController(UserApplicationService userApplicationService) {
+    public UserController(
+            UserApplicationService userApplicationService, UserQueryApplicationService userQueryApplicationService) {
         this.userApplicationService = userApplicationService;
+        this.userQueryApplicationService = userQueryApplicationService;
     }
 
     @Operation(summary = "分页查询用户")
@@ -67,7 +71,7 @@ public class UserController {
     @SysLog(module = "UPMS", action = "分页查询用户", eventType = LogEventType.QUERY)
     @GetMapping("/page")
     public UserPageResponse page(@Valid @ModelAttribute UserPageRequest request) {
-        return UserPageResponse.from(userApplicationService.page(
+        return UserPageResponse.from(userQueryApplicationService.page(
                 request.getAccount(),
                 request.getName(),
                 request.getPhone(),
@@ -106,7 +110,7 @@ public class UserController {
     @GetMapping("/{userId}")
     public UserResponse getUserById(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
-        return UserResponse.from(userApplicationService.getUserById(UserIdCodec.toDomain(userId)));
+        return UserResponse.from(userQueryApplicationService.getUserById(UserIdCodec.toDomain(userId)));
     }
 
     @Operation(summary = "访问用户头像")
@@ -114,7 +118,7 @@ public class UserController {
     @GetMapping("/{userId}/avatar")
     public ResponseEntity<Void> getAvatar(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
-        Optional<String> avatarAccessUrl = userApplicationService.getAvatarAccessUrl(UserIdCodec.toDomain(userId));
+        Optional<String> avatarAccessUrl = userQueryApplicationService.getAvatarAccessUrl(UserIdCodec.toDomain(userId));
         if (avatarAccessUrl.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -128,7 +132,7 @@ public class UserController {
     @SysLog(module = "UPMS", action = "查询用户身份", eventType = LogEventType.QUERY)
     @GetMapping("/identity")
     public UserIdentityResponse getUserIdentity(@Valid @ModelAttribute UserIdentityQueryRequest request) {
-        return UserIdentityResponse.from(userApplicationService.getUserIdentity(
+        return UserIdentityResponse.from(userQueryApplicationService.getUserIdentity(
                 UserIdentityType.from(request.getIdentityType()), request.getIdentityValue()));
     }
 
@@ -211,7 +215,7 @@ public class UserController {
     @GetMapping("/{userId}/roles")
     public List<RoleResponse> getRolesByUserId(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
-        return userApplicationService.getRolesByUserId(UserIdCodec.toDomain(userId)).stream()
+        return userQueryApplicationService.getRolesByUserId(UserIdCodec.toDomain(userId)).stream()
                 .map(RoleResponse::from)
                 .toList();
     }
@@ -237,7 +241,7 @@ public class UserController {
     @SysLog(module = "UPMS", action = "导出用户", eventType = LogEventType.EXPORT)
     @GetMapping("/export")
     public List<UserResponse> exportUsers(@Valid @ModelAttribute UserPageRequest request) {
-        return userApplicationService
+        return userQueryApplicationService
                 .exportUsers(
                         request.getAccount(),
                         request.getName(),

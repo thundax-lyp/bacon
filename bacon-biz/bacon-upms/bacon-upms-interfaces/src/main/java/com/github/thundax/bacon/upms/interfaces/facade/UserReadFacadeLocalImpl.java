@@ -13,7 +13,7 @@ import com.github.thundax.bacon.upms.api.response.UserIdentityDetailFacadeRespon
 import com.github.thundax.bacon.upms.api.response.UserIdentityFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserLoginCredentialDetailFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserLoginCredentialFacadeResponse;
-import com.github.thundax.bacon.upms.application.command.UserApplicationService;
+import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
 import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
@@ -24,22 +24,22 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
 public class UserReadFacadeLocalImpl implements UserReadFacade {
 
-    private final UserApplicationService userApplicationService;
+    private final UserQueryApplicationService userQueryApplicationService;
 
-    public UserReadFacadeLocalImpl(UserApplicationService userApplicationService) {
-        this.userApplicationService = userApplicationService;
+    public UserReadFacadeLocalImpl(UserQueryApplicationService userQueryApplicationService) {
+        this.userQueryApplicationService = userQueryApplicationService;
     }
 
     @Override
     public UserFacadeResponse getUserById(UserGetFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        return UserFacadeResponse.from(userApplicationService.getUserById(UserId.of(request.getUserId())));
+        return UserFacadeResponse.from(userQueryApplicationService.getUserById(UserId.of(request.getUserId())));
     }
 
     @Override
     public UserIdentityFacadeResponse getUserIdentity(UserIdentityGetFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        UserIdentityDTO userIdentity = userApplicationService.getUserIdentity(
+        UserIdentityDTO userIdentity = userQueryApplicationService.getUserIdentity(
                 UserIdentityType.from(request.getIdentityType()), request.getIdentityValue());
         return UserIdentityFacadeResponse.from(new UserIdentityDetailFacadeResponse(
                 userIdentity.getId(),
@@ -52,7 +52,7 @@ public class UserReadFacadeLocalImpl implements UserReadFacade {
     @Override
     public UserLoginCredentialFacadeResponse getUserLoginCredential(UserLoginCredentialGetFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        UserLoginCredentialDTO credential = userApplicationService.getUserLoginCredential(
+        UserLoginCredentialDTO credential = userQueryApplicationService.getUserLoginCredential(
                 UserIdentityType.from(request.getIdentityType()), request.getIdentityValue());
         return UserLoginCredentialFacadeResponse.from(new UserLoginCredentialDetailFacadeResponse(
                 credential.getUserId(),
@@ -78,6 +78,6 @@ public class UserReadFacadeLocalImpl implements UserReadFacade {
     public TenantFacadeResponse getTenantByTenantId() {
         BaconContextHolder.requireTenantId();
         return TenantFacadeResponse.from(
-                userApplicationService.getTenantByTenantId(BaconIdContextHelper.requireTenantId()));
+                userQueryApplicationService.getTenantByTenantId(BaconIdContextHelper.requireTenantId()));
     }
 }

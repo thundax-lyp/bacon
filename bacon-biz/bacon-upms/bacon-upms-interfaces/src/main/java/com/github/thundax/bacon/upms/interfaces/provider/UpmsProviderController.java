@@ -16,6 +16,7 @@ import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.application.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
+import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
@@ -43,16 +44,19 @@ import org.springframework.validation.annotation.Validated;
 @Tag(name = "Inner-UPMS-Management", description = "UPMS 域内部 Provider 接口")
 public class UpmsProviderController {
 
+    private final UserQueryApplicationService userQueryApplicationService;
     private final UserApplicationService userApplicationService;
     private final DepartmentApplicationService departmentApplicationService;
     private final RoleApplicationService roleApplicationService;
     private final PermissionQueryApplicationService permissionQueryService;
 
     public UpmsProviderController(
+            UserQueryApplicationService userQueryApplicationService,
             UserApplicationService userApplicationService,
             DepartmentApplicationService departmentApplicationService,
             RoleApplicationService roleApplicationService,
             PermissionQueryApplicationService permissionQueryService) {
+        this.userQueryApplicationService = userQueryApplicationService;
         this.userApplicationService = userApplicationService;
         this.departmentApplicationService = departmentApplicationService;
         this.roleApplicationService = roleApplicationService;
@@ -62,7 +66,7 @@ public class UpmsProviderController {
     @Operation(summary = "按用户 ID 查询用户")
     @GetMapping("/users/{userId}")
     public UserDTO getUserById(@PathVariable @Positive(message = "userId must be greater than 0") Long userId) {
-        return userApplicationService.getUserById(UserIdCodec.toDomain(userId));
+        return userQueryApplicationService.getUserById(UserIdCodec.toDomain(userId));
     }
 
     @Operation(summary = "按身份标识查询用户身份")
@@ -71,7 +75,7 @@ public class UpmsProviderController {
             @RequestParam("identityType") @NotBlank(message = "identityType must not be blank") String identityType,
             @RequestParam("identityValue") @NotBlank(message = "identityValue must not be blank")
                     String identityValue) {
-        return userApplicationService.getUserIdentity(UserIdentityType.from(identityType), identityValue);
+        return userQueryApplicationService.getUserIdentity(UserIdentityType.from(identityType), identityValue);
     }
 
     @Operation(summary = "按身份标识查询用户登录凭据")
@@ -80,7 +84,7 @@ public class UpmsProviderController {
             @RequestParam("identityType") @NotBlank(message = "identityType must not be blank") String identityType,
             @RequestParam("identityValue") @NotBlank(message = "identityValue must not be blank")
                     String identityValue) {
-        return userApplicationService.getUserLoginCredential(UserIdentityType.from(identityType), identityValue);
+        return userQueryApplicationService.getUserLoginCredential(UserIdentityType.from(identityType), identityValue);
     }
 
     @Operation(summary = "当前用户修改密码")
@@ -95,7 +99,7 @@ public class UpmsProviderController {
     @Operation(summary = "按租户编号查询租户")
     @GetMapping("/tenants/{tenantId}")
     public TenantDTO getTenant(@PathVariable @Positive(message = "tenantId must be greater than 0") Long tenantId) {
-        return userApplicationService.getTenantByTenantId(TenantId.of(tenantId));
+        return userQueryApplicationService.getTenantByTenantId(TenantId.of(tenantId));
     }
 
     @Operation(summary = "按部门 ID 查询部门")

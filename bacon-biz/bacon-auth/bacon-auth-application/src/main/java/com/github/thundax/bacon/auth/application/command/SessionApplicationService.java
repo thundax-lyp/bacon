@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.auth.application.command;
 
-import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
+import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;

@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.auth.interfaces.response;
 
-import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
+import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
 import java.time.Instant;
 
 /**

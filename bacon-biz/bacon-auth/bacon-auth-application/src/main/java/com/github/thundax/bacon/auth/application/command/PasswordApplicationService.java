@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.auth.application.command;
 
-import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
+import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
 import com.github.thundax.bacon.upms.api.request.UserPasswordChangeFacadeRequest;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;

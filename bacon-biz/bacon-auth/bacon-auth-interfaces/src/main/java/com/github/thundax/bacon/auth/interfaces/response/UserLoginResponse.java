@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.auth.interfaces.response;
 
-import com.github.thundax.bacon.auth.api.dto.UserLoginDTO;
+import com.github.thundax.bacon.auth.application.dto.UserLoginDTO;
 
 /**
  * 用户登录响应对象。

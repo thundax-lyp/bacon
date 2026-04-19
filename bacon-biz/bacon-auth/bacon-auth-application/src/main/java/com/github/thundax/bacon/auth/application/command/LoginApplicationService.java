@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.auth.application.command;
 
-import com.github.thundax.bacon.auth.api.dto.UserLoginDTO;
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
+import com.github.thundax.bacon.auth.application.dto.UserLoginDTO;
 import com.github.thundax.bacon.auth.application.result.PasswordLoginChallengeResult;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
 import com.github.thundax.bacon.auth.application.support.LoginSecurityApplicationService;

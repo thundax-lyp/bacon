@@ -7,7 +7,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.github.thundax.bacon.auth.api.dto.UserLoginDTO;
+import com.github.thundax.bacon.auth.application.dto.UserLoginDTO;
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
 import com.github.thundax.bacon.auth.application.support.LoginSecurityApplicationService;

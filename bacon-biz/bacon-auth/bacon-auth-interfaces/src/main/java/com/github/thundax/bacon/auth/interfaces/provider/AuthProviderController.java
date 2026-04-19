@@ -1,10 +1,11 @@
 package com.github.thundax.bacon.auth.interfaces.provider;
 
-import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.api.dto.OAuthClientDTO;
 import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
+import com.github.thundax.bacon.auth.api.response.CurrentSessionFacadeResponse;
 import com.github.thundax.bacon.auth.application.command.SessionApplicationService;
 import com.github.thundax.bacon.auth.application.command.TokenApplicationService;
+import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.application.query.OAuth2ClientApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -46,9 +47,19 @@ public class AuthProviderController {
 
     @Operation(summary = "获取会话上下文")
     @GetMapping("/sessions/{sessionId}")
-    public CurrentSessionDTO currentSession(
+    public CurrentSessionFacadeResponse currentSession(
             @PathVariable @NotBlank(message = "sessionId must not be blank") String sessionId) {
-        return tokenApplicationService.getSessionContext(sessionId);
+        CurrentSessionDTO currentSession = tokenApplicationService.getSessionContext(sessionId);
+        return CurrentSessionFacadeResponse.from(
+                currentSession.getSessionId(),
+                currentSession.getTenantId(),
+                currentSession.getUserId(),
+                currentSession.getIdentityType(),
+                currentSession.getLoginType(),
+                currentSession.getSessionStatus(),
+                currentSession.getIssuedAt(),
+                currentSession.getLastAccessTime(),
+                currentSession.getExpireAt());
     }
 
     @Operation(summary = "失效指定用户会话")

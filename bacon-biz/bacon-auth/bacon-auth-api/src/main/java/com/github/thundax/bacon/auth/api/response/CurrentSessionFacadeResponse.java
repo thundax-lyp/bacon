@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.auth.api.response;
 
-import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,19 +20,17 @@ public class CurrentSessionFacadeResponse {
     private Instant lastAccessTime;
     private Instant expireAt;
 
-    public static CurrentSessionFacadeResponse from(CurrentSessionDTO dto) {
-        if (dto == null) {
-            return null;
-        }
+    public static CurrentSessionFacadeResponse from(
+            String sessionId,
+            Long tenantId,
+            Long userId,
+            String identityType,
+            String loginType,
+            String sessionStatus,
+            Instant issuedAt,
+            Instant lastAccessTime,
+            Instant expireAt) {
         return new CurrentSessionFacadeResponse(
-                dto.getSessionId(),
-                dto.getTenantId(),
-                dto.getUserId(),
-                dto.getIdentityType(),
-                dto.getLoginType(),
-                dto.getSessionStatus(),
-                dto.getIssuedAt(),
-                dto.getLastAccessTime(),
-                dto.getExpireAt());
+                sessionId, tenantId, userId, identityType, loginType, sessionStatus, issuedAt, lastAccessTime, expireAt);
     }
 }

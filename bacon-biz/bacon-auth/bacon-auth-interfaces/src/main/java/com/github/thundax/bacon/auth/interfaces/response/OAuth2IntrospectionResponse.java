@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.auth.interfaces.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.github.thundax.bacon.auth.api.dto.OAuth2IntrospectionDTO;
+import com.github.thundax.bacon.auth.application.dto.OAuth2IntrospectionDTO;
 
 /**
  * OAuth2 introspection 响应对象。

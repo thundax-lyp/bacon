@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.auth.api.dto;
+package com.github.thundax.bacon.auth.application.dto;
 
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -6,29 +6,20 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 当前会话传输对象。
+ * 当前会话应用层模型。
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CurrentSessionDTO {
 
-    /** 会话标识。 */
     private String sessionId;
-    /** 所属租户编号。 */
     private Long tenantId;
-    /** 用户主键。 */
     private Long userId;
-    /** 身份标识类型。 */
     private String identityType;
-    /** 登录方式类型。 */
     private String loginType;
-    /** 会话状态。 */
     private String sessionStatus;
-    /** 签发时间。 */
     private Instant issuedAt;
-    /** 最后访问时间。 */
     private Instant lastAccessTime;
-    /** 过期时间。 */
     private Instant expireAt;
 }

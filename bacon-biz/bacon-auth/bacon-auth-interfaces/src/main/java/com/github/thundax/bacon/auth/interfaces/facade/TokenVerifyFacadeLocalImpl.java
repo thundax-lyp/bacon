@@ -6,6 +6,7 @@ import com.github.thundax.bacon.auth.api.request.TokenVerifyFacadeRequest;
 import com.github.thundax.bacon.auth.api.response.CurrentSessionFacadeResponse;
 import com.github.thundax.bacon.auth.api.response.SessionValidationFacadeResponse;
 import com.github.thundax.bacon.auth.application.command.TokenApplicationService;
+import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +27,16 @@ public class TokenVerifyFacadeLocalImpl implements TokenVerifyFacade {
 
     @Override
     public CurrentSessionFacadeResponse getSessionContext(SessionContextGetFacadeRequest request) {
-        return CurrentSessionFacadeResponse.from(tokenApplicationService.getSessionContext(request.getSessionId()));
+        CurrentSessionDTO session = tokenApplicationService.getSessionContext(request.getSessionId());
+        return CurrentSessionFacadeResponse.from(
+                session.getSessionId(),
+                session.getTenantId(),
+                session.getUserId(),
+                session.getIdentityType(),
+                session.getLoginType(),
+                session.getSessionStatus(),
+                session.getIssuedAt(),
+                session.getLastAccessTime(),
+                session.getExpireAt());
     }
 }

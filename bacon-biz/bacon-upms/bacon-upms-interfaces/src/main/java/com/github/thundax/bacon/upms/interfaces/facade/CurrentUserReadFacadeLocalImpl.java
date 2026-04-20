@@ -8,11 +8,13 @@ import com.github.thundax.bacon.upms.api.response.TenantFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserDataScopeDetailFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserDataScopeFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
+import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.application.dto.TenantDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -22,12 +24,15 @@ public class CurrentUserReadFacadeLocalImpl implements CurrentUserReadFacade {
 
     private final UserQueryApplicationService userQueryApplicationService;
     private final PermissionQueryApplicationService permissionQueryService;
+    private final DepartmentApplicationService departmentApplicationService;
 
     public CurrentUserReadFacadeLocalImpl(
             UserQueryApplicationService userQueryApplicationService,
-            PermissionQueryApplicationService permissionQueryService) {
+            PermissionQueryApplicationService permissionQueryService,
+            DepartmentApplicationService departmentApplicationService) {
         this.userQueryApplicationService = userQueryApplicationService;
         this.permissionQueryService = permissionQueryService;
+        this.departmentApplicationService = departmentApplicationService;
     }
 
     @Override
@@ -57,12 +62,19 @@ public class CurrentUserReadFacadeLocalImpl implements CurrentUserReadFacade {
                 user.getName(),
                 user.getAvatarStoredObjectNo(),
                 user.getPhone(),
-                user.getDepartmentId(),
+                resolveDepartmentCode(user.getDepartmentId()),
                 user.getAvatarUrl(),
                 user.getStatus());
     }
 
     private TenantFacadeResponse toFacadeResponse(TenantDTO tenant) {
         return new TenantFacadeResponse(tenant.getName(), tenant.getCode(), tenant.getStatus(), tenant.getExpiredAt());
+    }
+
+    private String resolveDepartmentCode(Long departmentId) {
+        if (departmentId == null) {
+            return null;
+        }
+        return departmentApplicationService.getDepartmentById(DepartmentId.of(departmentId)).getCode();
     }
 }

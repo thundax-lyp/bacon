@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.interfaces.provider;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
@@ -18,6 +19,7 @@ import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicatio
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -59,8 +61,8 @@ public class UpmsProviderController {
 
     @Operation(summary = "查询当前用户")
     @GetMapping("/users/current")
-    public UserDTO getCurrentUser() {
-        return userQueryApplicationService.getUserById(BaconIdContextHelper.requireUserId());
+    public UserFacadeResponse getCurrentUser() {
+        return toCurrentUserFacadeResponse(userQueryApplicationService.getUserById(BaconIdContextHelper.requireUserId()));
     }
 
     @Operation(summary = "按身份标识查询用户身份")
@@ -131,5 +133,24 @@ public class UpmsProviderController {
     @GetMapping("/permissions/current/data-scope")
     public UserDataScopeDTO getCurrentDataScope() {
         return permissionQueryService.getUserDataScope(UserIdCodec.toDomain(BaconIdContextHelper.requireUserId()));
+    }
+
+    private UserFacadeResponse toCurrentUserFacadeResponse(UserDTO user) {
+        return new UserFacadeResponse(
+                user.getId(),
+                user.getAccount(),
+                user.getName(),
+                user.getAvatarStoredObjectNo(),
+                user.getPhone(),
+                resolveDepartmentCode(user.getDepartmentId()),
+                user.getAvatarUrl(),
+                user.getStatus());
+    }
+
+    private String resolveDepartmentCode(Long departmentId) {
+        if (departmentId == null) {
+            return null;
+        }
+        return departmentApplicationService.getDepartmentById(DepartmentId.of(departmentId)).getCode();
     }
 }

@@ -55,11 +55,9 @@ class UserControllerContractTest {
         userQueryApplicationService = mock(UserQueryApplicationService.class);
         validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
-        mockMvc = MockMvcBuilders.standaloneSetup(new UserController(
-                        userProfileApplicationService,
-                        userPasswordApplicationService,
-                        userAvatarApplicationService,
-                        userQueryApplicationService))
+        mockMvc = MockMvcBuilders.standaloneSetup(
+                        new UserQueryController(userQueryApplicationService),
+                        new UserAvatarController(userAvatarApplicationService))
                 .setValidator(validator)
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
@@ -110,11 +108,7 @@ class UserControllerContractTest {
     @Test
     void shouldReturnBadRequestForIllegalStatusFilter() throws Exception {
         MockMvc wrappedMockMvc = MockMvcBuilders.standaloneSetup(
-                        new UserController(
-                                userProfileApplicationService,
-                                userPasswordApplicationService,
-                                userAvatarApplicationService,
-                                userQueryApplicationService))
+                        new UserQueryController(userQueryApplicationService))
                 .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
                 .setValidator(validator)
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())

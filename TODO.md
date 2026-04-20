@@ -3,7 +3,6 @@
 ### 当前主线顺序（按模块执行）
 
 1. `upms`
-   - 继续拆 `UserController`
    - 再回收 `UserRepositoryImpl` 中残留业务
    - 最后处理 `upms api.dto` 下沉与 facade `Request/Response` 规约
 2. `storage`
@@ -70,18 +69,7 @@
   - 验收点：接口契约不再混淆“主键ID”和“业务No”，避免跨域调用误用
   - 重要度：9/10
 
-- [ ] `upms`：在 services 已拆分后继续推进 `UserController` 收口
-  - 当前状态：`UserQueryApplicationService`、`UserProfileApplicationService`、`UserPasswordApplicationService`、`UserAvatarApplicationService` 已分离；`UserController` 仍然过大
-  - 处理动作：继续做 `UserController` 拆分，拆分过程中保持现有异常语义与校验口径不回退
-  - 验收点：拆分前后行为一致且异常语义稳定，回归风险可控
-  - 重要度：9/10
-
 ### P0 - `upms` 先拆大类
-
-- [ ] 拆分 `UserController`：把用户基础信息、密码、角色、头像、导入导出拆成独立 controller
-  - 输出物：多个小 controller，原路由语义保持不变或有明确迁移方案
-  - 验收点：单个 controller 不再同时承担 8+ 类职责
-  - 重要度：9/10
 
 ### P1 - `upms` 仓储职责回收
 

@@ -92,11 +92,6 @@
   - 验收点：这些对象只在 upms 内部查询与装配链路流转
   - 重要度：9/10
 
-- [ ] `upms-application`：收尾 `api.dto -> application.dto` 迁移残留
-  - 当前阻塞：`DepartmentAssembler`、`UserQueryApplicationService`、`TenantApplicationService` 等仍引用已下沉的 `api.dto`
-  - 验收点：相关模块联编不再因 `com.github.thundax.bacon.upms.api.dto` 缺失而失败
-  - 重要度：9/10
-
 ### P1 - Repository 命名统一治理清单
 
 - [ ] `upms`：评审剩余 Repository 是否继续压短，先不直接批量改名

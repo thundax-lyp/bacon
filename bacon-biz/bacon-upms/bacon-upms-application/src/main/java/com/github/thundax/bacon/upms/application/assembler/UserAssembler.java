@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.application.assembler;
 
-import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
+import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 
 public final class UserAssembler {

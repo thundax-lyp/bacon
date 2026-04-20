@@ -5,9 +5,9 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
-import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
 import com.github.thundax.bacon.upms.application.assembler.DepartmentAssembler;
+import com.github.thundax.bacon.upms.application.dto.DepartmentDTO;
+import com.github.thundax.bacon.upms.application.dto.DepartmentTreeDTO;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
@@ -17,6 +17,7 @@ import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -45,10 +46,21 @@ public class DepartmentApplicationService {
                 .orElseThrow(() -> new NotFoundException("Department not found: " + departmentId)));
     }
 
-    public DepartmentDTO getDepartmentByCode(DepartmentCode departmentCode) {
+    public DepartmentDTO getByCode(DepartmentCode departmentCode) {
         return DepartmentAssembler.toDto(departmentRepository
                 .findByCode(departmentCode)
                 .orElseThrow(() -> new NotFoundException("Department not found: " + departmentCode.value())));
+    }
+
+    public List<DepartmentDTO> listByCodes(Set<DepartmentCode> codes) {
+        if (codes == null || codes.isEmpty()) {
+            return List.of();
+        }
+        return codes.stream()
+                .map(departmentRepository::findByCode)
+                .flatMap(Optional::stream)
+                .map(DepartmentAssembler::toDto)
+                .toList();
     }
 
     public List<DepartmentDTO> listByIds(Set<DepartmentId> departmentIds) {

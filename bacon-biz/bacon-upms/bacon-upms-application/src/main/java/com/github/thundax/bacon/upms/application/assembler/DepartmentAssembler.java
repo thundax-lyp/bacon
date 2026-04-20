@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.application.assembler;
 
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
-import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
-import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
+import com.github.thundax.bacon.upms.application.dto.DepartmentDTO;
+import com.github.thundax.bacon.upms.application.dto.DepartmentTreeDTO;
 import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;

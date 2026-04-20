@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.application.assembler;
 
-import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
 import com.github.thundax.bacon.upms.application.codec.ResourceCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.ResourceIdCodec;
+import com.github.thundax.bacon.upms.application.dto.ResourceDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 
 public final class ResourceAssembler {

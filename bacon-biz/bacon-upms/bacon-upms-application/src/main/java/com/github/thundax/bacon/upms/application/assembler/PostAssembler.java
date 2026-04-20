@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.upms.application.assembler;
 
-import com.github.thundax.bacon.upms.api.dto.PostDTO;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.codec.PostCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.PostIdCodec;
+import com.github.thundax.bacon.upms.application.dto.PostDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 
 public final class PostAssembler {

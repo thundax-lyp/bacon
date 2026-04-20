@@ -16,7 +16,6 @@
    - 再补 provider / application / domain 关键回归测试
 5. `payment` / `inventory`
    - `payment` 先收口 controller 路由语义
-   - `inventory` 先处理 `InventoryLogRepository` 空壳结论
    - 然后把 `inventory` 固化成接口层校验模板域
 6. 横切收尾
    - 最后统一横切注解策略、租户边界与 ArchUnit 增量规则
@@ -116,13 +115,6 @@
   - 处理动作：逐个判断哪些是必要条件信息、哪些仍然带过重业务前缀；输出结论后再改名，不做无结论扫改
   - 验收点：形成一份 `建议改 / 建议保留 / 暂缓` 结论，且结论基于现有拆分后的仓储版图
   - 重要度：6/10
-
-- [ ] `inventory`：处理 `InventoryLogRepository` 空壳接口
-  - 现状对比：接口职责不清，和现有 `InventoryAuditRecordRepository` 体系不在一套
-  - 处理动作：明确三选一结论：`保留并补职责 / 合并 / 删除`
-  - 验收点：不允许继续保持空壳状态悬置
-  - 回归命令：如触发代码改动，执行 `mvn -q -pl bacon-biz/bacon-inventory/bacon-inventory-interfaces -am test -DskipITs`
-  - 重要度：7/10
 
 ### P2 - DTO 装配位置统一
 

@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
-import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.upms.api.facade.CurrentUserReadFacade;
 import com.github.thundax.bacon.upms.api.response.TenantFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserDataScopeFacadeResponse;
@@ -38,10 +37,10 @@ public class CurrentUserReadFacadeRemoteImpl implements CurrentUserReadFacade {
 
     @Override
     public TenantFacadeResponse getCurrentTenant() {
-        // 当前租户读取复用稳定的按 tenantId provider 契约，避免维护额外的 current tenant 入口。
+        // 当前租户读取固定由 upms 按上下文租户解析，不再复用无 facade 对应的通用租户 provider 入口。
         return restClient
                 .get()
-                .uri("/providers/upms/tenants/{tenantId}", BaconIdContextHelper.requireTenantId())
+                .uri("/providers/upms/tenants/current")
                 .retrieve()
                 .body(TenantFacadeResponse.class);
     }

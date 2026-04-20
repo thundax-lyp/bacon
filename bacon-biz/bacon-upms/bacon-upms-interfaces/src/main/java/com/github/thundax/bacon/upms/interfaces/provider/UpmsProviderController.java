@@ -1,34 +1,25 @@
 package com.github.thundax.bacon.upms.interfaces.provider;
 
-import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
-import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
-import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
+import com.github.thundax.bacon.upms.api.response.TenantFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserDataScopeFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.request.UserPasswordChangeFacadeRequest;
-import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
-import com.github.thundax.bacon.upms.application.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -99,44 +90,21 @@ public class UpmsProviderController {
                 request.getNewPassword());
     }
 
-    @Operation(summary = "按租户编号查询租户")
-    @GetMapping("/tenants/{tenantId}")
-    public TenantDTO getTenant(@PathVariable @Positive(message = "tenantId must be greater than 0") Long tenantId) {
-        return userQueryApplicationService.getTenantByTenantId(TenantId.of(tenantId));
-    }
-
-    @Operation(summary = "按部门编码查询部门")
-    @GetMapping("/departments/code/{code}")
-    public DepartmentDTO getByCode(
-            @PathVariable("code") @NotBlank(message = "code must not be blank") String code) {
-        return departmentApplicationService.getDepartmentByCode(DepartmentCodeCodec.toDomain(code));
-    }
-
-    @Operation(summary = "批量查询部门")
-    @GetMapping("/departments")
-    public List<DepartmentDTO> listByIds(
-            @RequestParam("departmentIds") Set<
-                            @Positive(message = "departmentIds item must be greater than 0")
-                            Long>
-                    departmentIds) {
-        Set<DepartmentId> resolvedDepartmentIds = departmentIds == null
-                ? Set.of()
-                : departmentIds.stream()
-                        .map(DepartmentId::of)
-                        .collect(Collectors.toSet());
-        return departmentApplicationService.listByIds(resolvedDepartmentIds);
-    }
-
-    @Operation(summary = "查询用户数据权限范围")
-    @GetMapping("/permissions/data-scope")
-    public UserDataScopeDTO getUserDataScope(
-            @RequestParam("userId") @Positive(message = "userId must be greater than 0") Long userId) {
-        return permissionQueryService.getUserDataScope(UserIdCodec.toDomain(userId));
+    @Operation(summary = "查询当前租户")
+    @GetMapping("/tenants/current")
+    public TenantFacadeResponse getCurrentTenant() {
+        return toTenantFacadeResponse(userQueryApplicationService.getTenantByTenantId(BaconIdContextHelper.requireTenantId()));
     }
 
     @Operation(summary = "查询当前用户数据权限范围")
     @GetMapping("/permissions/current/data-scope")
-    public UserDataScopeDTO getCurrentDataScope() {
-        return permissionQueryService.getUserDataScope(BaconIdContextHelper.requireUserId());
+    public UserDataScopeFacadeResponse getCurrentDataScope() {
+        var dataScope = permissionQueryService.getUserDataScope(BaconIdContextHelper.requireUserId());
+        return new UserDataScopeFacadeResponse(
+                dataScope.isAllAccess(), dataScope.getScopeTypes(), dataScope.getDepartmentIds());
+    }
+
+    private TenantFacadeResponse toTenantFacadeResponse(TenantDTO tenant) {
+        return new TenantFacadeResponse(tenant.getName(), tenant.getCode(), tenant.getStatus(), tenant.getExpiredAt());
     }
 }

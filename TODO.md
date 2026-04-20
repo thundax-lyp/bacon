@@ -4,7 +4,7 @@
 
 1. `upms`
    - 再回收 `UserRepositoryImpl` 中残留业务
-   - 最后处理 `upms api.dto` 下沉与 facade `Request/Response` 规约
+   - 最后处理 `upms api.dto` 下沉
 2. `storage`
    - 先统一 `objectId -> storedObjectNo`
    - 再清理 `StoredObjectPageQueryDTO` 和 interfaces/application 合同

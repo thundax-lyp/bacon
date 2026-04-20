@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
+import com.github.thundax.bacon.upms.application.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import org.junit.jupiter.api.BeforeEach;

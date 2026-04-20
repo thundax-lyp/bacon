@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
-import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
+import com.github.thundax.bacon.upms.application.dto.DepartmentDTO;
 
 /**
  * 部门查询响应对象。

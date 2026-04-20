@@ -1,11 +1,11 @@
-package com.github.thundax.bacon.upms.api.dto;
+package com.github.thundax.bacon.upms.application.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 部门跨服务传输对象。
+ * 部门内部读模型。
  */
 @Data
 @NoArgsConstructor

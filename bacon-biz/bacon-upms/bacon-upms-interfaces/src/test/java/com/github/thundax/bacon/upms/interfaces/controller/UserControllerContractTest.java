@@ -16,7 +16,7 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
-import com.github.thundax.bacon.upms.api.dto.UserDTO;
+import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.command.UserAvatarApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserProfileApplicationService;

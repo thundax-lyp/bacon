@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.upms.api.dto;
+package com.github.thundax.bacon.upms.application.dto;
 
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 租户跨服务传输对象。
+ * 租户内部读模型。
  */
 @Data
 @NoArgsConstructor

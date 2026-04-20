@@ -11,7 +11,7 @@ import com.github.thundax.bacon.auth.api.request.SessionInvalidateTenantFacadeRe
 import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.upms.api.dto.TenantDTO;
+import com.github.thundax.bacon.upms.application.dto.TenantDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;

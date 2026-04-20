@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
-import com.github.thundax.bacon.upms.api.dto.PostDTO;
+import com.github.thundax.bacon.upms.application.dto.PostDTO;
 
 /**
  * 岗位查询响应对象。

@@ -13,7 +13,7 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
 import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
-import com.github.thundax.bacon.upms.api.dto.UserDTO;
+import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;

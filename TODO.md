@@ -4,7 +4,7 @@
 
 1. `upms`
    - 再回收 `UserRepositoryImpl` 中残留业务
-   - 最后处理 `upms api.dto` 下沉与 facade `Request/Response` 规约
+   - 最后处理 facade `Request/Response` 规约
 2. `storage`
    - 先统一 `objectId -> storedObjectNo`
    - 再清理 `StoredObjectPageQueryDTO` 和 interfaces/application 合同
@@ -86,11 +86,6 @@
   - 当前对象：`UserLoginDTO`、`CurrentSessionDTO`、`OAuth2TokenDTO`、`OAuth2IntrospectionDTO`、`OAuth2UserinfoDTO` 等
   - 验收点：auth facade 仅保留跨域必要返回模型，避免 `api.dto` 扩散成应用内部模型
   - 重要度：7/10
-
-- [ ] `upms-application`：按领域拆分并下沉用户/租户/角色/部门/资源/岗位读模型
-  - 当前对象：`UserDTO`、`TenantDTO`、`RoleDTO`、`DepartmentDTO`、`DepartmentTreeDTO`、`ResourceDTO`、`PostDTO`
-  - 验收点：这些对象只在 upms 内部查询与装配链路流转
-  - 重要度：9/10
 
 ### P1 - Repository 命名统一治理清单
 

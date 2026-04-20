@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
-import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
+import com.github.thundax.bacon.upms.application.dto.ResourceDTO;
 
 /**
  * 资源查询响应对象。

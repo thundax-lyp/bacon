@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
-import com.github.thundax.bacon.upms.api.dto.RoleDTO;
+import com.github.thundax.bacon.upms.application.dto.RoleDTO;
 
 /**
  * 角色查询响应对象。

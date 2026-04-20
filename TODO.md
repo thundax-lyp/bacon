@@ -132,10 +132,6 @@
 
 ### P2 - DTO 装配位置统一
 
-- [ ] `order`：继续检查 query application service 是否还存在 response/dto 手写拼装
-  - 验收点：详情、分页、snapshot 装配逐步收敛到 assembler
-  - 重要度：6/10
-
 - [ ] `upms`：排查 application service 内是否还有历史遗留 DTO 手写映射
   - 验收点：统一回收进 assembler
   - 重要度：5/10

@@ -15,6 +15,7 @@ import com.github.thundax.bacon.inventory.api.request.InventoryDeductFacadeReque
 import com.github.thundax.bacon.inventory.api.request.InventoryReleaseFacadeRequest;
 import com.github.thundax.bacon.inventory.api.request.InventoryReserveFacadeRequest;
 import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
+import com.github.thundax.bacon.order.application.assembler.OrderDetailAssembler;
 import com.github.thundax.bacon.order.application.assembler.OrderSummaryAssembler;
 import com.github.thundax.bacon.order.application.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
@@ -62,6 +63,7 @@ import org.junit.jupiter.api.Test;
 class OrderCreateApplicationServiceTest {
 
     private static final OrderSummaryAssembler ORDER_SUMMARY_ASSEMBLER = new OrderSummaryAssembler();
+    private static final OrderDetailAssembler ORDER_DETAIL_ASSEMBLER = new OrderDetailAssembler();
 
     @AfterEach
     void tearDown() {
@@ -83,7 +85,11 @@ class OrderCreateApplicationServiceTest {
                 new SuccessInventoryCommandFacade(),
                 new SuccessPaymentCommandFacade());
         OrderQueryApplicationService queryService = new OrderQueryApplicationService(
-                repository, inventorySnapshotRepository, paymentSnapshotRepository, ORDER_SUMMARY_ASSEMBLER);
+                repository,
+                inventorySnapshotRepository,
+                paymentSnapshotRepository,
+                ORDER_DETAIL_ASSEMBLER,
+                ORDER_SUMMARY_ASSEMBLER);
 
         OrderSummaryDTO result = runWithContext(
                 1001L,
@@ -141,7 +147,11 @@ class OrderCreateApplicationServiceTest {
                         paymentSnapshotRepository,
                         new TestIdGenerator()));
         OrderQueryApplicationService queryService = new OrderQueryApplicationService(
-                repository, inventorySnapshotRepository, paymentSnapshotRepository, ORDER_SUMMARY_ASSEMBLER);
+                repository,
+                inventorySnapshotRepository,
+                paymentSnapshotRepository,
+                ORDER_DETAIL_ASSEMBLER,
+                ORDER_SUMMARY_ASSEMBLER);
         runWithContext(
                 1001L,
                 2001L,

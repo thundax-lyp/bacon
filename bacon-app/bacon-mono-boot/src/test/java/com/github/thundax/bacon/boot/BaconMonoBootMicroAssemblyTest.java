@@ -22,13 +22,9 @@ import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import com.github.thundax.bacon.payment.api.facade.PaymentReadFacade;
 import com.github.thundax.bacon.payment.infra.facade.remote.PaymentCommandFacadeRemoteImpl;
 import com.github.thundax.bacon.payment.infra.facade.remote.PaymentReadFacadeRemoteImpl;
-import com.github.thundax.bacon.upms.api.facade.DepartmentReadFacade;
-import com.github.thundax.bacon.upms.api.facade.PermissionReadFacade;
-import com.github.thundax.bacon.upms.api.facade.RoleReadFacade;
+import com.github.thundax.bacon.upms.api.facade.CurrentUserReadFacade;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
-import com.github.thundax.bacon.upms.infra.facade.remote.DepartmentReadFacadeRemoteImpl;
-import com.github.thundax.bacon.upms.infra.facade.remote.PermissionReadFacadeRemoteImpl;
-import com.github.thundax.bacon.upms.infra.facade.remote.RoleReadFacadeRemoteImpl;
+import com.github.thundax.bacon.upms.infra.facade.remote.CurrentUserReadFacadeRemoteImpl;
 import com.github.thundax.bacon.upms.infra.facade.remote.UserReadFacadeRemoteImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,13 +76,7 @@ class BaconMonoBootMicroAssemblyTest extends BaconSpringBootTest {
     private UserReadFacade userReadFacade;
 
     @Autowired
-    private DepartmentReadFacade departmentReadFacade;
-
-    @Autowired
-    private RoleReadFacade roleReadFacade;
-
-    @Autowired
-    private PermissionReadFacade permissionReadFacade;
+    private CurrentUserReadFacade currentUserReadFacade;
 
     @Autowired
     private OrderReadFacade orderReadFacade;
@@ -115,9 +105,7 @@ class BaconMonoBootMicroAssemblyTest extends BaconSpringBootTest {
         assertThat(sessionCommandFacade).isInstanceOf(SessionCommandFacadeRemoteImpl.class);
         assertThat(oAuthClientReadFacade).isInstanceOf(OAuthClientReadFacadeRemoteImpl.class);
         assertThat(userReadFacade).isInstanceOf(UserReadFacadeRemoteImpl.class);
-        assertThat(departmentReadFacade).isInstanceOf(DepartmentReadFacadeRemoteImpl.class);
-        assertThat(roleReadFacade).isInstanceOf(RoleReadFacadeRemoteImpl.class);
-        assertThat(permissionReadFacade).isInstanceOf(PermissionReadFacadeRemoteImpl.class);
+        assertThat(currentUserReadFacade).isInstanceOf(CurrentUserReadFacadeRemoteImpl.class);
         assertThat(orderReadFacade).isInstanceOf(OrderReadFacadeRemoteImpl.class);
         assertThat(orderCommandFacade).isInstanceOf(OrderCommandFacadeRemoteImpl.class);
         assertThat(inventoryReadFacade).isInstanceOf(InventoryReadFacadeRemoteImpl.class);

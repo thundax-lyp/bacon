@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
-import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
@@ -23,21 +22,9 @@ public interface UserRepository {
 
     boolean existsActiveByDepartmentId(DepartmentId departmentId);
 
-    User insert(
-            User user,
-            String account,
-            String phone,
-            UserIdentityId accountIdentityId,
-            UserIdentityId phoneIdentityId,
-            UserCredentialId passwordCredentialIdIfAbsent);
+    User insert(User user);
 
-    User update(
-            User user,
-            String account,
-            String phone,
-            UserIdentityId accountIdentityId,
-            UserIdentityId phoneIdentityId,
-            UserCredentialId passwordCredentialIdIfAbsent);
+    User update(User user);
 
     User updatePassword(
             UserId userId, String password, boolean needChangePassword, UserCredentialId passwordCredentialIdIfAbsent);

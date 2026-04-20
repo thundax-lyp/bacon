@@ -1,8 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
-import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -93,49 +91,13 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User insert(
-            User user,
-            String account,
-            String phone,
-            UserIdentityId accountIdentityId,
-            UserIdentityId phoneIdentityId,
-            UserCredentialId passwordCredentialIdIfAbsent) {
-        return persistUser(
-                user, account, phone, accountIdentityId, phoneIdentityId, passwordCredentialIdIfAbsent, true);
+    public User insert(User user) {
+        return userSupport.insert(copyUser(user));
     }
 
     @Override
-    public User update(
-            User user,
-            String account,
-            String phone,
-            UserIdentityId accountIdentityId,
-            UserIdentityId phoneIdentityId,
-            UserCredentialId passwordCredentialIdIfAbsent) {
-        return persistUser(
-                user, account, phone, accountIdentityId, phoneIdentityId, passwordCredentialIdIfAbsent, false);
-    }
-
-    private User persistUser(
-            User user,
-            String account,
-            String phone,
-            UserIdentityId accountIdentityId,
-            UserIdentityId phoneIdentityId,
-            UserCredentialId passwordCredentialIdIfAbsent,
-            boolean newUser) {
-        User savedUser = copyUser(user);
-        savedUser = newUser ? userSupport.insert(savedUser) : userSupport.update(savedUser);
-        UserIdentity accountIdentity = replaceAccountIdentity(savedUser, account, accountIdentityId);
-        upsertPasswordCredential(
-                savedUser,
-                accountIdentity,
-                resolvePasswordHash(savedUser, newUser),
-                newUser,
-                false,
-                passwordCredentialIdIfAbsent);
-        replacePhoneIdentity(savedUser, phone, phoneIdentityId);
-        return savedUser;
+    public User update(User user) {
+        return userSupport.update(copyUser(user));
     }
 
     @Override
@@ -174,46 +136,10 @@ public class UserRepositoryImpl implements UserRepository {
                 user.getStatus());
     }
 
-    private UserIdentity replaceAccountIdentity(User user, String account, UserIdentityId accountIdentityId) {
-        String normalizedAccount = requireIdentityValue(account, UserIdentityType.ACCOUNT);
-        UserIdentity currentIdentity = userIdentitySupport.findIdentityByUserId(user.getId(), UserIdentityType.ACCOUNT)
-                .orElse(null);
-        if (currentIdentity == null) {
-            return userIdentitySupport.insert(UserIdentity.create(
-                    accountIdentityId, user.getId(), UserIdentityType.ACCOUNT, normalizedAccount));
-        }
-        currentIdentity.changeAccount(normalizedAccount);
-        return userIdentitySupport.update(currentIdentity);
-    }
-
-    private void replacePhoneIdentity(User user, String phone, UserIdentityId phoneIdentityId) {
-        if (phone == null || phone.isBlank()) {
-            userIdentitySupport.deleteIdentityByUserIdAndType(user.getId(), UserIdentityType.PHONE);
-            return;
-        }
-        String normalizedPhone = phone.trim();
-        UserIdentity currentIdentity = userIdentitySupport.findIdentityByUserId(user.getId(), UserIdentityType.PHONE)
-                .orElse(null);
-        if (currentIdentity == null) {
-            userIdentitySupport.insert(
-                    UserIdentity.create(phoneIdentityId, user.getId(), UserIdentityType.PHONE, normalizedPhone));
-            return;
-        }
-        currentIdentity.changePhone(normalizedPhone);
-        userIdentitySupport.update(currentIdentity);
-    }
-
     private UserIdentity requireUserIdentity(UserId userId, UserIdentityType identityType) {
         return userIdentitySupport.findIdentityByUserId(userId, identityType)
                 .orElseThrow(() -> new NotFoundException(
                         "User identity not found: " + userId + "/" + identityType.value()));
-    }
-
-    private String requireIdentityValue(String identityValue, UserIdentityType identityType) {
-        if (identityValue == null || identityValue.isBlank()) {
-            throw new BadRequestException(identityType.value() + " identity must not be blank");
-        }
-        return identityValue.trim();
     }
 
     private String resolvePasswordHash(User user, boolean newUser) {

@@ -24,6 +24,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.MenuType;
@@ -77,6 +78,8 @@ import com.github.thundax.bacon.upms.infra.persistence.mapper.UserRoleRelMapper;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -300,6 +303,61 @@ class UpmsRepositoryIntegrationTest {
         CONTEXT.close();
     }
 
+    private User createUser(
+            User user,
+            String account,
+            String phone,
+            UserIdentityId accountIdentityId,
+            UserIdentityId phoneIdentityId,
+            UserCredentialId passwordCredentialId) {
+        User savedUser = userRepository.insert(user);
+        UserIdentity accountIdentity = userIdentityRepository.insert(
+                UserIdentity.create(accountIdentityId, savedUser.getId(), UserIdentityType.ACCOUNT, account));
+        if (phone != null) {
+            userIdentityRepository.insert(
+                    UserIdentity.create(phoneIdentityId, savedUser.getId(), UserIdentityType.PHONE, phone));
+        }
+        userCredentialRepository.insert(UserCredential.createPassword(
+                passwordCredentialId,
+                savedUser.getId(),
+                accountIdentity.getId(),
+                CONTEXT.getBean(PasswordEncoder.class).encode("123456"),
+                true,
+                5,
+                Instant.now().plus(90L, ChronoUnit.DAYS)));
+        return savedUser;
+    }
+
+    private User updateUser(
+            User user, String account, String phone, UserIdentityId accountIdentityId, UserIdentityId phoneIdentityId) {
+        User savedUser = userRepository.update(user);
+        UserIdentity currentAccountIdentity = userIdentityRepository
+                .findIdentityByUserId(savedUser.getId(), UserIdentityType.ACCOUNT)
+                .orElse(null);
+        if (currentAccountIdentity == null) {
+            userIdentityRepository.insert(
+                    UserIdentity.create(accountIdentityId, savedUser.getId(), UserIdentityType.ACCOUNT, account));
+        } else {
+            currentAccountIdentity.changeAccount(account);
+            userIdentityRepository.update(currentAccountIdentity);
+        }
+        if (phone == null) {
+            userIdentityRepository.deleteIdentityByUserIdAndType(savedUser.getId(), UserIdentityType.PHONE);
+            return savedUser;
+        }
+        UserIdentity currentPhoneIdentity = userIdentityRepository
+                .findIdentityByUserId(savedUser.getId(), UserIdentityType.PHONE)
+                .orElse(null);
+        if (currentPhoneIdentity == null) {
+            userIdentityRepository.insert(
+                    UserIdentity.create(phoneIdentityId, savedUser.getId(), UserIdentityType.PHONE, phone));
+            return savedUser;
+        }
+        currentPhoneIdentity.changePhone(phone);
+        userIdentityRepository.update(currentPhoneIdentity);
+        return savedUser;
+    }
+
     private boolean isUserDeleted(String userId) {
         try (Connection connection = dataSource.getConnection();
                 Statement statement = connection.createStatement();
@@ -349,7 +407,7 @@ class UpmsRepositoryIntegrationTest {
                 "/users"));
         Role role = roleRepository.insert(Role.create(
                 RoleId.of(2101L), RoleCode.of("ADMIN"), "Administrator", RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF));
-        User user = userRepository.insert(
+        User user = createUser(
                 User.create(
                         UserId.of(2201L),
                         "Alice",
@@ -416,7 +474,7 @@ class UpmsRepositoryIntegrationTest {
         department = departmentRepository.insert(department);
         Role role = roleRepository.insert(Role.create(
                 RoleId.of(2102L), RoleCode.of("OPS_ADMIN"), "Ops Admin", RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF));
-        User createdUser = userRepository.insert(
+        User createdUser = createUser(
                 User.create(
                         UserId.of(2202L),
                         "Bob",
@@ -435,7 +493,7 @@ class UpmsRepositoryIntegrationTest {
         UserIdentity originalPhoneIdentity = userIdentityRepository
                 .findIdentityByUserId(createdUser.getId(), UserIdentityType.PHONE)
                 .orElseThrow();
-        User updatedUser = userRepository.update(
+        User updatedUser = updateUser(
                 User.reconstruct(
                         createdUser.getId(),
                         "Bob",
@@ -445,8 +503,7 @@ class UpmsRepositoryIntegrationTest {
                 "bob",
                 "13900000003",
                 UserIdentityId.of(3201L),
-                UserIdentityId.of(3202L),
-                UserCredentialId.of(3203L));
+                UserIdentityId.of(3202L));
 
         assertFalse(userIdentityRepository
                 .findIdentity(UserIdentityType.PHONE, "13800000002")
@@ -491,7 +548,7 @@ class UpmsRepositoryIntegrationTest {
                 OPERATIONS_DEPARTMENT_ID, DepartmentCode.of("OPS"), "Operations", null, null);
         department.sort(1);
         department = departmentRepository.insert(department);
-        User createdUser = userRepository.insert(
+        User createdUser = createUser(
                 User.create(UserId.of(2203L), "Carol", null, department.getId()),
                 "carol",
                 "13600000001",
@@ -554,7 +611,7 @@ class UpmsRepositoryIntegrationTest {
         roleDataScopeRepository.updateDataScope(
                 role.getId(), RoleDataScopeType.CUSTOM, Set.of(root.getId()));
 
-        User user = userRepository.insert(
+        User user = createUser(
                 User.create(UserId.of(2204L), "Manager", null, child.getId()),
                 "manager",
                 "13700000001",

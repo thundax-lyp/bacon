@@ -22,4 +22,14 @@ public class UserCredentialRepositoryImpl implements UserCredentialRepository {
     public Optional<UserCredential> findCredentialByUserId(UserId userId, UserCredentialType credentialType) {
         return support.findCredentialByUserId(userId, credentialType);
     }
+
+    @Override
+    public UserCredential insert(UserCredential userCredential) {
+        return support.insert(userCredential);
+    }
+
+    @Override
+    public UserCredential update(UserCredential userCredential) {
+        return support.update(userCredential);
+    }
 }

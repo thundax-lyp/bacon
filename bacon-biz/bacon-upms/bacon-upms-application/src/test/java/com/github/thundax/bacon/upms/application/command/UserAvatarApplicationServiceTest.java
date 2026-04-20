@@ -6,9 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
-import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
@@ -45,15 +43,12 @@ class UserAvatarApplicationServiceTest {
     private UserIdentityRepository userIdentityRepository;
     @Mock
     private StoredObjectCommandFacade storedObjectCommandFacade;
-    @Mock
-    private IdGenerator idGenerator;
 
     private UserAvatarApplicationService service;
 
     @BeforeEach
     void setUp() {
-        service = new UserAvatarApplicationService(
-                userRepository, userIdentityRepository, storedObjectCommandFacade, idGenerator);
+        service = new UserAvatarApplicationService(userRepository, userIdentityRepository, storedObjectCommandFacade);
     }
 
     @Test
@@ -75,13 +70,10 @@ class UserAvatarApplicationServiceTest {
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/401.png");
 
         when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
-        when(idGenerator.nextId("user-identity-id")).thenReturn(10001L, 10002L);
-        when(idGenerator.nextId("user-credential-id")).thenReturn(10003L);
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
         mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
         when(storedObjectCommandFacade.uploadObject(any())).thenReturn(storedObject);
-        when(userRepository.update(any(User.class), any(), any(), any(), any(), any()))
-                .thenReturn(savedUser);
+        when(userRepository.update(any(User.class))).thenReturn(savedUser);
 
         UserDTO result = service.updateAvatar(
                 UserId.of(101L),
@@ -91,14 +83,7 @@ class UserAvatarApplicationServiceTest {
                 new ByteArrayInputStream(createImageBytes("png", 256, 256)));
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository)
-                .update(
-                        userCaptor.capture(),
-                        org.mockito.ArgumentMatchers.eq("alice"),
-                        org.mockito.ArgumentMatchers.eq("13800000001"),
-                        any(),
-                        any(),
-                        any());
+        verify(userRepository).update(userCaptor.capture());
         verify(storedObjectCommandFacade)
                 .markObjectReferenced(
                         new StoredObjectReferenceFacadeRequest(
@@ -145,7 +130,8 @@ class UserAvatarApplicationServiceTest {
     private void mockIdentity(UserId userId, UserIdentityType identityType, String identityValue) {
         when(userIdentityRepository.findIdentityByUserId(userId, identityType))
                 .thenReturn(Optional.of(com.github.thundax.bacon.upms.domain.model.entity.UserIdentity.create(
-                        identityType == UserIdentityType.ACCOUNT ? UserIdentityId.of(10001L) : UserIdentityId.of(10002L),
+                        com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId.of(
+                                identityType == UserIdentityType.ACCOUNT ? 10001L : 10002L),
                         userId,
                         identityType,
                         identityValue)));

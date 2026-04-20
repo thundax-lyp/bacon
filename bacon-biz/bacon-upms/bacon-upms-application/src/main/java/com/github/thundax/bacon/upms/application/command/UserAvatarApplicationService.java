@@ -1,10 +1,7 @@
 package com.github.thundax.bacon.upms.application.command;
 
-import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
-import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
@@ -40,23 +37,18 @@ public class UserAvatarApplicationService {
     private static final int MIN_AVATAR_PIXEL = 128;
     private static final int MAX_AVATAR_PIXEL = 1024;
     private static final Set<String> ALLOWED_AVATAR_CONTENT_TYPES = Set.of("image/jpeg", "image/png");
-    private static final String USER_IDENTITY_ID_BIZ_TAG = "user-identity-id";
-    private static final String USER_CREDENTIAL_ID_BIZ_TAG = "user-credential-id";
 
     private final UserRepository userRepository;
     private final UserIdentityRepository userIdentityRepository;
     private final StoredObjectCommandFacade storedObjectCommandFacade;
-    private final IdGenerator idGenerator;
 
     public UserAvatarApplicationService(
             UserRepository userRepository,
             UserIdentityRepository userIdentityRepository,
-            StoredObjectCommandFacade storedObjectCommandFacade,
-            IdGenerator idGenerator) {
+            StoredObjectCommandFacade storedObjectCommandFacade) {
         this.userRepository = userRepository;
         this.userIdentityRepository = userIdentityRepository;
         this.storedObjectCommandFacade = storedObjectCommandFacade;
-        this.idGenerator = idGenerator;
     }
 
     @Transactional
@@ -72,15 +64,7 @@ public class UserAvatarApplicationService {
         AvatarStoredObjectNo previousAvatarStoredObjectNo = currentUser.getAvatarStoredObjectNo();
         try {
             currentUser.useAvatar(avatarStoredObjectNo);
-            User savedUser = userRepository.update(
-                    currentUser,
-                    requireIdentityValue(currentUser.getId(), UserIdentityType.ACCOUNT),
-                    resolveIdentityValue(currentUser.getId(), UserIdentityType.PHONE),
-                    UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
-                    resolveIdentityValue(currentUser.getId(), UserIdentityType.PHONE) == null
-                            ? null
-                            : UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
-                    UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
+            User savedUser = userRepository.update(currentUser);
             if (previousAvatarStoredObjectNo != null && !previousAvatarStoredObjectNo.equals(avatarStoredObjectNo)) {
                 storedObjectCommandFacade.clearObjectReference(
                         new StoredObjectReferenceFacadeRequest(

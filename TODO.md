@@ -59,11 +59,6 @@
 
 ### P1 - `upms` 仓储职责回收
 
-- [ ] 把 `UserRepositoryImpl` 中的“账号/手机号身份替换流程”从 repository impl 提升到 application 层编排
-  - 目标类：`replaceAccountIdentity`、`replacePhoneIdentity` 相关流程
-  - 验收点：repository 只保留存取动作，不再主导业务步骤顺序
-  - 重要度：8/10
-
 - [ ] 把 `UserRepositoryImpl` 中的密码策略装配从 repository impl 提升到 application 或独立 domain service
   - 目标类：默认密码、密码过期时间、失败上限、needChangePassword 规则
   - 验收点：密码规则不再写死在 infra

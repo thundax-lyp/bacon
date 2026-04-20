@@ -52,7 +52,7 @@ class LoginApplicationServiceTest {
         when(loginSecurityApplicationService.decryptPassword("rsa-key", "cipher-password")).thenReturn("plain-password");
 
         UserCredentialReadFacade userCredentialReadFacade = mock(UserCredentialReadFacade.class);
-        when(userCredentialReadFacade.getUserCredential(any())).thenReturn(UserCredentialFacadeResponse.from(
+        when(userCredentialReadFacade.getUserCredential(any())).thenReturn(new UserCredentialFacadeResponse(
                 2001L,
                 3001L,
                 "demo",
@@ -68,7 +68,7 @@ class LoginApplicationServiceTest {
                 null,
                 false,
                 List.of(),
-                "ENABLED",
+                "ACTIVE",
                 passwordEncoder.encode("plain-password")));
 
         LoginApplicationService service = new LoginApplicationService(

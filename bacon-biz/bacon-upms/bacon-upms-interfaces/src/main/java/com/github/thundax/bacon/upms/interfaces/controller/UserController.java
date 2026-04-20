@@ -5,8 +5,10 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.application.command.UserApplicationService;
+import com.github.thundax.bacon.upms.application.command.UserAvatarApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserImportCommand;
+import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
+import com.github.thundax.bacon.upms.application.command.UserProfileApplicationService;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
@@ -57,12 +59,19 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "UPMS-User", description = "用户管理接口")
 public class UserController {
 
-    private final UserApplicationService userApplicationService;
+    private final UserProfileApplicationService userProfileApplicationService;
+    private final UserPasswordApplicationService userPasswordApplicationService;
+    private final UserAvatarApplicationService userAvatarApplicationService;
     private final UserQueryApplicationService userQueryApplicationService;
 
     public UserController(
-            UserApplicationService userApplicationService, UserQueryApplicationService userQueryApplicationService) {
-        this.userApplicationService = userApplicationService;
+            UserProfileApplicationService userProfileApplicationService,
+            UserPasswordApplicationService userPasswordApplicationService,
+            UserAvatarApplicationService userAvatarApplicationService,
+            UserQueryApplicationService userQueryApplicationService) {
+        this.userProfileApplicationService = userProfileApplicationService;
+        this.userPasswordApplicationService = userPasswordApplicationService;
+        this.userAvatarApplicationService = userAvatarApplicationService;
         this.userQueryApplicationService = userQueryApplicationService;
     }
 
@@ -85,7 +94,7 @@ public class UserController {
     @SysLog(module = "UPMS", action = "创建用户", eventType = LogEventType.CREATE)
     @PostMapping
     public UserResponse createUser(@Valid @RequestBody UserCreateRequest request) {
-        return UserResponse.from(userApplicationService.createUser(
+        return UserResponse.from(userProfileApplicationService.createUser(
                 request.account(), request.name(), request.phone(), DepartmentId.of(request.departmentId())));
     }
 
@@ -96,7 +105,7 @@ public class UserController {
     public UserResponse updateUser(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
             @Valid @RequestBody UserUpdateRequest request) {
-        return UserResponse.from(userApplicationService.updateUser(
+        return UserResponse.from(userProfileApplicationService.updateUser(
                 UserIdCodec.toDomain(userId),
                 request.account(),
                 request.name(),
@@ -143,7 +152,7 @@ public class UserController {
     public UserResponse updateUserStatus(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
             @Valid @RequestBody UserStatusUpdateRequest request) {
-        return UserResponse.from(userApplicationService.updateUserStatus(
+        return UserResponse.from(userProfileApplicationService.updateUserStatus(
                 UserIdCodec.toDomain(userId), request.status() == null ? null : UserStatus.from(request.status())));
     }
 
@@ -152,7 +161,7 @@ public class UserController {
     @SysLog(module = "UPMS", action = "删除用户", eventType = LogEventType.DELETE)
     @DeleteMapping("/{userId}")
     public void delete(@PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
-        userApplicationService.delete(UserIdCodec.toDomain(userId));
+        userProfileApplicationService.delete(UserIdCodec.toDomain(userId));
     }
 
     @Operation(summary = "管理员初始化密码")
@@ -161,7 +170,7 @@ public class UserController {
     @PutMapping("/{userId}/passwords/init")
     public UserResponse initPassword(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
-        return UserResponse.from(userApplicationService.initPassword(UserIdCodec.toDomain(userId)));
+        return UserResponse.from(userPasswordApplicationService.initPassword(UserIdCodec.toDomain(userId)));
     }
 
     @Operation(summary = "管理员重置密码")
@@ -172,7 +181,7 @@ public class UserController {
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
             @Valid @RequestBody UserPasswordResetRequest request) {
         return UserResponse.from(
-                userApplicationService.resetPassword(UserIdCodec.toDomain(userId), request.newPassword()));
+                userPasswordApplicationService.resetPassword(UserIdCodec.toDomain(userId), request.newPassword()));
     }
 
     @Operation(summary = "分配用户角色")
@@ -182,7 +191,7 @@ public class UserController {
     public List<RoleResponse> updateRoleIds(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
             @Valid @RequestBody UserRoleAssignRequest request) {
-        return userApplicationService
+        return userProfileApplicationService
                 .updateRoleIds(
                         UserIdCodec.toDomain(userId),
                         request.roleIds() == null
@@ -201,7 +210,7 @@ public class UserController {
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
             @RequestParam("file") @NotNull(message = "file must not be null") MultipartFile file)
             throws IOException {
-        return UserResponse.from(userApplicationService.updateAvatar(
+        return UserResponse.from(userAvatarApplicationService.updateAvatar(
                 UserIdCodec.toDomain(userId),
                 file.getOriginalFilename(),
                 file.getContentType(),
@@ -226,7 +235,7 @@ public class UserController {
     @PostMapping("/import")
     public List<UserResponse> importUsers(@Valid @RequestBody UserImportRequest request) {
         List<UserImportItemRequest> items = request.items() == null ? List.of() : request.items();
-        return userApplicationService
+        return userProfileApplicationService
                 .importUsers(items.stream()
                         .map(item ->
                                 new UserImportCommand(item.account(), item.name(), item.phone(), item.departmentCode()))

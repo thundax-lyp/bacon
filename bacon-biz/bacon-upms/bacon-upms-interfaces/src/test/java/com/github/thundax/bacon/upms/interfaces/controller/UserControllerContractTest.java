@@ -17,7 +17,9 @@ import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
-import com.github.thundax.bacon.upms.application.command.UserApplicationService;
+import com.github.thundax.bacon.upms.application.command.UserAvatarApplicationService;
+import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
+import com.github.thundax.bacon.upms.application.command.UserProfileApplicationService;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
@@ -32,7 +34,9 @@ class UserControllerContractTest {
 
     private static final long TENANT_ID = 1001L;
 
-    private UserApplicationService userApplicationService;
+    private UserProfileApplicationService userProfileApplicationService;
+    private UserPasswordApplicationService userPasswordApplicationService;
+    private UserAvatarApplicationService userAvatarApplicationService;
     private UserQueryApplicationService userQueryApplicationService;
     private MockMvc mockMvc;
     private LocalValidatorFactoryBean validator;
@@ -45,11 +49,17 @@ class UserControllerContractTest {
     @BeforeEach
     void setUp() {
         BaconContextHolder.set(new BaconContext(TENANT_ID, 2001L));
-        userApplicationService = mock(UserApplicationService.class);
+        userProfileApplicationService = mock(UserProfileApplicationService.class);
+        userPasswordApplicationService = mock(UserPasswordApplicationService.class);
+        userAvatarApplicationService = mock(UserAvatarApplicationService.class);
         userQueryApplicationService = mock(UserQueryApplicationService.class);
         validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
-        mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userApplicationService, userQueryApplicationService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new UserController(
+                        userProfileApplicationService,
+                        userPasswordApplicationService,
+                        userAvatarApplicationService,
+                        userQueryApplicationService))
                 .setValidator(validator)
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
@@ -57,7 +67,7 @@ class UserControllerContractTest {
 
     @Test
     void shouldUploadAvatarThroughMultipartPutEndpoint() throws Exception {
-        when(userApplicationService.updateAvatar(
+        when(userAvatarApplicationService.updateAvatar(
                         eq(UserId.of(101L)),
                         eq("avatar.png"),
                         eq("image/png"),
@@ -100,7 +110,11 @@ class UserControllerContractTest {
     @Test
     void shouldReturnBadRequestForIllegalStatusFilter() throws Exception {
         MockMvc wrappedMockMvc = MockMvcBuilders.standaloneSetup(
-                        new UserController(userApplicationService, userQueryApplicationService))
+                        new UserController(
+                                userProfileApplicationService,
+                                userPasswordApplicationService,
+                                userAvatarApplicationService,
+                                userQueryApplicationService))
                 .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
                 .setValidator(validator)
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())

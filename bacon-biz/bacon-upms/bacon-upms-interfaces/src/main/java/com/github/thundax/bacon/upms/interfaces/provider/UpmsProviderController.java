@@ -10,7 +10,7 @@ import com.github.thundax.bacon.upms.api.dto.UserPasswordChangeDTO;
 import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.application.command.RoleApplicationService;
-import com.github.thundax.bacon.upms.application.command.UserApplicationService;
+import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
 import com.github.thundax.bacon.upms.application.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
@@ -45,19 +45,19 @@ import org.springframework.validation.annotation.Validated;
 public class UpmsProviderController {
 
     private final UserQueryApplicationService userQueryApplicationService;
-    private final UserApplicationService userApplicationService;
+    private final UserPasswordApplicationService userPasswordApplicationService;
     private final DepartmentApplicationService departmentApplicationService;
     private final RoleApplicationService roleApplicationService;
     private final PermissionQueryApplicationService permissionQueryService;
 
     public UpmsProviderController(
             UserQueryApplicationService userQueryApplicationService,
-            UserApplicationService userApplicationService,
+            UserPasswordApplicationService userPasswordApplicationService,
             DepartmentApplicationService departmentApplicationService,
             RoleApplicationService roleApplicationService,
             PermissionQueryApplicationService permissionQueryService) {
         this.userQueryApplicationService = userQueryApplicationService;
-        this.userApplicationService = userApplicationService;
+        this.userPasswordApplicationService = userPasswordApplicationService;
         this.departmentApplicationService = departmentApplicationService;
         this.roleApplicationService = roleApplicationService;
         this.permissionQueryService = permissionQueryService;
@@ -92,7 +92,7 @@ public class UpmsProviderController {
     public void changePassword(
             @PathVariable @Positive(message = "userId must be greater than 0") Long userId,
             @Valid @RequestBody UserPasswordChangeDTO request) {
-        userApplicationService.changePassword(
+        userPasswordApplicationService.changePassword(
                 UserIdCodec.toDomain(userId), request.getOldPassword(), request.getNewPassword());
     }
 

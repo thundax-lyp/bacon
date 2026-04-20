@@ -6,7 +6,6 @@ import com.github.thundax.bacon.upms.api.request.UserCredentialGetFacadeRequest;
 import com.github.thundax.bacon.upms.api.request.UserIdentityGetFacadeRequest;
 import com.github.thundax.bacon.upms.api.response.UserCredentialDetailFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserCredentialFacadeResponse;
-import com.github.thundax.bacon.upms.api.response.UserIdentityDetailFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserIdentityFacadeResponse;
 import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
@@ -30,12 +29,12 @@ public class UserCredentialReadFacadeLocalImpl implements UserCredentialReadFaca
         BaconContextHolder.requireTenantId();
         UserIdentityDTO userIdentity = userQueryApplicationService.getUserIdentity(
                 UserIdentityType.from(request.getIdentityType()), request.getIdentityValue());
-        return UserIdentityFacadeResponse.from(new UserIdentityDetailFacadeResponse(
+        return new UserIdentityFacadeResponse(
                 userIdentity.getId(),
                 userIdentity.getUserId(),
                 userIdentity.getIdentityType(),
                 userIdentity.getIdentityValue(),
-                userIdentity.getStatus()));
+                userIdentity.getStatus());
     }
 
     @Override

@@ -63,7 +63,6 @@ public class CurrentUserReadFacadeLocalImpl implements CurrentUserReadFacade {
     }
 
     private TenantFacadeResponse toFacadeResponse(TenantDTO tenant) {
-        return new TenantFacadeResponse(
-                tenant.getId(), tenant.getName(), tenant.getCode(), tenant.getStatus(), tenant.getExpiredAt());
+        return new TenantFacadeResponse(tenant.getName(), tenant.getCode(), tenant.getStatus(), tenant.getExpiredAt());
     }
 }

@@ -7,7 +7,6 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
 import com.github.thundax.bacon.storage.api.request.StoredObjectGetFacadeRequest;
 import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
-import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
@@ -17,6 +16,7 @@ import com.github.thundax.bacon.upms.application.assembler.UserAssembler;
 import com.github.thundax.bacon.upms.application.assembler.UserIdentityAssembler;
 import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
+import com.github.thundax.bacon.upms.application.result.PageResult;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
@@ -97,11 +97,11 @@ public class UserQueryApplicationService {
         return TenantAssembler.toDto(tenant);
     }
 
-    public PageResultDTO<UserDTO> page(
+    public PageResult<UserDTO> page(
             String account, String name, String phone, UserStatus status, Integer pageNo, Integer pageSize) {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
-        return new PageResultDTO<>(
+        return new PageResult<>(
                 userRepository.page(account, name, phone, status, normalizedPageNo, normalizedPageSize).stream()
                         .map(user -> UserAssembler.toDto(
                                 user,

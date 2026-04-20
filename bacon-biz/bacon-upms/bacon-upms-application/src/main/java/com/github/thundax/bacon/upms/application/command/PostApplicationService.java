@@ -4,9 +4,9 @@ import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.PostDTO;
 import com.github.thundax.bacon.upms.application.assembler.PostAssembler;
+import com.github.thundax.bacon.upms.application.result.PageResult;
 import com.github.thundax.bacon.upms.application.codec.PostCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.PostIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
@@ -30,11 +30,11 @@ public class PostApplicationService {
         this.idGenerator = idGenerator;
     }
 
-    public PageResultDTO<PostDTO> page(
+    public PageResult<PostDTO> page(
             String code, String name, DepartmentId departmentId, PostStatus status, Integer pageNo, Integer pageSize) {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
-        return new PageResultDTO<>(
+        return new PageResult<>(
                 postRepository
                         .page(
                                 PostCodeCodec.toDomain(code),

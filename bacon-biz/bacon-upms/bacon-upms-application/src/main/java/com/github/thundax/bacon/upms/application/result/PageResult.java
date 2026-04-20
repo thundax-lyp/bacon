@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.upms.api.dto;
+package com.github.thundax.bacon.upms.application.result;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PageResultDTO<T> {
+public class PageResult<T> {
 
     /** 当前页记录。 */
     private List<T> records;

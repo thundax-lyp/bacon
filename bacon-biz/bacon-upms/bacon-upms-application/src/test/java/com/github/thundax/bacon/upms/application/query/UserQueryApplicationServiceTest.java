@@ -13,12 +13,12 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
 import com.github.thundax.bacon.storage.api.request.StoredObjectGetFacadeRequest;
 import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
-import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
+import com.github.thundax.bacon.upms.application.result.PageResult;
 import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
@@ -175,7 +175,7 @@ class UserQueryApplicationServiceTest {
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
         mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
 
-        PageResultDTO<UserDTO> result = service.page(null, null, null, null, 1, 20);
+        PageResult<UserDTO> result = service.page(null, null, null, null, 1, 20);
 
         assertThat(result.getRecords()).hasSize(1);
         assertThat(result.getRecords().get(0).getAvatarStoredObjectNo()).isEqualTo("storage-20260327100000-000501");

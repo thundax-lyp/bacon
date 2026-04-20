@@ -5,9 +5,9 @@ import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.application.assembler.RoleAssembler;
+import com.github.thundax.bacon.upms.application.result.PageResult;
 import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
 import com.github.thundax.bacon.upms.application.codec.ResourceCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.RoleCodeCodec;
@@ -67,11 +67,11 @@ public class RoleApplicationService {
                 .toList();
     }
 
-    public PageResultDTO<RoleDTO> page(
+    public PageResult<RoleDTO> page(
             String code, String name, RoleType roleType, RoleStatus status, Integer pageNo, Integer pageSize) {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
-        return new PageResultDTO<>(
+        return new PageResult<>(
                 roleRepository
                         .page(
                                 RoleCodeCodec.toDomain(code),

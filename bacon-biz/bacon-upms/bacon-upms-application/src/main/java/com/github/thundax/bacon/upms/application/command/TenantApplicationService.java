@@ -8,9 +8,9 @@ import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.application.assembler.TenantAssembler;
+import com.github.thundax.bacon.upms.application.result.PageResult;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
@@ -35,11 +35,11 @@ public class TenantApplicationService {
         this.idGenerator = idGenerator;
     }
 
-    public PageResultDTO<TenantDTO> page(String name, TenantStatus status, Integer pageNo, Integer pageSize) {
+    public PageResult<TenantDTO> page(String name, TenantStatus status, Integer pageNo, Integer pageSize) {
         // 租户分页属于运营后台能力，统一先归一化分页参数，避免不同入口传入 0/负数时结果漂移。
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
-        return new PageResultDTO<>(
+        return new PageResult<>(
                 tenantRepository.page(name, status, normalizedPageNo, normalizedPageSize).stream()
                         .map(TenantAssembler::toDto)
                         .toList(),

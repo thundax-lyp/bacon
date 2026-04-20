@@ -87,11 +87,6 @@
   - 验收点：auth facade 仅保留跨域必要返回模型，避免 `api.dto` 扩散成应用内部模型
   - 重要度：7/10
 
-- [ ] `upms-application`：把通用分页 `PageResultDTO` 下沉到 `application.dto`
-  - 影响范围：租户、用户、角色、岗位、资源、日志等分页查询
-  - 验收点：分页结果不再作为跨模块通用 `api.dto`
-  - 重要度：9/10
-
 - [ ] `upms-application`：按领域拆分并下沉用户/租户/角色/部门/资源/岗位读模型
   - 当前对象：`UserDTO`、`TenantDTO`、`RoleDTO`、`DepartmentDTO`、`DepartmentTreeDTO`、`ResourceDTO`、`PostDTO`
   - 验收点：这些对象只在 upms 内部查询与装配链路流转

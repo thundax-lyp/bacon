@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
-import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
+import com.github.thundax.bacon.upms.application.result.PageResult;
 import java.util.List;
 
 /**
@@ -17,7 +17,7 @@ public record RolePageResponse(
         /** 每页大小。 */
         int pageSize) {
 
-    public static RolePageResponse from(PageResultDTO<RoleDTO> dto) {
+    public static RolePageResponse from(PageResult<RoleDTO> dto) {
         List<RoleResponse> recordResponses = dto.getRecords() == null
                 ? List.of()
                 : dto.getRecords().stream().map(RoleResponse::from).toList();

@@ -5,9 +5,9 @@ import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
-import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
 import com.github.thundax.bacon.upms.application.assembler.ResourceAssembler;
+import com.github.thundax.bacon.upms.application.result.PageResult;
 import com.github.thundax.bacon.upms.application.codec.ResourceCodeCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
@@ -27,7 +27,7 @@ public class ResourceApplicationService {
         this.resourceRepository = resourceRepository;
     }
 
-    public PageResultDTO<ResourceDTO> page(
+    public PageResult<ResourceDTO> page(
             String code,
             String name,
             ResourceType resourceType,
@@ -36,7 +36,7 @@ public class ResourceApplicationService {
             Integer pageSize) {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
-        return new PageResultDTO<>(
+        return new PageResult<>(
                 resourceRepository
                         .page(
                                 ResourceCodeCodec.toDomain(code),

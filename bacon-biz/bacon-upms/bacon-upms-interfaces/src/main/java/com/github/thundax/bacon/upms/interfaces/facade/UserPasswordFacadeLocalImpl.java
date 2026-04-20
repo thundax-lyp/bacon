@@ -2,7 +2,6 @@ package com.github.thundax.bacon.upms.interfaces.facade;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
 import com.github.thundax.bacon.upms.api.request.UserPasswordChangeFacadeRequest;
 import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
@@ -23,6 +22,6 @@ public class UserPasswordFacadeLocalImpl implements UserPasswordFacade {
     public void changePassword(UserPasswordChangeFacadeRequest request) {
         BaconContextHolder.requireTenantId();
         userPasswordApplicationService.changePassword(
-                UserId.of(BaconIdContextHelper.requireUserId()), request.getOldPassword(), request.getNewPassword());
+                BaconIdContextHelper.requireUserId(), request.getOldPassword(), request.getNewPassword());
     }
 }

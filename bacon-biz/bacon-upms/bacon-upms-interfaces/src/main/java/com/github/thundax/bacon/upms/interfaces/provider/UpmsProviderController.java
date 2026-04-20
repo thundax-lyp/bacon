@@ -3,15 +3,14 @@ package com.github.thundax.bacon.upms.interfaces.provider;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
-import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.request.UserPasswordChangeFacadeRequest;
 import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
-import com.github.thundax.bacon.upms.application.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
 import com.github.thundax.bacon.upms.application.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
@@ -19,7 +18,7 @@ import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -95,7 +94,7 @@ public class UpmsProviderController {
     @PostMapping("/users/current/passwords/change")
     public void changePassword(@Valid @RequestBody UserPasswordChangeFacadeRequest request) {
         userPasswordApplicationService.changePassword(
-                UserIdCodec.toDomain(BaconIdContextHelper.requireUserId()),
+                BaconIdContextHelper.requireUserId(),
                 request.getOldPassword(),
                 request.getNewPassword());
     }
@@ -110,24 +109,22 @@ public class UpmsProviderController {
     @GetMapping("/departments/code/{code}")
     public DepartmentDTO getByCode(
             @PathVariable("code") @NotBlank(message = "code must not be blank") String code) {
-        return departmentApplicationService.getByCode(DepartmentCodeCodec.toDomain(code));
+        return departmentApplicationService.getDepartmentByCode(DepartmentCodeCodec.toDomain(code));
     }
 
     @Operation(summary = "批量查询部门")
     @GetMapping("/departments")
-    public List<DepartmentDTO> listByCodes(
-            @RequestParam("codes") Set<
-                            @NotBlank(message = "codes item must not be blank")
-                            String>
-                    codes) {
-        Set<DepartmentCode> resolvedCodes = codes == null
+    public List<DepartmentDTO> listByIds(
+            @RequestParam("departmentIds") Set<
+                            @Positive(message = "departmentIds item must be greater than 0")
+                            Long>
+                    departmentIds) {
+        Set<DepartmentId> resolvedDepartmentIds = departmentIds == null
                 ? Set.of()
-                : codes.stream()
-                        .map(String::trim)
-                        .filter(value -> !value.isBlank())
-                        .map(DepartmentCodeCodec::toDomain)
+                : departmentIds.stream()
+                        .map(DepartmentId::of)
                         .collect(Collectors.toSet());
-        return departmentApplicationService.listByCodes(resolvedCodes);
+        return departmentApplicationService.listByIds(resolvedDepartmentIds);
     }
 
     @Operation(summary = "查询用户数据权限范围")
@@ -140,6 +137,6 @@ public class UpmsProviderController {
     @Operation(summary = "查询当前用户数据权限范围")
     @GetMapping("/permissions/current/data-scope")
     public UserDataScopeDTO getCurrentDataScope() {
-        return permissionQueryService.getUserDataScope(UserIdCodec.toDomain(BaconIdContextHelper.requireUserId()));
+        return permissionQueryService.getUserDataScope(BaconIdContextHelper.requireUserId());
     }
 }

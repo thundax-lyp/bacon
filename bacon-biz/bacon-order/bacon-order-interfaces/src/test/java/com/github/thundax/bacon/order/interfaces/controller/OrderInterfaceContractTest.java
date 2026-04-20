@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -215,8 +216,7 @@ class OrderInterfaceContractTest {
     @Test
     void commandProviderControllerShouldExposeWriteEndpoints() throws Exception {
         OrderCommandProviderController controller = new OrderCommandProviderController(
-                new OrderPaymentResultApplicationService(null, null, null, null),
-                new OrderTimeoutApplicationService(null, null, null, null, null));
+                new StubOrderPaymentResultApplicationService(), new StubOrderTimeoutApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
@@ -242,7 +242,7 @@ class OrderInterfaceContractTest {
     private static final class StubOrderQueryApplicationService extends OrderQueryApplicationService {
 
         private StubOrderQueryApplicationService() {
-            super(null, null, null);
+            super(null, null, null, null, null);
         }
 
         @Override
@@ -344,5 +344,30 @@ class OrderInterfaceContractTest {
             return new OrderOutboxDeadLetterReplayResult(
                     deadLetterId == null ? null : deadLetterId.value(), "SUCCESS", "ok");
         }
+    }
+
+    private static final class StubOrderPaymentResultApplicationService extends OrderPaymentResultApplicationService {
+
+        private StubOrderPaymentResultApplicationService() {
+            super(null, null, null, null);
+        }
+
+        @Override
+        public void markPaid(
+                OrderNo orderNo, PaymentNo paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {}
+
+        @Override
+        public void markPaymentFailed(
+                OrderNo orderNo, PaymentNo paymentNo, String reason, String channelStatus, Instant failedTime) {}
+    }
+
+    private static final class StubOrderTimeoutApplicationService extends OrderTimeoutApplicationService {
+
+        private StubOrderTimeoutApplicationService() {
+            super(null, null, null, null, null);
+        }
+
+        @Override
+        public void closeExpiredOrder(OrderNo orderNo, String reason) {}
     }
 }

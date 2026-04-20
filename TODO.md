@@ -64,11 +64,6 @@
   - 验收点：密码规则不再写死在 infra
   - 重要度：8/10
 
-- [ ] 把 `UserRepositoryImpl` 中角色绑定后的缓存清理从 repository impl 外提
-  - 目标：让 repository 返回结果，缓存失效由 application 编排
-  - 验收点：infra 不再混入明显横切业务动作
-  - 重要度：7/10
-
 ### P1 - 各模块 `api.dto` 残留治理清单
 
 - [ ] `storage-application`：把 `StoredObjectPageQueryDTO` 改为 `query/StoredObjectPageQuery`

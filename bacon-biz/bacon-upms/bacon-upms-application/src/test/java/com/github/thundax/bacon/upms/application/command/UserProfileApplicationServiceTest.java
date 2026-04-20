@@ -23,7 +23,9 @@ import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
+import com.github.thundax.bacon.upms.domain.repository.PermissionCacheRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserCredentialRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserIdentityRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -46,6 +48,8 @@ class UserProfileApplicationServiceTest {
 
     @Mock
     private DepartmentRepository departmentRepository;
+    @Mock
+    private PermissionCacheRepository permissionCacheRepository;
     @Mock
     private UserRepository userRepository;
     @Mock
@@ -74,6 +78,7 @@ class UserProfileApplicationServiceTest {
         BaconContextHolder.set(new BaconContextHolder.BaconContext(TENANT_ID.value(), 2001L));
         service = new UserProfileApplicationService(
                 departmentRepository,
+                permissionCacheRepository,
                 userRepository,
                 userCredentialRepository,
                 userIdentityRepository,
@@ -146,5 +151,17 @@ class UserProfileApplicationServiceTest {
         verify(userIdentityRepository).update(accountIdentity);
         verify(userIdentityRepository).update(phoneIdentity);
         verify(userCredentialRepository).update(passwordCredential);
+    }
+
+    @Test
+    void shouldEvictUserPermissionCacheAfterUpdatingRoleIds() {
+        User user = User.reconstruct(UserId.of(101L), "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
+        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
+        when(userRoleRepository.updateRoleIds(UserId.of(101L), java.util.List.of(RoleId.of(301L))))
+                .thenReturn(java.util.List.of());
+
+        service.updateRoleIds(UserId.of(101L), java.util.List.of(RoleId.of(301L)));
+
+        verify(permissionCacheRepository).evictUserPermission(TENANT_ID, UserId.of(101L));
     }
 }

@@ -868,10 +868,8 @@ class UpmsRepositoryIntegrationTest {
 
         @Bean
         UserRoleRepository userRoleRepository(
-                UserRolePersistenceSupport userRolePersistenceSupport,
-                RoleRepository roleRepository,
-                UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
-            return new UserRoleRepositoryImpl(userRolePersistenceSupport, roleRepository, upmsPermissionCacheSupport);
+                UserRolePersistenceSupport userRolePersistenceSupport, RoleRepository roleRepository) {
+            return new UserRoleRepositoryImpl(userRolePersistenceSupport, roleRepository);
         }
 
         @Bean

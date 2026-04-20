@@ -10,6 +10,7 @@ import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
@@ -32,6 +33,7 @@ import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObject
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
+import com.github.thundax.bacon.upms.domain.repository.PermissionCacheRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserCredentialRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserIdentityRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -55,6 +57,7 @@ public class UserProfileApplicationService {
     private static final String USER_CREDENTIAL_ID_BIZ_TAG = "user-credential-id";
 
     private final DepartmentRepository departmentRepository;
+    private final PermissionCacheRepository permissionCacheRepository;
     private final UserRepository userRepository;
     private final UserCredentialRepository userCredentialRepository;
     private final UserIdentityRepository userIdentityRepository;
@@ -68,6 +71,7 @@ public class UserProfileApplicationService {
 
     public UserProfileApplicationService(
             DepartmentRepository departmentRepository,
+            PermissionCacheRepository permissionCacheRepository,
             UserRepository userRepository,
             UserCredentialRepository userCredentialRepository,
             UserIdentityRepository userIdentityRepository,
@@ -79,6 +83,7 @@ public class UserProfileApplicationService {
             IdGenerator idGenerator,
             PasswordEncoder passwordEncoder) {
         this.departmentRepository = departmentRepository;
+        this.permissionCacheRepository = permissionCacheRepository;
         this.userRepository = userRepository;
         this.userCredentialRepository = userCredentialRepository;
         this.userIdentityRepository = userIdentityRepository;
@@ -166,9 +171,11 @@ public class UserProfileApplicationService {
     public List<RoleDTO> updateRoleIds(UserId userId, List<RoleId> roleIds) {
         requireUser(userId);
         List<RoleId> domainRoleIds = roleIds == null ? List.of() : roleIds;
-        return userRoleRepository.updateRoleIds(userId, domainRoleIds).stream()
+        List<RoleDTO> roles = userRoleRepository.updateRoleIds(userId, domainRoleIds).stream()
                 .map(RoleAssembler::toDto)
                 .toList();
+        permissionCacheRepository.evictUserPermission(TenantId.of(BaconContextHolder.requireTenantId()), userId);
+        return roles;
     }
 
     @Transactional

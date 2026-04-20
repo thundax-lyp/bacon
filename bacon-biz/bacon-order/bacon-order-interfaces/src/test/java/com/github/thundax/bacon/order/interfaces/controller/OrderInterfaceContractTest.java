@@ -29,6 +29,7 @@ import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
+import com.github.thundax.bacon.order.interfaces.provider.OrderCommandProviderController;
 import com.github.thundax.bacon.order.interfaces.provider.OrderReadProviderController;
 import jakarta.servlet.ServletException;
 import java.math.BigDecimal;
@@ -131,10 +132,7 @@ class OrderInterfaceContractTest {
 
     @Test
     void providerControllerShouldKeepRawDtoContract() throws Exception {
-        OrderReadProviderController controller = new OrderReadProviderController(
-                new StubOrderQueryApplicationService(),
-                new OrderPaymentResultApplicationService(null, null, null, null),
-                new OrderTimeoutApplicationService(null, null, null, null, null));
+        OrderReadProviderController controller = new OrderReadProviderController(new StubOrderQueryApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
@@ -153,10 +151,7 @@ class OrderInterfaceContractTest {
 
     @Test
     void providerDetailControllerShouldUseFacadeRequestContract() throws Exception {
-        OrderReadProviderController controller = new OrderReadProviderController(
-                new StubOrderQueryApplicationService(),
-                new OrderPaymentResultApplicationService(null, null, null, null),
-                new OrderTimeoutApplicationService(null, null, null, null, null));
+        OrderReadProviderController controller = new OrderReadProviderController(new StubOrderQueryApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
@@ -172,10 +167,7 @@ class OrderInterfaceContractTest {
 
     @Test
     void providerControllerShouldExposeRawExceptionSemantic() throws Exception {
-        OrderReadProviderController controller = new OrderReadProviderController(
-                new StubOrderQueryApplicationService(),
-                new OrderPaymentResultApplicationService(null, null, null, null),
-                new OrderTimeoutApplicationService(null, null, null, null, null));
+        OrderReadProviderController controller = new OrderReadProviderController(new StubOrderQueryApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
@@ -193,10 +185,7 @@ class OrderInterfaceContractTest {
 
     @Test
     void providerControllerShouldRejectMissingToken() throws Exception {
-        OrderReadProviderController controller = new OrderReadProviderController(
-                new StubOrderQueryApplicationService(),
-                new OrderPaymentResultApplicationService(null, null, null, null),
-                new OrderTimeoutApplicationService(null, null, null, null, null));
+        OrderReadProviderController controller = new OrderReadProviderController(new StubOrderQueryApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
@@ -209,10 +198,7 @@ class OrderInterfaceContractTest {
 
     @Test
     void providerControllerShouldRejectWrongToken() throws Exception {
-        OrderReadProviderController controller = new OrderReadProviderController(
-                new StubOrderQueryApplicationService(),
-                new OrderPaymentResultApplicationService(null, null, null, null),
-                new OrderTimeoutApplicationService(null, null, null, null, null));
+        OrderReadProviderController controller = new OrderReadProviderController(new StubOrderQueryApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
@@ -224,6 +210,24 @@ class OrderInterfaceContractTest {
                         .param("pageSize", "20")
                         .header(PROVIDER_TOKEN_HEADER, "wrong-token"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void commandProviderControllerShouldExposeWriteEndpoints() throws Exception {
+        OrderCommandProviderController controller = new OrderCommandProviderController(
+                new OrderPaymentResultApplicationService(null, null, null, null),
+                new OrderTimeoutApplicationService(null, null, null, null, null));
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
+                .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/providers/order/close-expired")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"orderNo\":\"ORD-1\",\"reason\":\"expired\"}")
+                        .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
+                .andExpect(status().isOk());
     }
 
     private InternalApiGuardInterceptor providerGuardInterceptor() {

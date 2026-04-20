@@ -12,8 +12,7 @@
    - 先收口 `interfaces -> application` 合同
    - 再评审 `auth-api` 中哪些 DTO 真正属于稳定跨域契约
 4. `order`
-   - 先拆 `OrderReadProviderController` 读写混合职责
-   - 再收口 DTO 装配到 assembler
+   - 先收口 DTO 装配到 assembler
    - 再补 provider / application / domain 关键回归测试
 5. `payment` / `inventory`
    - `payment` 先收口 controller 路由语义
@@ -56,12 +55,6 @@
   - 处理动作：统一资源名与动作语义（按支付单、审计日志、回调）并同步 OpenAPI tag 命名
   - 验收点：支付域路由和 controller 命名一一对应，便于 AI 稳定路由推断
   - 重要度：6/10
-
-- [ ] `order`：拆分 `OrderReadProviderController` 的读写混合职责
-  - 当前状态：类名为 `Read`，但仍包含 `markPaid/markPaymentFailed/closeExpired` 写操作；支付快照/库存快照/审计日志已从主仓储拆出，这一项只剩 provider 命名与职责边界问题
-  - 处理动作：拆成 `OrderReadProviderController` 与 `OrderCommandProviderController`（或等价命名）
-  - 验收点：provider 命名语义与行为一致，AI 不会因命名误导调用写接口
-  - 重要度：8/10
 
 - [ ] `storage`：统一 `objectId` 与 `storedObjectNo` 命名语义
   - 当前状态：`infra.facade.remote` 已切到 `storedObjectNo`，但 `interfaces.controller/provider` 仍用 `objectId` 路径变量承接业务编码

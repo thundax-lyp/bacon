@@ -85,7 +85,7 @@ public class DepartmentController {
     public DepartmentResponse getDepartmentByCode(
             @PathVariable("departmentCode") @NotBlank(message = "departmentCode must not be blank")
                     String departmentCode) {
-        return DepartmentResponse.from(departmentApplicationService.getDepartmentByCode(
+        return DepartmentResponse.from(departmentApplicationService.getByCode(
                 DepartmentCodeCodec.toDomain(departmentCode)));
     }
 

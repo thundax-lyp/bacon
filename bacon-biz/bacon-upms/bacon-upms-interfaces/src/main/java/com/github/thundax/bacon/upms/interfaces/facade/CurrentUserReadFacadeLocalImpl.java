@@ -2,7 +2,6 @@ package com.github.thundax.bacon.upms.interfaces.facade;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.facade.CurrentUserReadFacade;
 import com.github.thundax.bacon.upms.api.response.TenantFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserDataScopeFacadeResponse;
@@ -50,7 +49,7 @@ public class CurrentUserReadFacadeLocalImpl implements CurrentUserReadFacade {
     @Override
     public UserDataScopeFacadeResponse getCurrentDataScope() {
         BaconContextHolder.requireTenantId();
-        UserDataScopeDTO dataScope = permissionQueryService.getUserDataScope(UserId.of(BaconIdContextHelper.requireUserId()));
+        UserDataScopeDTO dataScope = permissionQueryService.getUserDataScope(BaconIdContextHelper.requireUserId());
         return new UserDataScopeFacadeResponse(
                 dataScope.isAllAccess(), dataScope.getScopeTypes(), dataScope.getDepartmentIds());
     }

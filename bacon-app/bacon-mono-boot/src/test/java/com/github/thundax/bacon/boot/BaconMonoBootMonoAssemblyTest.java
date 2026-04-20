@@ -24,9 +24,9 @@ import com.github.thundax.bacon.payment.api.facade.PaymentReadFacade;
 import com.github.thundax.bacon.payment.interfaces.facade.PaymentCommandFacadeLocalImpl;
 import com.github.thundax.bacon.payment.interfaces.facade.PaymentReadFacadeLocalImpl;
 import com.github.thundax.bacon.upms.api.facade.CurrentUserReadFacade;
-import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
+import com.github.thundax.bacon.upms.api.facade.UserCredentialReadFacade;
 import com.github.thundax.bacon.upms.interfaces.facade.CurrentUserReadFacadeLocalImpl;
-import com.github.thundax.bacon.upms.interfaces.facade.UserReadFacadeLocalImpl;
+import com.github.thundax.bacon.upms.interfaces.facade.UserCredentialReadFacadeLocalImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -69,7 +69,7 @@ class BaconMonoBootMonoAssemblyTest extends BaconSpringBootTest {
     private OAuthClientReadFacade oAuthClientReadFacade;
 
     @Autowired
-    private UserReadFacade userReadFacade;
+    private UserCredentialReadFacade userCredentialReadFacade;
 
     @Autowired
     private CurrentUserReadFacade currentUserReadFacade;
@@ -100,7 +100,7 @@ class BaconMonoBootMonoAssemblyTest extends BaconSpringBootTest {
         assertThat(tokenVerifyFacade).isInstanceOf(TokenVerifyFacadeLocalImpl.class);
         assertThat(sessionCommandFacade).isInstanceOf(SessionCommandFacadeLocalImpl.class);
         assertThat(oAuthClientReadFacade).isInstanceOf(OAuthClientReadFacadeLocalImpl.class);
-        assertThat(userReadFacade).isInstanceOf(UserReadFacadeLocalImpl.class);
+        assertThat(userCredentialReadFacade).isInstanceOf(UserCredentialReadFacadeLocalImpl.class);
         assertThat(currentUserReadFacade).isInstanceOf(CurrentUserReadFacadeLocalImpl.class);
         assertThat(orderReadFacade).isInstanceOf(OrderReadFacadeLocalImpl.class);
         assertThat(orderCommandFacade).isInstanceOf(OrderCommandFacadeLocalImpl.class);

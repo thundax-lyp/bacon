@@ -14,9 +14,9 @@ import com.github.thundax.bacon.auth.application.support.LoginSecurityApplicatio
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
-import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
-import com.github.thundax.bacon.upms.api.response.UserLoginCredentialDetailFacadeResponse;
-import com.github.thundax.bacon.upms.api.response.UserLoginCredentialFacadeResponse;
+import com.github.thundax.bacon.upms.api.facade.UserCredentialReadFacade;
+import com.github.thundax.bacon.upms.api.response.UserCredentialDetailFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserCredentialFacadeResponse;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -52,9 +52,9 @@ class LoginApplicationServiceTest {
         doNothing().when(loginSecurityApplicationService).verifyPasswordCaptcha("captcha-key", "captcha-code");
         when(loginSecurityApplicationService.decryptPassword("rsa-key", "cipher-password")).thenReturn("plain-password");
 
-        UserReadFacade userReadFacade = mock(UserReadFacade.class);
-        when(userReadFacade.getUserLoginCredential(any())).thenReturn(UserLoginCredentialFacadeResponse.from(
-                new UserLoginCredentialDetailFacadeResponse(
+        UserCredentialReadFacade userCredentialReadFacade = mock(UserCredentialReadFacade.class);
+        when(userCredentialReadFacade.getUserCredential(any())).thenReturn(UserCredentialFacadeResponse.from(
+                new UserCredentialDetailFacadeResponse(
                         2001L,
                         3001L,
                         "demo",
@@ -78,7 +78,7 @@ class LoginApplicationServiceTest {
                 tokenCodec,
                 authAuditApplicationService,
                 loginSecurityApplicationService,
-                userReadFacade,
+                userCredentialReadFacade,
                 passwordEncoder);
 
         UserLoginDTO result = service.loginByPassword(

@@ -23,9 +23,9 @@ import com.github.thundax.bacon.payment.api.facade.PaymentReadFacade;
 import com.github.thundax.bacon.payment.infra.facade.remote.PaymentCommandFacadeRemoteImpl;
 import com.github.thundax.bacon.payment.infra.facade.remote.PaymentReadFacadeRemoteImpl;
 import com.github.thundax.bacon.upms.api.facade.CurrentUserReadFacade;
-import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
+import com.github.thundax.bacon.upms.api.facade.UserCredentialReadFacade;
 import com.github.thundax.bacon.upms.infra.facade.remote.CurrentUserReadFacadeRemoteImpl;
-import com.github.thundax.bacon.upms.infra.facade.remote.UserReadFacadeRemoteImpl;
+import com.github.thundax.bacon.upms.infra.facade.remote.UserCredentialReadFacadeRemoteImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -73,7 +73,7 @@ class BaconMonoBootMicroAssemblyTest extends BaconSpringBootTest {
     private OAuthClientReadFacade oAuthClientReadFacade;
 
     @Autowired
-    private UserReadFacade userReadFacade;
+    private UserCredentialReadFacade userCredentialReadFacade;
 
     @Autowired
     private CurrentUserReadFacade currentUserReadFacade;
@@ -104,7 +104,7 @@ class BaconMonoBootMicroAssemblyTest extends BaconSpringBootTest {
         assertThat(tokenVerifyFacade).isInstanceOf(TokenVerifyFacadeRemoteImpl.class);
         assertThat(sessionCommandFacade).isInstanceOf(SessionCommandFacadeRemoteImpl.class);
         assertThat(oAuthClientReadFacade).isInstanceOf(OAuthClientReadFacadeRemoteImpl.class);
-        assertThat(userReadFacade).isInstanceOf(UserReadFacadeRemoteImpl.class);
+        assertThat(userCredentialReadFacade).isInstanceOf(UserCredentialReadFacadeRemoteImpl.class);
         assertThat(currentUserReadFacade).isInstanceOf(CurrentUserReadFacadeRemoteImpl.class);
         assertThat(orderReadFacade).isInstanceOf(OrderReadFacadeRemoteImpl.class);
         assertThat(orderCommandFacade).isInstanceOf(OrderCommandFacadeRemoteImpl.class);

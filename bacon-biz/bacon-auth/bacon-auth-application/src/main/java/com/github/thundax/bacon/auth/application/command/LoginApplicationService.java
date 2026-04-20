@@ -12,10 +12,10 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
-import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
-import com.github.thundax.bacon.upms.api.request.UserLoginCredentialGetFacadeRequest;
-import com.github.thundax.bacon.upms.api.response.UserLoginCredentialDetailFacadeResponse;
-import com.github.thundax.bacon.upms.api.response.UserLoginCredentialFacadeResponse;
+import com.github.thundax.bacon.upms.api.facade.UserCredentialReadFacade;
+import com.github.thundax.bacon.upms.api.request.UserCredentialGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.response.UserCredentialDetailFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserCredentialFacadeResponse;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
@@ -35,7 +35,7 @@ public class LoginApplicationService {
     private final TokenCodec tokenCodec;
     private final AuthAuditApplicationService authAuditApplicationService;
     private final LoginSecurityApplicationService loginSecurityApplicationService;
-    private final UserReadFacade userReadFacade;
+    private final UserCredentialReadFacade userCredentialReadFacade;
     private final PasswordEncoder passwordEncoder;
 
     public LoginApplicationService(
@@ -43,13 +43,13 @@ public class LoginApplicationService {
             TokenCodec tokenCodec,
             AuthAuditApplicationService authAuditApplicationService,
             LoginSecurityApplicationService loginSecurityApplicationService,
-            UserReadFacade userReadFacade,
+            UserCredentialReadFacade userCredentialReadFacade,
             PasswordEncoder passwordEncoder) {
         this.authSessionRepository = authSessionRepository;
         this.tokenCodec = tokenCodec;
         this.authAuditApplicationService = authAuditApplicationService;
         this.loginSecurityApplicationService = loginSecurityApplicationService;
-        this.userReadFacade = userReadFacade;
+        this.userCredentialReadFacade = userCredentialReadFacade;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -65,12 +65,12 @@ public class LoginApplicationService {
         loginSecurityApplicationService.verifyPasswordCaptcha(command.getCaptchaKey(), command.getCaptchaCode());
         String plainPassword =
                 loginSecurityApplicationService.decryptPassword(command.getRsaKeyId(), command.getPassword());
-        UserLoginCredentialFacadeResponse response = BaconContextHolder.callWithTenantId(
+        UserCredentialFacadeResponse response = BaconContextHolder.callWithTenantId(
                 tenantId.value(),
-                () -> userReadFacade.getUserLoginCredential(
-                        new UserLoginCredentialGetFacadeRequest("ACCOUNT", command.getAccount())));
-        UserLoginCredentialDetailFacadeResponse credential = response == null ? null : response.getUserLoginCredential();
-        UserLoginCredentialDetailFacadeResponse validatedCredential =
+                () -> userCredentialReadFacade.getUserCredential(
+                        new UserCredentialGetFacadeRequest("ACCOUNT", command.getAccount())));
+        UserCredentialDetailFacadeResponse credential = response == null ? null : response.getUserCredential();
+        UserCredentialDetailFacadeResponse validatedCredential =
                 validatePasswordLoginCredential(credential, plainPassword);
         return createLoginSession(
                 tenantId.value(),
@@ -96,8 +96,8 @@ public class LoginApplicationService {
         return createLoginSession(1001L, 2004L, 3004L, "GITHUB", "GITHUB", null);
     }
 
-    private UserLoginCredentialDetailFacadeResponse validatePasswordLoginCredential(
-            UserLoginCredentialDetailFacadeResponse credential, String plainPassword) {
+    private UserCredentialDetailFacadeResponse validatePasswordLoginCredential(
+            UserCredentialDetailFacadeResponse credential, String plainPassword) {
         if (credential == null) {
             throw new BadRequestException("Invalid account or password");
         }

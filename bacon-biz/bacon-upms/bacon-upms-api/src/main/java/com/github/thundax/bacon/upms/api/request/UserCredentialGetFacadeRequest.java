@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserLoginCredentialGetFacadeRequest {
+public class UserCredentialGetFacadeRequest {
 
     private String identityType;
     private String identityValue;

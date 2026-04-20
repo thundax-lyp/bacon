@@ -3,7 +3,7 @@ package com.github.thundax.bacon.upms.api.response;
 import java.time.Instant;
 import java.util.List;
 
-public record UserLoginCredentialDetailFacadeResponse(
+public record UserCredentialDetailFacadeResponse(
         Long userId,
         Long identityId,
         String account,

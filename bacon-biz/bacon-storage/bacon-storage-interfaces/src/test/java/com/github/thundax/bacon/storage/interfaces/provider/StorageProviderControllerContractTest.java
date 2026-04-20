@@ -190,7 +190,7 @@ class StorageProviderControllerContractTest {
                         "UNREFERENCED",
                         Instant.parse("2026-03-27T10:00:00Z")));
 
-        mockMvc.perform(get("/providers/storage/objects/{objectId}", "storage-20260327100000-000100")
+        mockMvc.perform(get("/providers/storage/objects/{storedObjectNo}", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.storedObjectNo").value("storage-20260327100000-000100"))
@@ -244,7 +244,7 @@ class StorageProviderControllerContractTest {
                         new StoredObjectReferenceFacadeRequest(
                                 "storage-20260327100000-000100", "GENERIC_ATTACHMENT", "owner-1"));
 
-        mockMvc.perform(post("/providers/storage/objects/{objectId}/references", "storage-20260327100000-000100")
+        mockMvc.perform(post("/providers/storage/objects/{storedObjectNo}/references", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1"))
@@ -260,7 +260,7 @@ class StorageProviderControllerContractTest {
                                 "storage-20260327100000-000100", "GENERIC_ATTACHMENT", "owner-1"));
 
         mockMvc.perform(MockMvcRequestBuilders.delete(
-                                "/providers/storage/objects/{objectId}/references", "storage-20260327100000-000100")
+                                "/providers/storage/objects/{storedObjectNo}/references", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1"))
@@ -273,20 +273,22 @@ class StorageProviderControllerContractTest {
                 .when(storedObjectCommandFacade)
                 .deleteObject(new StoredObjectDeleteFacadeRequest("storage-20260327100000-000100"));
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/{objectId}", "storage-20260327100000-000100")
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete(
+                                        "/providers/storage/objects/{storedObjectNo}", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(status().isOk());
     }
 
     @Test
     void shouldRejectProviderRequestWhenTokenMissing() throws Exception {
-        mockMvc.perform(get("/providers/storage/objects/{objectId}", "storage-20260327100000-000100"))
+        mockMvc.perform(get("/providers/storage/objects/{storedObjectNo}", "storage-20260327100000-000100"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void shouldRejectProviderRequestWhenTokenInvalid() throws Exception {
-        mockMvc.perform(get("/providers/storage/objects/{objectId}", "storage-20260327100000-000100")
+        mockMvc.perform(get("/providers/storage/objects/{storedObjectNo}", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", "wrong-token"))
                 .andExpect(status().isForbidden());
     }

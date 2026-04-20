@@ -56,12 +56,6 @@
   - 验收点：支付域路由和 controller 命名一一对应，便于 AI 稳定路由推断
   - 重要度：6/10
 
-- [ ] `storage`：统一 `objectId` 与 `storedObjectNo` 命名语义
-  - 当前状态：`infra.facade.remote` 已切到 `storedObjectNo`，但 `interfaces.controller/provider` 仍用 `objectId` 路径变量承接业务编码
-  - 处理动作：把 `StorageController`、`StorageProviderController` 及其契约测试统一改为 `storedObjectNo` 语义
-  - 验收点：接口契约不再混淆“主键ID”和“业务No”，避免跨域调用误用
-  - 重要度：9/10
-
 ### P0 - `upms` 先拆大类
 
 ### P1 - `upms` 仓储职责回收

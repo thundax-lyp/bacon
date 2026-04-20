@@ -126,10 +126,11 @@ public class StorageProviderController {
     }
 
     @Operation(summary = "查询存储对象")
-    @GetMapping("/objects/{objectId}")
+    @GetMapping("/objects/{storedObjectNo}")
     public StoredObjectDTO getObjectById(
-            @PathVariable("objectId") @NotBlank(message = "objectId must not be blank") String objectId) {
-        return storedObjectQueryApplicationService.getObjectByNo(objectId);
+            @PathVariable("storedObjectNo") @NotBlank(message = "storedObjectNo must not be blank")
+                    String storedObjectNo) {
+        return storedObjectQueryApplicationService.getObjectByNo(storedObjectNo);
     }
 
     @Operation(summary = "分页查询存储对象")
@@ -148,28 +149,33 @@ public class StorageProviderController {
     }
 
     @Operation(summary = "建立存储对象引用")
-    @PostMapping("/objects/{objectId}/references")
+    @PostMapping("/objects/{storedObjectNo}/references")
     public void markObjectReferenced(
-            @PathVariable("objectId") @NotBlank(message = "objectId must not be blank") String objectId,
+            @PathVariable("storedObjectNo") @NotBlank(message = "storedObjectNo must not be blank")
+                    String storedObjectNo,
             @RequestParam("ownerType") @NotBlank(message = "ownerType must not be blank") String ownerType,
             @RequestParam("ownerId") @NotBlank(message = "ownerId must not be blank") String ownerId) {
-        storedObjectCommandFacade.markObjectReferenced(new StoredObjectReferenceFacadeRequest(objectId, ownerType, ownerId));
+        storedObjectCommandFacade.markObjectReferenced(
+                new StoredObjectReferenceFacadeRequest(storedObjectNo, ownerType, ownerId));
     }
 
     @Operation(summary = "清理存储对象引用")
-    @DeleteMapping("/objects/{objectId}/references")
+    @DeleteMapping("/objects/{storedObjectNo}/references")
     public void clearObjectReference(
-            @PathVariable("objectId") @NotBlank(message = "objectId must not be blank") String objectId,
+            @PathVariable("storedObjectNo") @NotBlank(message = "storedObjectNo must not be blank")
+                    String storedObjectNo,
             @RequestParam("ownerType") @NotBlank(message = "ownerType must not be blank") String ownerType,
             @RequestParam("ownerId") @NotBlank(message = "ownerId must not be blank") String ownerId) {
-        storedObjectCommandFacade.clearObjectReference(new StoredObjectReferenceFacadeRequest(objectId, ownerType, ownerId));
+        storedObjectCommandFacade.clearObjectReference(
+                new StoredObjectReferenceFacadeRequest(storedObjectNo, ownerType, ownerId));
     }
 
     @Operation(summary = "删除存储对象")
-    @DeleteMapping("/objects/{objectId}")
+    @DeleteMapping("/objects/{storedObjectNo}")
     public void deleteObject(
-            @PathVariable("objectId") @NotBlank(message = "objectId must not be blank") String objectId) {
-        storedObjectCommandFacade.deleteObject(new StoredObjectDeleteFacadeRequest(objectId));
+            @PathVariable("storedObjectNo") @NotBlank(message = "storedObjectNo must not be blank")
+                    String storedObjectNo) {
+        storedObjectCommandFacade.deleteObject(new StoredObjectDeleteFacadeRequest(storedObjectNo));
     }
 
     private StoredObjectDTO toStoredObjectDto(StoredObjectFacadeResponse response) {

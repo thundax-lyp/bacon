@@ -132,10 +132,6 @@
 
 ### P2 - DTO 装配位置统一
 
-- [ ] `order`：把 `OrderCreateApplicationService` 中手写 `OrderSummaryDTO` 装配迁移到 assembler
-  - 验收点：application service 只保留编排和状态推进
-  - 重要度：6/10
-
 - [ ] `order`：继续检查 query application service 是否还存在 response/dto 手写拼装
   - 验收点：详情、分页、snapshot 装配逐步收敛到 assembler
   - 重要度：6/10

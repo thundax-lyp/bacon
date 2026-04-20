@@ -3,11 +3,13 @@ package com.github.thundax.bacon.upms.interfaces.provider;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
-import com.github.thundax.bacon.upms.api.dto.UserPasswordChangeDTO;
+import com.github.thundax.bacon.upms.api.request.UserPasswordChangeFacadeRequest;
 import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
+import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.application.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
@@ -59,8 +61,16 @@ public class UpmsProviderController {
 
     @Operation(summary = "查询当前用户")
     @GetMapping("/users/current")
-    public UserDTO getCurrentUser() {
-        return userQueryApplicationService.getUserById(BaconIdContextHelper.requireUserId());
+    public UserFacadeResponse getCurrentUser() {
+        UserDTO user = userQueryApplicationService.getUserById(BaconIdContextHelper.requireUserId());
+        String departmentCode = user.getDepartmentId() == null
+                ? null
+                : departmentApplicationService
+                        .getDepartmentById(DepartmentIdCodec.toDomain(user.getDepartmentId()))
+                        .getCode();
+        return new UserFacadeResponse(
+                user.getId(), user.getAccount(), user.getName(), user.getAvatarStoredObjectNo(), user.getPhone(),
+                departmentCode, user.getAvatarUrl(), user.getStatus());
     }
 
     @Operation(summary = "按身份标识查询用户身份")
@@ -82,12 +92,12 @@ public class UpmsProviderController {
     }
 
     @Operation(summary = "当前用户修改密码")
-    @PostMapping("/users/{userId}/passwords/change")
-    public void changePassword(
-            @PathVariable @Positive(message = "userId must be greater than 0") Long userId,
-            @Valid @RequestBody UserPasswordChangeDTO request) {
+    @PostMapping("/users/current/passwords/change")
+    public void changePassword(@Valid @RequestBody UserPasswordChangeFacadeRequest request) {
         userPasswordApplicationService.changePassword(
-                UserIdCodec.toDomain(userId), request.getOldPassword(), request.getNewPassword());
+                UserIdCodec.toDomain(BaconIdContextHelper.requireUserId()),
+                request.getOldPassword(),
+                request.getNewPassword());
     }
 
     @Operation(summary = "按租户编号查询租户")

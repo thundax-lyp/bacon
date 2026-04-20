@@ -15,7 +15,6 @@ import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import com.github.thundax.bacon.upms.api.facade.UserCredentialReadFacade;
-import com.github.thundax.bacon.upms.api.response.UserCredentialDetailFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserCredentialFacadeResponse;
 import java.time.Instant;
 import java.util.List;
@@ -54,24 +53,23 @@ class LoginApplicationServiceTest {
 
         UserCredentialReadFacade userCredentialReadFacade = mock(UserCredentialReadFacade.class);
         when(userCredentialReadFacade.getUserCredential(any())).thenReturn(UserCredentialFacadeResponse.from(
-                new UserCredentialDetailFacadeResponse(
-                        2001L,
-                        3001L,
-                        "demo",
-                        null,
-                        "ACCOUNT",
-                        "demo",
-                        "ACTIVE",
-                        4001L,
-                        "PASSWORD",
-                        "ACTIVE",
-                        true,
-                        Instant.now().plusSeconds(600),
-                        null,
-                        false,
-                        List.of(),
-                        "ENABLED",
-                        passwordEncoder.encode("plain-password"))));
+                2001L,
+                3001L,
+                "demo",
+                null,
+                "ACCOUNT",
+                "demo",
+                "ACTIVE",
+                4001L,
+                "PASSWORD",
+                "ACTIVE",
+                true,
+                Instant.now().plusSeconds(600),
+                null,
+                false,
+                List.of(),
+                "ENABLED",
+                passwordEncoder.encode("plain-password")));
 
         LoginApplicationService service = new LoginApplicationService(
                 authSessionRepository,

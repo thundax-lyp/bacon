@@ -11,10 +11,8 @@ import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import com.github.thundax.bacon.upms.api.facade.UserCredentialReadFacade;
 import com.github.thundax.bacon.upms.api.request.UserCredentialGetFacadeRequest;
-import com.github.thundax.bacon.upms.api.response.UserCredentialDetailFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserCredentialFacadeResponse;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -29,6 +27,7 @@ public class LoginApplicationService {
 
     private static final long ACCESS_TOKEN_TTL_SECONDS = 1800L;
     private static final long REFRESH_TOKEN_TTL_SECONDS = 604800L;
+    private static final String ACTIVE_STATUS = "ACTIVE";
 
     private final AtomicLong idGenerator = new AtomicLong(1L);
     private final AuthSessionRepository authSessionRepository;
@@ -69,9 +68,7 @@ public class LoginApplicationService {
                 tenantId.value(),
                 () -> userCredentialReadFacade.getUserCredential(
                         new UserCredentialGetFacadeRequest("ACCOUNT", command.getAccount())));
-        UserCredentialDetailFacadeResponse credential = response == null ? null : response.getUserCredential();
-        UserCredentialDetailFacadeResponse validatedCredential =
-                validatePasswordLoginCredential(credential, plainPassword);
+        UserCredentialFacadeResponse validatedCredential = validatePasswordLoginCredential(response, plainPassword);
         return createLoginSession(
                 tenantId.value(),
                 validatedCredential.userId(),
@@ -96,18 +93,18 @@ public class LoginApplicationService {
         return createLoginSession(1001L, 2004L, 3004L, "GITHUB", "GITHUB", null);
     }
 
-    private UserCredentialDetailFacadeResponse validatePasswordLoginCredential(
-            UserCredentialDetailFacadeResponse credential, String plainPassword) {
+    private UserCredentialFacadeResponse validatePasswordLoginCredential(
+            UserCredentialFacadeResponse credential, String plainPassword) {
         if (credential == null) {
             throw new BadRequestException("Invalid account or password");
         }
-        if (!"ACTIVE".equals(credential.identityStatus())) {
+        if (!ACTIVE_STATUS.equals(credential.identityStatus())) {
             throw new BadRequestException("Current account is disabled");
         }
-        if (!EnableStatusEnum.ENABLED.matches(credential.status())) {
+        if (!ACTIVE_STATUS.equals(credential.status())) {
             throw new BadRequestException("Current user is not enabled");
         }
-        if (!"ACTIVE".equals(credential.credentialStatus())) {
+        if (!ACTIVE_STATUS.equals(credential.credentialStatus())) {
             throw new BadRequestException("Current credential is not active");
         }
         if (credential.credentialExpiresAt() != null

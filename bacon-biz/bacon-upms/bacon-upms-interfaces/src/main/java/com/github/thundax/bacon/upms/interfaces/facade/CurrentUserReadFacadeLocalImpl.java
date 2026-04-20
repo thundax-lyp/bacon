@@ -5,9 +5,11 @@ import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.facade.CurrentUserReadFacade;
 import com.github.thundax.bacon.upms.api.response.TenantFacadeResponse;
-import com.github.thundax.bacon.upms.api.response.UserDataScopeDetailFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserDataScopeFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
+import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
+import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
+import com.github.thundax.bacon.upms.application.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.application.dto.TenantDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
@@ -21,12 +23,15 @@ import org.springframework.stereotype.Component;
 public class CurrentUserReadFacadeLocalImpl implements CurrentUserReadFacade {
 
     private final UserQueryApplicationService userQueryApplicationService;
+    private final DepartmentApplicationService departmentApplicationService;
     private final PermissionQueryApplicationService permissionQueryService;
 
     public CurrentUserReadFacadeLocalImpl(
             UserQueryApplicationService userQueryApplicationService,
+            DepartmentApplicationService departmentApplicationService,
             PermissionQueryApplicationService permissionQueryService) {
         this.userQueryApplicationService = userQueryApplicationService;
+        this.departmentApplicationService = departmentApplicationService;
         this.permissionQueryService = permissionQueryService;
     }
 
@@ -46,24 +51,26 @@ public class CurrentUserReadFacadeLocalImpl implements CurrentUserReadFacade {
     public UserDataScopeFacadeResponse getCurrentDataScope() {
         BaconContextHolder.requireTenantId();
         UserDataScopeDTO dataScope = permissionQueryService.getUserDataScope(UserId.of(BaconIdContextHelper.requireUserId()));
-        return UserDataScopeFacadeResponse.from(new UserDataScopeDetailFacadeResponse(
-                dataScope.isAllAccess(), dataScope.getScopeTypes(), dataScope.getDepartmentIds()));
+        return new UserDataScopeFacadeResponse(
+                dataScope.isAllAccess(), dataScope.getScopeTypes(), dataScope.getDepartmentIds());
     }
 
     private UserFacadeResponse toFacadeResponse(UserDTO user) {
         return new UserFacadeResponse(
-                user.getId(),
-                user.getAccount(),
-                user.getName(),
-                user.getAvatarStoredObjectNo(),
-                user.getPhone(),
-                user.getDepartmentId(),
-                user.getAvatarUrl(),
-                user.getStatus());
+                user.getId(), user.getAccount(), user.getName(), user.getAvatarStoredObjectNo(), user.getPhone(),
+                resolveDepartmentCode(user), user.getAvatarUrl(), user.getStatus());
     }
 
     private TenantFacadeResponse toFacadeResponse(TenantDTO tenant) {
-        return new TenantFacadeResponse(
-                tenant.getId(), tenant.getName(), tenant.getCode(), tenant.getStatus(), tenant.getExpiredAt());
+        return new TenantFacadeResponse(tenant.getName(), tenant.getCode(), tenant.getStatus(), tenant.getExpiredAt());
+    }
+
+    private String resolveDepartmentCode(UserDTO user) {
+        if (user.getDepartmentId() == null) {
+            return null;
+        }
+        DepartmentDTO department =
+                departmentApplicationService.getDepartmentById(DepartmentIdCodec.toDomain(user.getDepartmentId()));
+        return department.getCode();
     }
 }

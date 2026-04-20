@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
-import com.github.thundax.bacon.upms.api.dto.UserPasswordChangeDTO;
 import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
 import com.github.thundax.bacon.upms.api.request.UserPasswordChangeFacadeRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,8 +28,8 @@ public class UserPasswordFacadeRemoteImpl implements UserPasswordFacade {
         // 改密走 provider 命令端点并携带 body，避免把旧密码/新密码暴露在查询参数或日志里。
         restClient
                 .post()
-                .uri("/providers/upms/users/{userId}/passwords/change", request.getUserId())
-                .body(new UserPasswordChangeDTO(request.getOldPassword(), request.getNewPassword()))
+                .uri("/providers/upms/users/current/passwords/change")
+                .body(request)
                 .retrieve()
                 .toBodilessEntity();
     }

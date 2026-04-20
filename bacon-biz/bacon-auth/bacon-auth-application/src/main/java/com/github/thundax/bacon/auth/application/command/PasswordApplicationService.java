@@ -32,8 +32,7 @@ public class PasswordApplicationService {
             throw new BadRequestException("New password must differ from old password");
         }
         CurrentSessionDTO currentSession = sessionApplicationService.currentSession(accessToken);
-        userPasswordFacade.changePassword(
-                new UserPasswordChangeFacadeRequest(currentSession.getUserId(), oldPassword, newPassword));
+        userPasswordFacade.changePassword(new UserPasswordChangeFacadeRequest(oldPassword, newPassword));
         sessionApplicationService.invalidateUserSessions(
                 currentSession.getTenantId(), currentSession.getUserId(), "SELF_PASSWORD_CHANGED");
     }

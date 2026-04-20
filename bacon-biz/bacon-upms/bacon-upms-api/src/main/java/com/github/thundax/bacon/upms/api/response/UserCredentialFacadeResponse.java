@@ -1,17 +1,23 @@
 package com.github.thundax.bacon.upms.api.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.time.Instant;
+import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserCredentialFacadeResponse {
-
-    private UserCredentialDetailFacadeResponse userCredential;
-
-    public static UserCredentialFacadeResponse from(UserCredentialDetailFacadeResponse userCredential) {
-        return new UserCredentialFacadeResponse(userCredential);
-    }
-}
+public record UserCredentialFacadeResponse(
+        Long userId,
+        Long identityId,
+        String account,
+        String phone,
+        String identityType,
+        String identityValue,
+        String identityStatus,
+        Long credentialId,
+        String credentialType,
+        String credentialStatus,
+        boolean needChangePassword,
+        Instant credentialExpiresAt,
+        Instant lockedUntil,
+        boolean mfaRequired,
+        List<String> secondFactorTypes,
+        String status,
+        String passwordHash) {}

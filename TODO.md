@@ -92,15 +92,9 @@
   - 验收点：这些对象只在 upms 内部查询与装配链路流转
   - 重要度：9/10
 
-- [ ] `upms-api`：把修改密码类输入从 `UserPasswordChangeDTO` 改到 `api.request`
-  - 影响范围：`UserPasswordFacadeRemoteImpl`、provider/controller
-  - 验收点：写操作入参不再落在 `api.dto`
-  - 重要度：8/10
-
-- [ ] `upms-api`：逐个 facade 补 `FacadeRequest` / `FacadeResponse` 命名规约
-  - 目标接口：`DepartmentReadFacade`、`RoleReadFacade`、`UserReadFacade`、`PermissionReadFacade`、`UserPasswordFacade`
-  - 前置关系：优先完成上面的 domain 依赖清理，再统一命名
-  - 验收点：upms facade 契约和 inventory/payment/order 新规一致
+- [ ] `upms-application`：收尾 `api.dto -> application.dto` 迁移残留
+  - 当前阻塞：`DepartmentAssembler`、`UserQueryApplicationService`、`TenantApplicationService` 等仍引用已下沉的 `api.dto`
+  - 验收点：相关模块联编不再因 `com.github.thundax.bacon.upms.api.dto` 缺失而失败
   - 重要度：9/10
 
 ### P1 - Repository 命名统一治理清单

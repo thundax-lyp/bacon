@@ -10,8 +10,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.upms.application.command.DepartmentCommandApplicationService;
+import com.github.thundax.bacon.upms.application.command.DepartmentCreateCommand;
 import com.github.thundax.bacon.upms.application.dto.DepartmentDTO;
-import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
+import com.github.thundax.bacon.upms.application.query.DepartmentQueryApplicationService;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,15 +24,18 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 class DepartmentControllerContractTest {
 
-    private DepartmentApplicationService departmentApplicationService;
+    private DepartmentCommandApplicationService departmentCommandApplicationService;
+    private DepartmentQueryApplicationService departmentQueryApplicationService;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        departmentApplicationService = mock(DepartmentApplicationService.class);
+        departmentCommandApplicationService = mock(DepartmentCommandApplicationService.class);
+        departmentQueryApplicationService = mock(DepartmentQueryApplicationService.class);
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
-        mockMvc = MockMvcBuilders.standaloneSetup(new DepartmentController(departmentApplicationService))
+        mockMvc = MockMvcBuilders.standaloneSetup(
+                        new DepartmentController(departmentCommandApplicationService, departmentQueryApplicationService))
                 .setValidator(validator)
                 .build();
     }
@@ -46,7 +51,7 @@ class DepartmentControllerContractTest {
                                 """))
                 .andExpect(status().isBadRequest());
 
-        verifyNoInteractions(departmentApplicationService);
+        verifyNoInteractions(departmentCommandApplicationService, departmentQueryApplicationService);
     }
 
     @Test
@@ -60,13 +65,13 @@ class DepartmentControllerContractTest {
                                 """))
                 .andExpect(status().isBadRequest());
 
-        verifyNoInteractions(departmentApplicationService);
+        verifyNoInteractions(departmentCommandApplicationService, departmentQueryApplicationService);
     }
 
     @Test
     void shouldTrimCodeAndNameBeforeCallingApplicationService() throws Exception {
-        when(departmentApplicationService.createDepartment(
-                        eq(DepartmentCode.of("OPS")), eq("Operations"), eq(null), eq(UserId.of(2001L))))
+        when(departmentCommandApplicationService.create(eq(new DepartmentCreateCommand(
+                        DepartmentCode.of("OPS"), "Operations", null, UserId.of(2001L)))))
                 .thenReturn(new DepartmentDTO(101L, "OPS", "Operations", null, 2001L, 1, "ENABLED"));
 
         mockMvc.perform(

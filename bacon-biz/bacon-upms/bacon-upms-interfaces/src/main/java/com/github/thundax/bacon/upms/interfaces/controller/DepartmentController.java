@@ -7,7 +7,11 @@ import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
-import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
+import com.github.thundax.bacon.upms.application.command.DepartmentCommandApplicationService;
+import com.github.thundax.bacon.upms.application.command.DepartmentCreateCommand;
+import com.github.thundax.bacon.upms.application.command.DepartmentSortUpdateCommand;
+import com.github.thundax.bacon.upms.application.command.DepartmentUpdateCommand;
+import com.github.thundax.bacon.upms.application.query.DepartmentQueryApplicationService;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.interfaces.request.DepartmentBatchQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.request.DepartmentCreateRequest;
@@ -41,10 +45,14 @@ import org.springframework.validation.annotation.Validated;
 @Tag(name = "UPMS-Department", description = "部门管理接口")
 public class DepartmentController {
 
-    private final DepartmentApplicationService departmentApplicationService;
+    private final DepartmentCommandApplicationService departmentCommandApplicationService;
+    private final DepartmentQueryApplicationService departmentQueryApplicationService;
 
-    public DepartmentController(DepartmentApplicationService departmentApplicationService) {
-        this.departmentApplicationService = departmentApplicationService;
+    public DepartmentController(
+            DepartmentCommandApplicationService departmentCommandApplicationService,
+            DepartmentQueryApplicationService departmentQueryApplicationService) {
+        this.departmentCommandApplicationService = departmentCommandApplicationService;
+        this.departmentQueryApplicationService = departmentQueryApplicationService;
     }
 
     @Operation(summary = "查询部门树")
@@ -52,7 +60,7 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "查询部门树", eventType = LogEventType.QUERY)
     @GetMapping("/tree")
     public List<DepartmentTreeResponse> getDepartmentTree() {
-        return departmentApplicationService.getDepartmentTree().stream()
+        return departmentQueryApplicationService.tree().stream()
                 .map(DepartmentTreeResponse::from)
                 .toList();
     }
@@ -62,11 +70,11 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "创建部门", eventType = LogEventType.CREATE)
     @PostMapping
     public DepartmentResponse createDepartment(@Valid @RequestBody DepartmentCreateRequest request) {
-        return DepartmentResponse.from(departmentApplicationService.createDepartment(
+        return DepartmentResponse.from(departmentCommandApplicationService.create(new DepartmentCreateCommand(
                 DepartmentCodeCodec.toDomain(request.code()),
                 trimPreservingNull(request.name()),
                 DepartmentIdCodec.toDomain(request.parentId()),
-                request.leaderUserId() == null ? null : UserId.of(request.leaderUserId())));
+                request.leaderUserId() == null ? null : UserId.of(request.leaderUserId()))));
     }
 
     @Operation(summary = "按部门 ID 查询部门")
@@ -75,7 +83,7 @@ public class DepartmentController {
     @GetMapping("/{departmentId}")
     public DepartmentResponse getDepartmentById(
             @PathVariable("departmentId") @Positive(message = "departmentId must be greater than 0") Long departmentId) {
-        return DepartmentResponse.from(departmentApplicationService.getDepartmentById(DepartmentId.of(departmentId)));
+        return DepartmentResponse.from(departmentQueryApplicationService.getById(DepartmentId.of(departmentId)));
     }
 
     @Operation(summary = "按部门编码查询部门")
@@ -85,7 +93,7 @@ public class DepartmentController {
     public DepartmentResponse getDepartmentByCode(
             @PathVariable("departmentCode") @NotBlank(message = "departmentCode must not be blank")
                     String departmentCode) {
-        return DepartmentResponse.from(departmentApplicationService.getByCode(
+        return DepartmentResponse.from(departmentQueryApplicationService.getByCode(
                 DepartmentCodeCodec.toDomain(departmentCode)));
     }
 
@@ -97,7 +105,7 @@ public class DepartmentController {
         Set<DepartmentId> departmentIds = request.getDepartmentIds() == null
                 ? Set.of()
                 : request.getDepartmentIds().stream().map(DepartmentId::of).collect(Collectors.toSet());
-        return departmentApplicationService.listByIds(departmentIds).stream()
+        return departmentQueryApplicationService.listByIds(departmentIds).stream()
                 .map(DepartmentResponse::from)
                 .toList();
     }
@@ -109,13 +117,13 @@ public class DepartmentController {
     public DepartmentResponse updateDepartment(
             @PathVariable("departmentId") @Positive(message = "departmentId must be greater than 0") Long departmentId,
             @Valid @RequestBody DepartmentUpdateRequest request) {
-        return DepartmentResponse.from(departmentApplicationService.updateDepartment(
+        return DepartmentResponse.from(departmentCommandApplicationService.update(new DepartmentUpdateCommand(
                 DepartmentId.of(departmentId),
                 DepartmentCodeCodec.toDomain(request.code()),
                 trimPreservingNull(request.name()),
                 DepartmentIdCodec.toDomain(request.parentId()),
                 request.leaderUserId() == null ? null : UserId.of(request.leaderUserId()),
-                request.sort()));
+                request.sort())));
     }
 
     @Operation(summary = "调整部门排序")
@@ -125,8 +133,8 @@ public class DepartmentController {
     public DepartmentResponse updateSort(
             @PathVariable("departmentId") @Positive(message = "departmentId must be greater than 0") Long departmentId,
             @Valid @RequestBody DepartmentSortUpdateRequest request) {
-        return DepartmentResponse.from(
-                departmentApplicationService.updateDepartmentSort(DepartmentId.of(departmentId), request.sort()));
+        return DepartmentResponse.from(departmentCommandApplicationService.updateSort(
+                new DepartmentSortUpdateCommand(DepartmentId.of(departmentId), request.sort())));
     }
 
     @Operation(summary = "删除部门")
@@ -135,7 +143,7 @@ public class DepartmentController {
     @DeleteMapping("/{departmentId}")
     public void delete(
             @PathVariable("departmentId") @Positive(message = "departmentId must be greater than 0") Long departmentId) {
-        departmentApplicationService.delete(DepartmentId.of(departmentId));
+        departmentCommandApplicationService.delete(DepartmentId.of(departmentId));
     }
 
     private String trimPreservingNull(String value) {

@@ -6,12 +6,12 @@ import com.github.thundax.bacon.upms.api.response.UserDataScopeFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
 import com.github.thundax.bacon.upms.api.request.UserPasswordChangeFacadeRequest;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
-import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
 import com.github.thundax.bacon.upms.application.dto.TenantDTO;
 import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
+import com.github.thundax.bacon.upms.application.query.DepartmentQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
@@ -35,17 +35,17 @@ public class UpmsProviderController {
 
     private final UserQueryApplicationService userQueryApplicationService;
     private final UserPasswordApplicationService userPasswordApplicationService;
-    private final DepartmentApplicationService departmentApplicationService;
+    private final DepartmentQueryApplicationService departmentQueryApplicationService;
     private final PermissionQueryApplicationService permissionQueryService;
 
     public UpmsProviderController(
             UserQueryApplicationService userQueryApplicationService,
             UserPasswordApplicationService userPasswordApplicationService,
-            DepartmentApplicationService departmentApplicationService,
+            DepartmentQueryApplicationService departmentQueryApplicationService,
             PermissionQueryApplicationService permissionQueryService) {
         this.userQueryApplicationService = userQueryApplicationService;
         this.userPasswordApplicationService = userPasswordApplicationService;
-        this.departmentApplicationService = departmentApplicationService;
+        this.departmentQueryApplicationService = departmentQueryApplicationService;
         this.permissionQueryService = permissionQueryService;
     }
 
@@ -55,8 +55,8 @@ public class UpmsProviderController {
         UserDTO user = userQueryApplicationService.getUserById(BaconIdContextHelper.requireUserId());
         String departmentCode = user.getDepartmentId() == null
                 ? null
-                : departmentApplicationService
-                        .getDepartmentById(DepartmentIdCodec.toDomain(user.getDepartmentId()))
+                : departmentQueryApplicationService
+                        .getById(DepartmentIdCodec.toDomain(user.getDepartmentId()))
                         .getCode();
         return new UserFacadeResponse(
                 user.getId(), user.getAccount(), user.getName(), user.getAvatarStoredObjectNo(), user.getPhone(),

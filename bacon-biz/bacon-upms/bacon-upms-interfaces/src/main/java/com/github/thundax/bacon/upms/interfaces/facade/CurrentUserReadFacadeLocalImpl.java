@@ -6,12 +6,12 @@ import com.github.thundax.bacon.upms.api.facade.CurrentUserReadFacade;
 import com.github.thundax.bacon.upms.api.response.TenantFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserDataScopeFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
-import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.application.dto.TenantDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
+import com.github.thundax.bacon.upms.application.query.DepartmentQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -22,15 +22,15 @@ import org.springframework.stereotype.Component;
 public class CurrentUserReadFacadeLocalImpl implements CurrentUserReadFacade {
 
     private final UserQueryApplicationService userQueryApplicationService;
-    private final DepartmentApplicationService departmentApplicationService;
+    private final DepartmentQueryApplicationService departmentQueryApplicationService;
     private final PermissionQueryApplicationService permissionQueryService;
 
     public CurrentUserReadFacadeLocalImpl(
             UserQueryApplicationService userQueryApplicationService,
-            DepartmentApplicationService departmentApplicationService,
+            DepartmentQueryApplicationService departmentQueryApplicationService,
             PermissionQueryApplicationService permissionQueryService) {
         this.userQueryApplicationService = userQueryApplicationService;
-        this.departmentApplicationService = departmentApplicationService;
+        this.departmentQueryApplicationService = departmentQueryApplicationService;
         this.permissionQueryService = permissionQueryService;
     }
 
@@ -69,7 +69,7 @@ public class CurrentUserReadFacadeLocalImpl implements CurrentUserReadFacade {
             return null;
         }
         DepartmentDTO department =
-                departmentApplicationService.getDepartmentById(DepartmentIdCodec.toDomain(user.getDepartmentId()));
+                departmentQueryApplicationService.getById(DepartmentIdCodec.toDomain(user.getDepartmentId()));
         return department.getCode();
     }
 }

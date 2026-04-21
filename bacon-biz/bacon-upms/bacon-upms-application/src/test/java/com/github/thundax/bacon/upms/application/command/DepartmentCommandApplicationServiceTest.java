@@ -25,7 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DepartmentApplicationServiceTest {
+class DepartmentCommandApplicationServiceTest {
 
     @Mock
     private DepartmentRepository departmentRepository;
@@ -36,11 +36,11 @@ class DepartmentApplicationServiceTest {
     @Mock
     private IdGenerator idGenerator;
 
-    private DepartmentApplicationService service;
+    private DepartmentCommandApplicationService service;
 
     @BeforeEach
     void setUp() {
-        service = new DepartmentApplicationService(departmentRepository, userRepository, idGenerator);
+        service = new DepartmentCommandApplicationService(departmentRepository, userRepository, idGenerator);
     }
 
     @Test
@@ -48,7 +48,8 @@ class DepartmentApplicationServiceTest {
         DepartmentId parentId = DepartmentId.of(11L);
         when(departmentRepository.findById(parentId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.createDepartment(DepartmentCode.of("OPS"), "Operations", parentId, null))
+        assertThatThrownBy(
+                        () -> service.create(new DepartmentCreateCommand(DepartmentCode.of("OPS"), "Operations", parentId, null)))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Parent department not found: " + parentId);
         verifyNoInteractions(userRepository);
@@ -59,7 +60,8 @@ class DepartmentApplicationServiceTest {
         when(userRepository.findById(UserId.of(2001L))).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-                        service.createDepartment(DepartmentCode.of("OPS"), "Operations", null, UserId.of(2001L)))
+                        service.create(new DepartmentCreateCommand(
+                                DepartmentCode.of("OPS"), "Operations", null, UserId.of(2001L))))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Leader user not found: 2001");
     }
@@ -71,8 +73,8 @@ class DepartmentApplicationServiceTest {
                 .thenReturn(Optional.of(department(departmentId, "OPS", "Operations", null, null, 1)));
         when(userRepository.findById(UserId.of(2002L))).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.updateDepartment(
-                        departmentId, DepartmentCode.of("OPS"), "Operations", null, UserId.of(2002L), 2))
+        assertThatThrownBy(() -> service.update(new DepartmentUpdateCommand(
+                        departmentId, DepartmentCode.of("OPS"), "Operations", null, UserId.of(2002L), 2)))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Leader user not found: 2002");
     }
@@ -90,7 +92,8 @@ class DepartmentApplicationServiceTest {
                 .thenReturn(Optional.of(User.create(leaderUserId, "Leader", null, null)));
         when(departmentRepository.update(any(Department.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        service.updateDepartment(departmentId, DepartmentCode.of("OPS-NEW"), "Operations New", parentId, leaderUserId, 2);
+        service.update(new DepartmentUpdateCommand(
+                departmentId, DepartmentCode.of("OPS-NEW"), "Operations New", parentId, leaderUserId, 2));
 
         ArgumentCaptor<Department> captor = ArgumentCaptor.forClass(Department.class);
         verify(departmentRepository).update(captor.capture());

@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.auth.application.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -14,6 +15,7 @@ import com.github.thundax.bacon.auth.application.support.LoginSecurityApplicatio
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.upms.api.facade.UserCredentialReadFacade;
 import com.github.thundax.bacon.upms.api.response.UserCredentialFacadeResponse;
 import java.time.Instant;
@@ -87,5 +89,49 @@ class LoginApplicationServiceTest {
         assertEquals(2001L, result.getUserId());
         assertEquals(1001L, result.getTenantId());
         assertEquals(Boolean.TRUE, result.getNeedChangePassword());
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenCredentialHasExpired() {
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        AuthSessionRepository authSessionRepository = mock(AuthSessionRepository.class);
+        TokenCodec tokenCodec = mock(TokenCodec.class);
+        AuthAuditApplicationService authAuditApplicationService = mock(AuthAuditApplicationService.class);
+        LoginSecurityApplicationService loginSecurityApplicationService = mock(LoginSecurityApplicationService.class);
+        UserCredentialReadFacade userCredentialReadFacade = mock(UserCredentialReadFacade.class);
+
+        doNothing().when(loginSecurityApplicationService).verifyPasswordCaptcha("captcha-key", "captcha-code");
+        when(loginSecurityApplicationService.decryptPassword("rsa-key", "cipher-password")).thenReturn("plain-password");
+        when(userCredentialReadFacade.getUserCredential(any())).thenReturn(new UserCredentialFacadeResponse(
+                2001L,
+                3001L,
+                "demo",
+                null,
+                "ACCOUNT",
+                "demo",
+                "ACTIVE",
+                4001L,
+                "PASSWORD",
+                "ACTIVE",
+                false,
+                Instant.now().minusSeconds(60),
+                null,
+                false,
+                List.of(),
+                "ACTIVE",
+                passwordEncoder.encode("plain-password")));
+
+        LoginApplicationService service = new LoginApplicationService(
+                authSessionRepository,
+                tokenCodec,
+                authAuditApplicationService,
+                loginSecurityApplicationService,
+                userCredentialReadFacade,
+                passwordEncoder);
+
+        assertThrows(
+                BadRequestException.class,
+                () -> service.loginByPassword(
+                        new PasswordLoginCommand(1001L, "demo", "cipher-password", "rsa-key", "captcha-key", "captcha-code")));
     }
 }

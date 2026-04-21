@@ -126,12 +126,6 @@
   - 验收点：controller/provider 不再直接暴露 `domain entity`、`DO`、`FacadeResponse`、跨域 `DTO`
   - 重要度：9/10
 
-- [ ] 增加 ArchUnit 规则：`RepositoryImpl` 必须且只实现本域 `Repository`
-  - 现状：当前已落地 `RepositoryImpl` 不得依赖其他 `RepositoryImpl`、不得依赖其他聚合 `PersistenceSupport` 的硬规则，但尚未门禁实现关系本身
-  - 处理动作：在现有硬规则基础上，继续限制 `*RepositoryImpl` 必须实现一个且仅一个本域 `domain.repository.*Repository`，并禁止实现外域 `Repository`
-  - 验收点：仓储实现和领域仓储契约一一对应，避免“工具类伪装成 RepositoryImpl”或“一类多仓储”漂移
-  - 重要度：9/10
-
 - [ ] 增加 ArchUnit 规则：`interfaces` 依赖收敛为白名单
   - 现状：当前重点禁止依赖 `infra` 和他域 `application/infra`，但对 `domain.repository`、外域散包、历史遗留协议模型仍缺少白名单约束
   - 处理动作：限制 `interfaces` 只允许依赖本域 `application`、本域 `domain.model`、本域 `interfaces`、外域 `api.facade` 与 `bacon-common`

@@ -176,6 +176,52 @@ public final class NamingAndPlacementRuleSupport {
                         "RULE NAME_REPOSITORY_IMPL_NO_CROSS_SUPPORT_DEP: RepositoryImpl must not depend on other aggregate PersistenceSupport");
     }
 
+    public static ArchRule repositoryImplShouldImplementSingleDomainRepository(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .haveSimpleNameEndingWith("RepositoryImpl")
+                .and()
+                .resideInAPackage(basePackage + ".infra.repository.impl..")
+                .should(new ArchCondition<>("implement one and only one domain repository interface") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        Set<JavaClass> interfaces = item.getRawInterfaces();
+                        if (interfaces.size() != 1) {
+                            events.add(SimpleConditionEvent.violated(
+                                    item,
+                                    item.getFullName() + " implements " + interfaces.stream()
+                                                    .map(JavaClass::getFullName)
+                                                    .sorted()
+                                                    .toList()
+                                            + " violation: RepositoryImpl must implement exactly one interface"));
+                            return;
+                        }
+                        JavaClass implementedInterface = interfaces.iterator().next();
+                        boolean isDomainRepositoryInterface = implementedInterface
+                                        .getPackageName()
+                                        .startsWith(basePackage + ".domain.repository")
+                                && implementedInterface.getSimpleName().endsWith("Repository");
+                        if (!isDomainRepositoryInterface) {
+                            events.add(SimpleConditionEvent.violated(
+                                    item,
+                                    item.getFullName() + " implements " + implementedInterface.getFullName()
+                                            + " violation: interface must be in " + basePackage
+                                            + ".domain.repository.. and end with Repository"));
+                            return;
+                        }
+                        events.add(SimpleConditionEvent.satisfied(
+                                item,
+                                item.getFullName() + " implements " + implementedInterface.getFullName()
+                                        + " and satisfies single-domain-repository rule"));
+                    }
+                })
+                .allowEmptyShould(true)
+                .because(
+                        "RULE NAME_REPOSITORY_IMPL_SINGLE_DOMAIN_REPOSITORY: "
+                                + "RepositoryImpl must implement one and only one "
+                                + "domain.repository Repository");
+    }
+
     public static ArchRule repositoryMethodShouldUseWhitelistedPrefix(String basePackage) {
         return ArchRuleDefinition.classes()
                 .that()

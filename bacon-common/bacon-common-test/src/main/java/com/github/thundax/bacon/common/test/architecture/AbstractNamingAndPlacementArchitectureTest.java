@@ -82,6 +82,12 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     }
 
     @Test
+    void shouldEnforceNameRepositoryImplSingleDomainRepository() {
+        NamingAndPlacementRuleSupport.repositoryImplShouldImplementSingleDomainRepository(basePackage())
+                .check(classes());
+    }
+
+    @Test
     void shouldEnforceNameMapperPlacement() {
         NamingAndPlacementRuleSupport.mapperShouldUseMapperNameAndPackage(basePackage())
                 .check(classes());

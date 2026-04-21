@@ -124,10 +124,8 @@
   - 应用层命令入参使用 `*Command`
   - 应用层查询入参使用 `*Query`
   - 应用层结果模型使用 `*Result`
-  - 应用层分页查询入参使用 `*PageQuery`
-  - 应用层分页结果模型使用 `*PageResult`
+  - 分页结果模型使用 `*PageResult`
   - 命令结果模型使用 `*Result`
-- `com.github.thundax.bacon.common.core.result.PageQuery` / `PageResult` 是应用层稳定契约，`interfaces` 只能在 assembler 或 response 转换的实现细节里短暂使用，不得把它们写进 controller/provider/facade 的公开签名或对外文档口径
 - 工程实现文档如果涉及分层命名，以 `ARCHITECTURE.md` 的工程规则为准：
   - `interfaces.dto` 使用 `*Request`
   - `interfaces.response` 使用 `*Response`

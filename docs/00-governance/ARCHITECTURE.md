@@ -75,9 +75,8 @@
 - 只表达业务动作，不落技术细节
 - 可以依赖本域 `domain` 和外域 `api.facade`
 - 不直接依赖其他域的 `infra`
-- 对外公共方法固定接收领域值对象、领域枚举、`*Command`、`*Query`、`*PageQuery`、`*PageResult` 等稳定应用契约
+- 对外公共方法固定接收领域值对象、领域枚举、`*Command`、`*Query` 等稳定应用契约
 - 不直接接收 `interfaces.dto.*Request`、`interfaces.response.*Response`、`api.dto.*PageQueryDTO`
-- `com.github.thundax.bacon.common.core.result.PageQuery` / `PageResult` 归属 `application` 契约层，`interfaces` 不得将其作为 controller/provider/facade 的公开签名或对外响应模型；`interfaces` 仅允许在 assembler 或 response 转换中临时使用
 - `XxxId` / `XxxNo` 到领域实体的装载固定在 `application`
 - 创建新的领域对象时，调用 `domain entity.create(...)`
 

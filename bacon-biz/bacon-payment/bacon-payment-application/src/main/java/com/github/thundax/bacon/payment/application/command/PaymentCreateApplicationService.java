@@ -43,11 +43,10 @@ public class PaymentCreateApplicationService {
     }
 
     @Transactional
-    public PaymentCreateResult createPayment(
-            String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
+    public PaymentCreateResult createPayment(PaymentCreateCommand command) {
         BaconContextHolder.requireTenantId();
-        validateCreateRequest(amount, channelCode, expiredAt);
-        PaymentOrder existing = paymentOrderRepository.findByOrderNo(orderNo).orElse(null);
+        validateCreateRequest(command.amount(), command.channelCode(), command.expiredAt());
+        PaymentOrder existing = paymentOrderRepository.findByOrderNo(command.orderNo()).orElse(null);
         // 按 orderNo 保证创建幂等；同一订单重复创建时直接返回已存在支付单，而不是重新生成 paymentNo。
         if (existing != null) {
             return toCreateResult(existing, buildPayload(existing), null);
@@ -60,12 +59,12 @@ public class PaymentCreateApplicationService {
         PaymentOrder paymentOrder = PaymentOrder.create(
                 PaymentOrderId.of(idGenerator.nextId(PAYMENT_ORDER_ID_BIZ_TAG)),
                 paymentNo,
-                OrderNo.of(orderNo),
-                UserIdCodec.toDomain(userId),
-                PaymentChannelCode.fromValue(channelCode),
-                Money.of(amount),
-                subject,
-                expiredAt,
+                OrderNo.of(command.orderNo()),
+                UserIdCodec.toDomain(command.userId()),
+                PaymentChannelCode.fromValue(command.channelCode()),
+                Money.of(command.amount()),
+                command.subject(),
+                command.expiredAt(),
                 Instant.now());
         // 创建后立即进入 PAYING，表示渠道拉起参数已经准备好，后续只等待回调或显式关闭。
         paymentOrder.markPaying();

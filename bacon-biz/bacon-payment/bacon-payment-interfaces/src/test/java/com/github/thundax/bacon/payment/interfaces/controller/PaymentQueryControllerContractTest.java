@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.payment.application.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.application.query.PaymentGetByPaymentNoQuery;
 import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicationService;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
@@ -58,12 +59,12 @@ class PaymentQueryControllerContractTest {
         }
 
         @Override
-        public PaymentDetailDTO getByPaymentNo(String paymentNo) {
-            if ("PAY-40401".equals(paymentNo)) {
-                throw new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo);
+        public PaymentDetailDTO getByPaymentNo(PaymentGetByPaymentNoQuery query) {
+            if ("PAY-40401".equals(query.paymentNo())) {
+                throw new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, query.paymentNo());
             }
             return new PaymentDetailDTO(
-                    paymentNo,
+                    query.paymentNo(),
                     "ORD-10001",
                     2001L,
                     "MOCK",

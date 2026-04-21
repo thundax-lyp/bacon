@@ -26,40 +26,40 @@ public class PaymentCloseApplicationService {
     }
 
     @Transactional
-    public PaymentCloseResult closePayment(String paymentNo, String reason) {
+    public PaymentCloseResult closePayment(PaymentCloseCommand command) {
         BaconContextHolder.requireTenantId();
-        if (!VALID_REASONS.contains(reason)) {
-            throw new PaymentDomainException(PaymentErrorCode.INVALID_CLOSE_REASON, reason);
+        if (!VALID_REASONS.contains(command.reason())) {
+            throw new PaymentDomainException(PaymentErrorCode.INVALID_CLOSE_REASON, command.reason());
         }
         PaymentOrder paymentOrder = paymentOrderRepository
-                .findByPaymentNo(paymentNo)
-                .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo));
+                .findByPaymentNo(command.paymentNo())
+                .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, command.paymentNo()));
         // 已关闭视为幂等成功；已支付和已失败则显式拒绝关闭，避免把终态单误判成可关闭状态。
         if (PaymentStatus.CLOSED == paymentOrder.getPaymentStatus()) {
             return new PaymentCloseResult(
-                    paymentNo,
+                    command.paymentNo(),
                     paymentOrder.getOrderNo().value(),
                     paymentOrder.getPaymentStatus().value(),
                     "SUCCESS",
-                    reason,
+                    command.reason(),
                     null);
         }
         if (PaymentStatus.PAID == paymentOrder.getPaymentStatus()) {
             return new PaymentCloseResult(
-                    paymentNo,
+                    command.paymentNo(),
                     paymentOrder.getOrderNo().value(),
                     paymentOrder.getPaymentStatus().value(),
                     "FAILED",
-                    reason,
+                    command.reason(),
                     "Paid payment cannot be closed");
         }
         if (PaymentStatus.FAILED == paymentOrder.getPaymentStatus()) {
             return new PaymentCloseResult(
-                    paymentNo,
+                    command.paymentNo(),
                     paymentOrder.getOrderNo().value(),
                     paymentOrder.getPaymentStatus().value(),
                     "FAILED",
-                    reason,
+                    command.reason(),
                     "Failed payment cannot be closed");
         }
         String beforeStatus = paymentOrder.getPaymentStatus().value();
@@ -67,13 +67,13 @@ public class PaymentCloseApplicationService {
         paymentOrder.close(closedAt);
         paymentOrderRepository.update(paymentOrder);
         paymentOperationLogSupport.recordClose(
-                paymentNo, beforeStatus, paymentOrder.getPaymentStatus().value(), closedAt);
+                command.paymentNo(), beforeStatus, paymentOrder.getPaymentStatus().value(), closedAt);
         return new PaymentCloseResult(
-                paymentNo,
+                command.paymentNo(),
                 paymentOrder.getOrderNo().value(),
                 paymentOrder.getPaymentStatus().value(),
                 "SUCCESS",
-                reason,
+                command.reason(),
                 null);
     }
 }

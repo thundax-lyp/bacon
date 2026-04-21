@@ -3,6 +3,8 @@ package com.github.thundax.bacon.payment.interfaces.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.thundax.bacon.payment.application.command.PaymentCallbackFailedCommand;
+import com.github.thundax.bacon.payment.application.command.PaymentCallbackPaidCommand;
 import com.github.thundax.bacon.payment.application.command.PaymentCallbackApplicationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -87,15 +89,9 @@ class PaymentCallbackControllerContractTest {
         }
 
         @Override
-        public void callbackPaid(
-                String channelCode,
-                String paymentNo,
-                String channelTransactionNo,
-                String channelStatus,
-                String rawPayload) {}
+        public void callbackPaid(PaymentCallbackPaidCommand command) {}
 
         @Override
-        public void callbackFailed(
-                String channelCode, String paymentNo, String channelStatus, String rawPayload, String reason) {}
+        public void callbackFailed(PaymentCallbackFailedCommand command) {}
     }
 }

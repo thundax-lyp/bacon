@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.payment.application.query;
 
-import com.github.thundax.bacon.payment.application.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.application.assembler.PaymentOrderAssembler;
+import com.github.thundax.bacon.payment.application.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
@@ -23,16 +23,16 @@ public class PaymentQueryApplicationService {
         this.paymentCallbackRecordRepository = paymentCallbackRecordRepository;
     }
 
-    public PaymentDetailDTO getByPaymentNo(String paymentNo) {
+    public PaymentDetailDTO getByPaymentNo(PaymentGetByPaymentNoQuery query) {
         return toDetail(paymentOrderRepository
-                .findByPaymentNo(paymentNo)
-                .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo)));
+                .findByPaymentNo(query.paymentNo())
+                .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, query.paymentNo())));
     }
 
-    public PaymentDetailDTO getByOrderNo(String orderNo) {
+    public PaymentDetailDTO getByOrderNo(PaymentGetByOrderNoQuery query) {
         return toDetail(paymentOrderRepository
-                .findByOrderNo(orderNo)
-                .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, orderNo)));
+                .findByOrderNo(query.orderNo())
+                .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, query.orderNo())));
     }
 
     private PaymentDetailDTO toDetail(PaymentOrder paymentOrder) {

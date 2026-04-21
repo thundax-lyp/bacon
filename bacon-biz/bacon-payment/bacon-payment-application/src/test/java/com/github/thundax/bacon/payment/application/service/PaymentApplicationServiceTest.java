@@ -10,13 +10,18 @@ import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
 import com.github.thundax.bacon.order.api.request.OrderCloseExpiredFacadeRequest;
 import com.github.thundax.bacon.order.api.request.OrderMarkPaidFacadeRequest;
 import com.github.thundax.bacon.order.api.request.OrderMarkPaymentFailedFacadeRequest;
+import com.github.thundax.bacon.payment.application.command.PaymentCallbackFailedCommand;
+import com.github.thundax.bacon.payment.application.command.PaymentCallbackPaidCommand;
+import com.github.thundax.bacon.payment.application.command.PaymentCloseCommand;
 import com.github.thundax.bacon.payment.application.command.PaymentCloseResult;
+import com.github.thundax.bacon.payment.application.command.PaymentCreateCommand;
 import com.github.thundax.bacon.payment.application.command.PaymentCreateResult;
 import com.github.thundax.bacon.payment.application.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.application.command.PaymentCallbackApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCloseApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCreateApplicationService;
+import com.github.thundax.bacon.payment.application.query.PaymentGetByPaymentNoQuery;
 import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicationService;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
@@ -61,12 +66,13 @@ class PaymentApplicationServiceTest {
                 repository, paymentOperationLogSupport(repository), () -> "PAY-20001", idGenerator());
 
         PaymentCreateResult result = service.createPayment(
-                "ORD-10001",
-                2001L,
-                BigDecimal.TEN,
-                "MOCK",
-                "test",
-                Instant.now().plusSeconds(1800));
+                new PaymentCreateCommand(
+                        "ORD-10001",
+                        2001L,
+                        BigDecimal.TEN,
+                        "MOCK",
+                        "test",
+                        Instant.now().plusSeconds(1800)));
 
         assertEquals("PAY-20001", result.getPaymentNo());
         assertEquals("ORD-10001", result.getOrderNo());
@@ -82,19 +88,21 @@ class PaymentApplicationServiceTest {
                 repository, paymentOperationLogSupport(repository), new SequencePaymentNoGenerator(), idGenerator());
 
         PaymentCreateResult first = service.createPayment(
-                "ORD-10002",
-                2001L,
-                BigDecimal.ONE,
-                "MOCK",
-                "test",
-                Instant.now().plusSeconds(1800));
+                new PaymentCreateCommand(
+                        "ORD-10002",
+                        2001L,
+                        BigDecimal.ONE,
+                        "MOCK",
+                        "test",
+                        Instant.now().plusSeconds(1800)));
         PaymentCreateResult second = service.createPayment(
-                "ORD-10002",
-                2001L,
-                BigDecimal.ONE,
-                "MOCK",
-                "test",
-                Instant.now().plusSeconds(1800));
+                new PaymentCreateCommand(
+                        "ORD-10002",
+                        2001L,
+                        BigDecimal.ONE,
+                        "MOCK",
+                        "test",
+                        Instant.now().plusSeconds(1800)));
 
         assertEquals(first.getPaymentNo(), second.getPaymentNo());
         assertEquals(1, repository.listLogsByPaymentNo(first.getPaymentNo()).size());
@@ -114,17 +122,18 @@ class PaymentApplicationServiceTest {
                 new PaymentCloseApplicationService(repository, paymentOperationLogSupport(repository));
 
         PaymentCreateResult created = createService.createPayment(
-                "ORD-10003",
-                2003L,
-                new BigDecimal("18.80"),
-                "MOCK",
-                "callback",
-                Instant.now().plusSeconds(1800));
-        callbackService.callbackPaid(
-                "MOCK", created.getPaymentNo(), "TXN-1", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");
-        callbackService.callbackFailed(
-                "MOCK", created.getPaymentNo(), "FAILED", "{\"tradeStatus\":\"FAILED\"}", "CHANNEL_FAIL");
-        PaymentDetailDTO detail = queryService.getByPaymentNo(created.getPaymentNo());
+                new PaymentCreateCommand(
+                        "ORD-10003",
+                        2003L,
+                        new BigDecimal("18.80"),
+                        "MOCK",
+                        "callback",
+                        Instant.now().plusSeconds(1800)));
+        callbackService.callbackPaid(new PaymentCallbackPaidCommand(
+                "MOCK", created.getPaymentNo(), "TXN-1", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}"));
+        callbackService.callbackFailed(new PaymentCallbackFailedCommand(
+                "MOCK", created.getPaymentNo(), "FAILED", "{\"tradeStatus\":\"FAILED\"}", "CHANNEL_FAIL"));
+        PaymentDetailDTO detail = queryService.getByPaymentNo(new PaymentGetByPaymentNoQuery(created.getPaymentNo()));
 
         assertEquals(PaymentStatus.PAID.value(), detail.getPaymentStatus());
         assertEquals("TXN-1", detail.getChannelTransactionNo());
@@ -135,7 +144,7 @@ class PaymentApplicationServiceTest {
         assertEquals(
                 "FAILED",
                 closeService
-                        .closePayment(created.getPaymentNo(), "USER_CANCELLED")
+                        .closePayment(new PaymentCloseCommand(created.getPaymentNo(), "USER_CANCELLED"))
                         .getCloseResult());
     }
 
@@ -150,18 +159,19 @@ class PaymentApplicationServiceTest {
                 repository, repository, paymentOperationLogSupport(repository), orderCommandFacade, idGenerator());
 
         PaymentCreateResult created = createService.createPayment(
-                "ORD-10007",
-                2007L,
-                new BigDecimal("20.00"),
-                "MOCK",
-                "duplicate-callback",
-                Instant.now().plusSeconds(1800));
-        callbackService.callbackPaid(
-                "MOCK", created.getPaymentNo(), "TXN-20007", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");
-        callbackService.callbackPaid(
-                "MOCK", created.getPaymentNo(), "TXN-20007", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");
-        callbackService.callbackFailed(
-                "MOCK", created.getPaymentNo(), "FAILED", "{\"tradeStatus\":\"FAILED\"}", "CHANNEL_FAIL");
+                new PaymentCreateCommand(
+                        "ORD-10007",
+                        2007L,
+                        new BigDecimal("20.00"),
+                        "MOCK",
+                        "duplicate-callback",
+                        Instant.now().plusSeconds(1800)));
+        callbackService.callbackPaid(new PaymentCallbackPaidCommand(
+                "MOCK", created.getPaymentNo(), "TXN-20007", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}"));
+        callbackService.callbackPaid(new PaymentCallbackPaidCommand(
+                "MOCK", created.getPaymentNo(), "TXN-20007", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}"));
+        callbackService.callbackFailed(new PaymentCallbackFailedCommand(
+                "MOCK", created.getPaymentNo(), "FAILED", "{\"tradeStatus\":\"FAILED\"}", "CHANNEL_FAIL"));
 
         List<PaymentAuditLog> auditLogs = repository.listLogsByPaymentNo(created.getPaymentNo());
 
@@ -188,14 +198,17 @@ class PaymentApplicationServiceTest {
                 new PaymentCloseApplicationService(repository, paymentOperationLogSupport(repository));
 
         PaymentCreateResult created = createService.createPayment(
-                "ORD-10004",
-                2004L,
-                new BigDecimal("28.00"),
-                "MOCK",
-                "close",
-                Instant.now().plusSeconds(1800));
-        PaymentCloseResult first = closeService.closePayment(created.getPaymentNo(), "SYSTEM_CANCELLED");
-        PaymentCloseResult second = closeService.closePayment(created.getPaymentNo(), "SYSTEM_CANCELLED");
+                new PaymentCreateCommand(
+                        "ORD-10004",
+                        2004L,
+                        new BigDecimal("28.00"),
+                        "MOCK",
+                        "close",
+                        Instant.now().plusSeconds(1800)));
+        PaymentCloseResult first = closeService.closePayment(
+                new PaymentCloseCommand(created.getPaymentNo(), "SYSTEM_CANCELLED"));
+        PaymentCloseResult second = closeService.closePayment(
+                new PaymentCloseCommand(created.getPaymentNo(), "SYSTEM_CANCELLED"));
 
         assertEquals("SUCCESS", first.getCloseResult());
         assertEquals("SUCCESS", second.getCloseResult());
@@ -212,12 +225,13 @@ class PaymentApplicationServiceTest {
                 repository, paymentOperationLogSupport(repository), () -> "PAY-20005", idGenerator());
 
         PaymentCreateResult result = assertDoesNotThrow(() -> service.createPayment(
-                "ORD-10005",
-                2005L,
-                BigDecimal.ONE,
-                "MOCK",
-                "audit-fail",
-                Instant.now().plusSeconds(1800)));
+                new PaymentCreateCommand(
+                        "ORD-10005",
+                        2005L,
+                        BigDecimal.ONE,
+                        "MOCK",
+                        "audit-fail",
+                        Instant.now().plusSeconds(1800))));
 
         assertEquals("PAY-20005", result.getPaymentNo());
         assertEquals(
@@ -233,19 +247,19 @@ class PaymentApplicationServiceTest {
         StubOrderCommandFacade orderCommandFacade = new StubOrderCommandFacade();
         PaymentCreateApplicationService createService = new PaymentCreateApplicationService(
                 repository, paymentOperationLogSupport(repository), () -> "PAY-20006", idGenerator());
-        createService.createPayment(
+        createService.createPayment(new PaymentCreateCommand(
                 "ORD-10006",
                 2006L,
                 new BigDecimal("18.00"),
                 "MOCK",
                 "audit-fail-callback",
-                Instant.now().plusSeconds(1800));
+                Instant.now().plusSeconds(1800)));
         repository.failAuditInsert = true;
         PaymentCallbackApplicationService callbackService = new PaymentCallbackApplicationService(
                 repository, repository, paymentOperationLogSupport(repository), orderCommandFacade, idGenerator());
 
-        assertDoesNotThrow(() -> callbackService.callbackPaid(
-                "MOCK", "PAY-20006", "TXN-20006", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}"));
+        assertDoesNotThrow(() -> callbackService.callbackPaid(new PaymentCallbackPaidCommand(
+                "MOCK", "PAY-20006", "TXN-20006", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}")));
 
         PaymentOrder paymentOrder = repository.findByPaymentNo("PAY-20006").orElseThrow();
         assertEquals(PaymentStatus.PAID, paymentOrder.getPaymentStatus());

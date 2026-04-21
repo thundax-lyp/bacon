@@ -3,7 +3,7 @@ package com.github.thundax.bacon.payment.interfaces.controller;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.payment.application.audit.PaymentAuditQueryApplicationService;
-import com.github.thundax.bacon.payment.interfaces.assembler.PaymentAuditLogResponseAssembler;
+import com.github.thundax.bacon.payment.interfaces.assembler.PaymentInterfaceAssembler;
 import com.github.thundax.bacon.payment.interfaces.response.PaymentAuditLogResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +32,7 @@ public class PaymentAuditLogController {
     @HasPermission("payment:payment:view")
     @GetMapping("/{paymentNo}/audit-logs")
     public List<PaymentAuditLogResponse> getByPaymentNo(@PathVariable("paymentNo") @NotBlank String paymentNo) {
-        return PaymentAuditLogResponseAssembler.from(paymentAuditQueryApplicationService.getByPaymentNo(paymentNo));
+        return PaymentInterfaceAssembler.toAuditLogResponses(
+                paymentAuditQueryApplicationService.getByPaymentNo(PaymentInterfaceAssembler.toAuditLogQuery(paymentNo)));
     }
 }

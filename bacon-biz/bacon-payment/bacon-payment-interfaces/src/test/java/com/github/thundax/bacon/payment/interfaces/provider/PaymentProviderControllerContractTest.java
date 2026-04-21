@@ -13,9 +13,11 @@ import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.payment.application.dto.PaymentAuditLogDTO;
 import com.github.thundax.bacon.payment.application.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.application.audit.PaymentAuditLogQuery;
 import com.github.thundax.bacon.payment.application.audit.PaymentAuditQueryApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCloseApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCreateApplicationService;
+import com.github.thundax.bacon.payment.application.query.PaymentGetByPaymentNoQuery;
 import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicationService;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
@@ -158,12 +160,12 @@ class PaymentProviderControllerContractTest {
         }
 
         @Override
-        public PaymentDetailDTO getByPaymentNo(String paymentNo) {
+        public PaymentDetailDTO getByPaymentNo(PaymentGetByPaymentNoQuery query) {
             if (Long.valueOf(9999L).equals(BaconContextHolder.currentTenantId())) {
-                throw new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo);
+                throw new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, query.paymentNo());
             }
             return new PaymentDetailDTO(
-                    paymentNo,
+                    query.paymentNo(),
                     "ORD-10001",
                     2001L,
                     "MOCK",
@@ -188,9 +190,15 @@ class PaymentProviderControllerContractTest {
         }
 
         @Override
-        public List<PaymentAuditLogDTO> getByPaymentNo(String paymentNo) {
+        public List<PaymentAuditLogDTO> getByPaymentNo(PaymentAuditLogQuery query) {
             return List.of(new PaymentAuditLogDTO(
-                    paymentNo, "CREATE", null, "PAYING", "SYSTEM", "0", Instant.parse("2026-03-27T10:00:00Z")));
+                    query.paymentNo(),
+                    "CREATE",
+                    null,
+                    "PAYING",
+                    "SYSTEM",
+                    "0",
+                    Instant.parse("2026-03-27T10:00:00Z")));
         }
     }
 }

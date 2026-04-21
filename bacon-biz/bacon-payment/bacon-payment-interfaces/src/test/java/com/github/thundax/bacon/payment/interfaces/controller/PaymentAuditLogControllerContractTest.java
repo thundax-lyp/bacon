@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.payment.application.dto.PaymentAuditLogDTO;
+import com.github.thundax.bacon.payment.application.audit.PaymentAuditLogQuery;
 import com.github.thundax.bacon.payment.application.audit.PaymentAuditQueryApplicationService;
 import java.time.Instant;
 import java.util.List;
@@ -48,9 +49,15 @@ class PaymentAuditLogControllerContractTest {
         }
 
         @Override
-        public List<PaymentAuditLogDTO> getByPaymentNo(String paymentNo) {
+        public List<PaymentAuditLogDTO> getByPaymentNo(PaymentAuditLogQuery query) {
             return List.of(new PaymentAuditLogDTO(
-                    paymentNo, "CREATE", null, "PAYING", "SYSTEM", "0", Instant.parse("2026-03-27T10:00:00Z")));
+                    query.paymentNo(),
+                    "CREATE",
+                    null,
+                    "PAYING",
+                    "SYSTEM",
+                    "0",
+                    Instant.parse("2026-03-27T10:00:00Z")));
         }
     }
 }

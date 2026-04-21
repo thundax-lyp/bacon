@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.payment.interfaces.controller;
 
 import com.github.thundax.bacon.payment.application.command.PaymentCallbackApplicationService;
+import com.github.thundax.bacon.payment.interfaces.assembler.PaymentInterfaceAssembler;
 import com.github.thundax.bacon.payment.interfaces.request.PaymentCallbackRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,18 +33,10 @@ public class PaymentCallbackController {
             @Valid @RequestBody PaymentCallbackRequest request) {
         if (request.isSuccess()) {
             paymentCallbackApplicationService.callbackPaid(
-                    channelCode,
-                    request.getPaymentNo(),
-                    request.getChannelTransactionNo(),
-                    request.getChannelStatus(),
-                    request.getRawPayload());
+                    PaymentInterfaceAssembler.toCallbackPaidCommand(channelCode, request));
             return;
         }
         paymentCallbackApplicationService.callbackFailed(
-                channelCode,
-                request.getPaymentNo(),
-                request.getChannelStatus(),
-                request.getRawPayload(),
-                request.getReason());
+                PaymentInterfaceAssembler.toCallbackFailedCommand(channelCode, request));
     }
 }

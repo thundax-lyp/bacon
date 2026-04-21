@@ -1,13 +1,14 @@
 package com.github.thundax.bacon.payment.interfaces.provider;
 
-import com.github.thundax.bacon.payment.application.dto.PaymentAuditLogDTO;
-import com.github.thundax.bacon.payment.application.command.PaymentCloseResult;
-import com.github.thundax.bacon.payment.application.command.PaymentCreateResult;
-import com.github.thundax.bacon.payment.application.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentAuditQueryApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCloseApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCreateApplicationService;
 import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicationService;
+import com.github.thundax.bacon.payment.interfaces.assembler.PaymentInterfaceAssembler;
+import com.github.thundax.bacon.payment.interfaces.response.PaymentAuditLogResponse;
+import com.github.thundax.bacon.payment.interfaces.response.PaymentCloseResponse;
+import com.github.thundax.bacon.payment.interfaces.response.PaymentCreateResponse;
+import com.github.thundax.bacon.payment.interfaces.response.PaymentDetailResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
@@ -48,38 +49,43 @@ public class PaymentProviderController {
 
     @Operation(summary = "按支付单号查询支付单")
     @GetMapping("/{paymentNo}")
-    public PaymentDetailDTO getByPaymentNo(@PathVariable("paymentNo") @NotBlank String paymentNo) {
-        return paymentQueryService.getByPaymentNo(paymentNo);
+    public PaymentDetailResponse getByPaymentNo(@PathVariable("paymentNo") @NotBlank String paymentNo) {
+        return PaymentInterfaceAssembler.toDetailResponse(
+                paymentQueryService.getByPaymentNo(PaymentInterfaceAssembler.toGetByPaymentNoQuery(paymentNo)));
     }
 
     @Operation(summary = "按订单号查询支付单")
     @GetMapping
-    public PaymentDetailDTO getByOrderNo(@RequestParam("orderNo") @NotBlank String orderNo) {
-        return paymentQueryService.getByOrderNo(orderNo);
+    public PaymentDetailResponse getByOrderNo(@RequestParam("orderNo") @NotBlank String orderNo) {
+        return PaymentInterfaceAssembler.toDetailResponse(
+                paymentQueryService.getByOrderNo(PaymentInterfaceAssembler.toGetByOrderNoQuery(orderNo)));
     }
 
     @Operation(summary = "按支付单号查询支付审计日志")
     @GetMapping("/{paymentNo}/audit-logs")
-    public List<PaymentAuditLogDTO> getAuditLogsByPaymentNo(@PathVariable("paymentNo") @NotBlank String paymentNo) {
-        return paymentAuditQueryApplicationService.getByPaymentNo(paymentNo);
+    public List<PaymentAuditLogResponse> getAuditLogsByPaymentNo(@PathVariable("paymentNo") @NotBlank String paymentNo) {
+        return PaymentInterfaceAssembler.toAuditLogResponses(
+                paymentAuditQueryApplicationService.getByPaymentNo(PaymentInterfaceAssembler.toAuditLogQuery(paymentNo)));
     }
 
     @Operation(summary = "创建支付单")
     @PostMapping("/create")
-    public PaymentCreateResult createPayment(
+    public PaymentCreateResponse createPayment(
             @RequestParam("orderNo") @NotBlank String orderNo,
             @RequestParam("userId") @NotNull @Positive Long userId,
             @RequestParam("amount") @NotNull BigDecimal amount,
             @RequestParam("channelCode") @NotBlank String channelCode,
             @RequestParam("subject") @NotBlank String subject,
             @RequestParam("expiredAt") @NotNull Instant expiredAt) {
-        return paymentCreateApplicationService.createPayment(orderNo, userId, amount, channelCode, subject, expiredAt);
+        return PaymentInterfaceAssembler.toCreateResponse(paymentCreateApplicationService.createPayment(
+                PaymentInterfaceAssembler.toCreateCommand(orderNo, userId, amount, channelCode, subject, expiredAt)));
     }
 
     @Operation(summary = "关闭支付单")
     @PostMapping("/close")
-    public PaymentCloseResult closePayment(
+    public PaymentCloseResponse closePayment(
             @RequestParam("paymentNo") @NotBlank String paymentNo, @RequestParam("reason") @NotBlank String reason) {
-        return paymentCloseApplicationService.closePayment(paymentNo, reason);
+        return PaymentInterfaceAssembler.toCloseResponse(
+                paymentCloseApplicationService.closePayment(PaymentInterfaceAssembler.toCloseCommand(paymentNo, reason)));
     }
 }

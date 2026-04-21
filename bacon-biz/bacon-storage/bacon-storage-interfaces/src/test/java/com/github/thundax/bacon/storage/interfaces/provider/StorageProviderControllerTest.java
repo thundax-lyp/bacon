@@ -27,7 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-class StorageProviderControllerContractTest {
+class StorageProviderControllerTest {
 
     private static final String PROVIDER_TOKEN = "storage-token";
 
@@ -51,7 +51,7 @@ class StorageProviderControllerContractTest {
     }
 
     @Test
-    void shouldExposeUploadProviderPath() throws Exception {
+    void shouldReturnUploadedObjectWithoutResponseEnvelope() throws Exception {
         when(storedObjectCommandApplicationService.uploadObject(any())).thenReturn(new StoredObjectDTO(
                 "storage-20260327100000-000001",
                 "LOCAL_FILE",
@@ -78,7 +78,7 @@ class StorageProviderControllerContractTest {
     }
 
     @Test
-    void shouldExposeMultipartInitPath() throws Exception {
+    void shouldReturnMultipartInitResultWithoutResponseEnvelope() throws Exception {
         when(storedObjectCommandApplicationService.initMultipartUpload(any()))
                 .thenReturn(new MultipartUploadSessionDTO(
                         "storage20260327100000-001001",
@@ -107,7 +107,7 @@ class StorageProviderControllerContractTest {
     }
 
     @Test
-    void shouldExposeMultipartPartUploadPath() throws Exception {
+    void shouldReturnMultipartPartUploadResultWithoutResponseEnvelope() throws Exception {
         when(storedObjectCommandApplicationService.uploadMultipartPart(any()))
                 .thenReturn(new MultipartUploadPartDTO("1", 1, "etag-1"));
         MockMultipartFile file =
@@ -126,7 +126,7 @@ class StorageProviderControllerContractTest {
     }
 
     @Test
-    void shouldExposeMultipartCompletePath() throws Exception {
+    void shouldReturnMultipartCompleteResultWithoutResponseEnvelope() throws Exception {
         when(storedObjectCommandApplicationService.completeMultipartUpload(any()))
                 .thenReturn(new StoredObjectDTO(
                         "storage-20260327100000-000002",
@@ -151,7 +151,7 @@ class StorageProviderControllerContractTest {
     }
 
     @Test
-    void shouldExposeMultipartAbortPath() throws Exception {
+    void shouldAbortMultipartUploadWithoutResponseEnvelope() throws Exception {
         doNothing().when(storedObjectCommandApplicationService).abortMultipartUpload(any());
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/multipart/{uploadId}", "1")
@@ -162,7 +162,7 @@ class StorageProviderControllerContractTest {
     }
 
     @Test
-    void shouldExposeGetObjectPath() throws Exception {
+    void shouldReturnStoredObjectWithoutResponseEnvelope() throws Exception {
         StoredObjectQueryApplicationService storedObjectQueryApplicationService =
                 Mockito.mock(StoredObjectQueryApplicationService.class);
         StorageProviderController controller =
@@ -192,7 +192,7 @@ class StorageProviderControllerContractTest {
     }
 
     @Test
-    void shouldExposePageObjectsPath() throws Exception {
+    void shouldReturnPagedStoredObjectsWithoutResponseEnvelope() throws Exception {
         StoredObjectQueryApplicationService storedObjectQueryApplicationService =
                 Mockito.mock(StoredObjectQueryApplicationService.class);
         StorageProviderController controller =
@@ -231,7 +231,7 @@ class StorageProviderControllerContractTest {
     }
 
     @Test
-    void shouldExposeMarkReferencePath() throws Exception {
+    void shouldMarkStoredObjectReferenceWithoutResponseEnvelope() throws Exception {
         doNothing().when(storedObjectCommandApplicationService).markObjectReferenced(any());
 
         mockMvc.perform(post("/providers/storage/objects/{storedObjectNo}/references", "storage-20260327100000-000100")
@@ -242,7 +242,7 @@ class StorageProviderControllerContractTest {
     }
 
     @Test
-    void shouldExposeClearReferencePath() throws Exception {
+    void shouldClearStoredObjectReferenceWithoutResponseEnvelope() throws Exception {
         doNothing().when(storedObjectCommandApplicationService).clearObjectReference(any());
 
         mockMvc.perform(MockMvcRequestBuilders.delete(
@@ -254,7 +254,7 @@ class StorageProviderControllerContractTest {
     }
 
     @Test
-    void shouldExposeDeleteObjectPath() throws Exception {
+    void shouldDeleteStoredObjectWithoutResponseEnvelope() throws Exception {
         doNothing().when(storedObjectCommandApplicationService).deleteObject(any());
 
         mockMvc.perform(

@@ -9,7 +9,7 @@ class StorageSimpleEnumArchitectureTest {
     @Test
     @DisplayName(
             "domain.model.enums：简单枚举统一成 value() -> name()、from() 走 Arrays.stream(values()) + equalsIgnoreCase + orElseThrow(...)")
-    void storageSimpleEnumsShouldUseNameAndFromConvention() {
+    void shouldUseNameAndFromConventionForStorageSimpleEnums() {
         NamingAndPlacementRuleSupport.simpleEnumShouldUseNameAndFromConvention(
                         "com.github.thundax.bacon.storage.domain.model.enums.*")
                 .check(NamingAndPlacementRuleSupport.importDomainClasses("com.github.thundax.bacon.storage"));

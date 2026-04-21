@@ -25,7 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class TenantApplicationServiceTest {
+class TenantCommandApplicationServiceTest {
 
     @Mock
     private TenantRepository tenantRepository;
@@ -36,11 +36,11 @@ class TenantApplicationServiceTest {
     @Mock
     private IdGenerator idGenerator;
 
-    private TenantApplicationService service;
+    private TenantCommandApplicationService service;
 
     @BeforeEach
     void setUp() {
-        service = new TenantApplicationService(tenantRepository, sessionCommandFacade, idGenerator);
+        service = new TenantCommandApplicationService(tenantRepository, sessionCommandFacade, idGenerator);
     }
 
     @Test
@@ -55,8 +55,8 @@ class TenantApplicationServiceTest {
                         TenantStatus.ACTIVE,
                         Instant.parse("2099-01-01T00:00:00Z")));
 
-        TenantDTO result = service.createTenant(
-                "Demo Tenant", TenantCode.of("TENANT_DEMO"), Instant.parse("2099-01-01T00:00:00Z"));
+        TenantDTO result = service.create(new TenantCreateCommand(
+                "Demo Tenant", TenantCode.of("TENANT_DEMO"), Instant.parse("2099-01-01T00:00:00Z")));
 
         assertThat(result.getId()).isEqualTo(1001L);
         assertThat(result.getName()).isEqualTo("Demo Tenant");
@@ -75,14 +75,15 @@ class TenantApplicationServiceTest {
                         TenantStatus.ACTIVE,
                         Instant.parse("2099-01-01T00:00:00Z"))));
 
-        assertThatThrownBy(() -> service.createTenant("Other", TenantCode.of("TENANT_DEMO"), null))
+        assertThatThrownBy(() -> service.create(new TenantCreateCommand("Other", TenantCode.of("TENANT_DEMO"), null)))
                 .isInstanceOf(ConflictException.class)
                 .hasMessage("Tenant code already exists: TENANT_DEMO");
     }
 
     @Test
     void shouldRejectInvalidTenantCode() {
-        assertThatThrownBy(() -> service.createTenant("Demo Tenant", TenantCode.of("tenant-demo"), null))
+        assertThatThrownBy(
+                        () -> service.create(new TenantCreateCommand("Demo Tenant", TenantCode.of("tenant-demo"), null)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("tenantCode must match [A-Z0-9_]+");
     }
@@ -94,7 +95,8 @@ class TenantApplicationServiceTest {
         when(tenantRepository.update(any(Tenant.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        TenantDTO result = service.updateTenantStatus(TenantId.of(1001L), TenantStatus.DISABLED);
+        TenantDTO result = service.updateStatus(
+                new TenantStatusUpdateCommand(TenantId.of(1001L), TenantStatus.DISABLED));
 
         assertThat(result.getStatus()).isEqualTo("DISABLED");
         verify(sessionCommandFacade)

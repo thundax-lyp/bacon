@@ -5,22 +5,18 @@ import com.github.thundax.bacon.auth.api.request.SessionInvalidateTenantFacadeRe
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.application.assembler.TenantAssembler;
 import com.github.thundax.bacon.upms.application.dto.TenantDTO;
-import com.github.thundax.bacon.common.core.result.PageResult;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
-import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
-import java.time.Instant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class TenantApplicationService {
+public class TenantCommandApplicationService {
 
     private static final String TENANT_ID_BIZ_TAG = "tenant-id";
 
@@ -28,69 +24,57 @@ public class TenantApplicationService {
     private final SessionCommandFacade sessionCommandFacade;
     private final IdGenerator idGenerator;
 
-    public TenantApplicationService(
+    public TenantCommandApplicationService(
             TenantRepository tenantRepository, SessionCommandFacade sessionCommandFacade, IdGenerator idGenerator) {
         this.tenantRepository = tenantRepository;
         this.sessionCommandFacade = sessionCommandFacade;
         this.idGenerator = idGenerator;
     }
 
-    public PageResult<TenantDTO> page(String name, TenantStatus status, Integer pageNo, Integer pageSize) {
-        // 租户分页属于运营后台能力，统一先归一化分页参数，避免不同入口传入 0/负数时结果漂移。
-        int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
-        int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
-        return new PageResult<>(
-                tenantRepository.page(name, status, normalizedPageNo, normalizedPageSize).stream()
-                        .map(TenantAssembler::toDto)
-                        .toList(),
-                tenantRepository.count(name, status),
-                normalizedPageNo,
-                normalizedPageSize);
-    }
-
     @Transactional
-    public TenantDTO createTenant(String name, TenantCode code, Instant expiredAt) {
-        validateRequired(name, "name");
-        if (code == null) {
+    public TenantDTO create(TenantCreateCommand command) {
+        validateRequired(command.name(), "name");
+        if (command.code() == null) {
             throw new BadRequestException("code must not be null");
         }
         TenantId tenantId = TenantId.of(idGenerator.nextId(TENANT_ID_BIZ_TAG));
-        tenantRepository.findByCode(code).ifPresent(tenant -> {
-            throw new ConflictException("Tenant code already exists: " + code.value());
+        tenantRepository.findByCode(command.code()).ifPresent(tenant -> {
+            throw new ConflictException("Tenant code already exists: " + command.code().value());
         });
-        return TenantAssembler.toDto(tenantRepository.insert(Tenant.create(tenantId, name.trim(), code, expiredAt)));
+        return TenantAssembler.toDto(tenantRepository.insert(Tenant.create(
+                tenantId, command.name().trim(), command.code(), command.expiredAt())));
     }
 
     @Transactional
-    public TenantDTO updateTenant(TenantId tenantId, String name, TenantCode code, Instant expiredAt) {
-        validateRequired(name, "name");
-        if (code == null) {
+    public TenantDTO update(TenantUpdateCommand command) {
+        validateRequired(command.name(), "name");
+        if (command.code() == null) {
             throw new BadRequestException("code must not be null");
         }
-        Tenant currentTenant = requireTenant(tenantId);
+        Tenant currentTenant = requireTenant(command.tenantId());
         tenantRepository
-                .findByCode(code)
-                .filter(tenant -> !tenant.getId().equals(tenantId))
+                .findByCode(command.code())
+                .filter(tenant -> !tenant.getId().equals(command.tenantId()))
                 .ifPresent(tenant -> {
-                    throw new ConflictException("Tenant code already exists: " + code.value());
+                    throw new ConflictException("Tenant code already exists: " + command.code().value());
                 });
-        currentTenant.rename(name.trim());
-        currentTenant.recodeAs(code);
-        if (expiredAt == null) {
+        currentTenant.rename(command.name().trim());
+        currentTenant.recodeAs(command.code());
+        if (command.expiredAt() == null) {
             currentTenant.clearExpiry();
         } else {
-            currentTenant.renewTo(expiredAt);
+            currentTenant.renewTo(command.expiredAt());
         }
         return TenantAssembler.toDto(tenantRepository.update(currentTenant));
     }
 
     @Transactional
-    public TenantDTO updateTenantStatus(TenantId tenantId, TenantStatus status) {
-        if (status == null) {
+    public TenantDTO updateStatus(TenantStatusUpdateCommand command) {
+        if (command.status() == null) {
             throw new BadRequestException("status must not be null");
         }
-        Tenant tenant = requireTenant(tenantId);
-        if (TenantStatus.ACTIVE == status) {
+        Tenant tenant = requireTenant(command.tenantId());
+        if (TenantStatus.ACTIVE == command.status()) {
             tenant.activate();
         } else {
             tenant.disable();
@@ -102,10 +86,6 @@ public class TenantApplicationService {
                     new SessionInvalidateTenantFacadeRequest(tenant.getId().value(), "TENANT_DISABLED"));
         }
         return TenantAssembler.toDto(tenant);
-    }
-
-    public TenantDTO getTenantByTenantId(TenantId tenantId) {
-        return TenantAssembler.toDto(requireTenant(tenantId));
     }
 
     private Tenant requireTenant(TenantId tenantId) {

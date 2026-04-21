@@ -18,11 +18,16 @@ import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.order.application.command.OrderCancelApplicationService;
+import com.github.thundax.bacon.order.application.command.OrderCloseExpiredCommand;
 import com.github.thundax.bacon.order.application.command.OrderOutboxDeadLetterReplayApplicationService;
+import com.github.thundax.bacon.order.application.command.OrderMarkPaidCommand;
+import com.github.thundax.bacon.order.application.command.OrderMarkPaymentFailedCommand;
 import com.github.thundax.bacon.order.application.command.OrderPaymentResultApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderTimeoutApplicationService;
 import com.github.thundax.bacon.order.application.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.application.dto.OrderSummaryDTO;
+import com.github.thundax.bacon.order.application.query.OrderByOrderNoQuery;
+import com.github.thundax.bacon.order.application.query.OrderPageQuery;
 import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
 import com.github.thundax.bacon.order.application.result.OrderOutboxDeadLetterReplayResult;
 import com.github.thundax.bacon.order.application.result.OrderPageResult;
@@ -271,10 +276,10 @@ class OrderInterfaceContractTest {
         }
 
         @Override
-        public OrderDetailDTO getByOrderNo(OrderNo orderNo) {
+        public OrderDetailDTO getByOrderNo(OrderByOrderNoQuery query) {
             return new OrderDetailDTO(
                     1L,
-                    orderNo == null ? null : orderNo.value(),
+                    query.orderNo() == null ? null : query.orderNo().value(),
                     2001L,
                     "CREATED",
                     "UNPAID",
@@ -296,16 +301,7 @@ class OrderInterfaceContractTest {
         }
 
         @Override
-        public OrderPageResult page(
-                UserId userId,
-                OrderNo orderNo,
-                OrderStatus orderStatus,
-                PayStatus payStatus,
-                InventoryStatus inventoryStatus,
-                Instant createdAtFrom,
-                Instant createdAtTo,
-                Integer pageNo,
-                Integer pageSize) {
+        public OrderPageResult page(OrderPageQuery query) {
             if (Long.valueOf(9999L)
                     .equals(com.github.thundax.bacon.common.core.context.BaconContextHolder.currentTenantId())) {
                 throw new IllegalArgumentException("Invalid tenant: "
@@ -353,12 +349,10 @@ class OrderInterfaceContractTest {
         }
 
         @Override
-        public void markPaid(
-                OrderNo orderNo, PaymentNo paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {}
+        public void markPaid(OrderMarkPaidCommand command) {}
 
         @Override
-        public void markPaymentFailed(
-                OrderNo orderNo, PaymentNo paymentNo, String reason, String channelStatus, Instant failedTime) {}
+        public void markPaymentFailed(OrderMarkPaymentFailedCommand command) {}
     }
 
     private static final class StubOrderTimeoutApplicationService extends OrderTimeoutApplicationService {
@@ -368,6 +362,6 @@ class OrderInterfaceContractTest {
         }
 
         @Override
-        public void closeExpiredOrder(OrderNo orderNo, String reason) {}
+        public void closeExpiredOrder(OrderCloseExpiredCommand command) {}
     }
 }

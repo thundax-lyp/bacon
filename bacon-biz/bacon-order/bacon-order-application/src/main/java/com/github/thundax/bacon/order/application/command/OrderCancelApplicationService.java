@@ -46,14 +46,14 @@ public class OrderCancelApplicationService {
     }
 
     @Transactional
-    public void cancel(OrderNo orderNo, String reason) {
+    public void cancel(OrderCancelCommand command) {
         BaconContextHolder.requireTenantId();
-        String resolvedReason = reason == null || reason.isBlank() ? "USER_CANCELLED" : reason;
+        String resolvedReason = command.reason() == null || command.reason().isBlank() ? "USER_CANCELLED" : command.reason();
         // 取消订单走幂等执行器，避免用户重复点击或上游重复投递时把关单/释放库存执行多次。
         orderIdempotencyExecutor.execute(
                 OrderIdempotencyExecutor.EVENT_CANCEL,
-                OrderNoCodec.toValue(orderNo),
-                () -> doCancel(orderNo, resolvedReason));
+                OrderNoCodec.toValue(command.orderNo()),
+                () -> doCancel(command.orderNo(), resolvedReason));
     }
 
     private void doCancel(OrderNo orderNo, String reason) {

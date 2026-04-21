@@ -20,6 +20,10 @@ import com.github.thundax.bacon.order.application.assembler.OrderSummaryAssemble
 import com.github.thundax.bacon.order.application.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
 import com.github.thundax.bacon.order.application.codec.OrderIdempotencyRecordKeyCodec;
+import com.github.thundax.bacon.order.application.command.OrderCancelCommand;
+import com.github.thundax.bacon.order.application.command.OrderMarkPaidCommand;
+import com.github.thundax.bacon.order.application.query.OrderByOrderNoQuery;
+import com.github.thundax.bacon.order.application.query.OrderPageQuery;
 import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
 import com.github.thundax.bacon.order.application.result.OrderPageResult;
 import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
@@ -110,12 +114,18 @@ class OrderCreateApplicationServiceTest {
         assertEquals("RESERVING", result.getInventoryStatus());
         assertEquals(
                 1,
-                runWithContext(1001L, 2001L, () -> queryService.getByOrderNo(OrderNo.of("ORD-10001")))
+                runWithContext(
+                                1001L,
+                                2001L,
+                                () -> queryService.getByOrderNo(new OrderByOrderNoQuery(OrderNo.of("ORD-10001"))))
                         .getItems()
                         .size());
         assertEquals(
                 "https://cdn.example.com/101.png",
-                runWithContext(1001L, 2001L, () -> queryService.getByOrderNo(OrderNo.of("ORD-10001")))
+                runWithContext(
+                                1001L,
+                                2001L,
+                                () -> queryService.getByOrderNo(new OrderByOrderNoQuery(OrderNo.of("ORD-10001"))))
                         .getItems()
                         .get(0)
                         .getImageUrl());
@@ -191,17 +201,28 @@ class OrderCreateApplicationServiceTest {
             paidOrder.markPendingPayment(PaymentNo.of("PAY-" + paid.getOrderNo()), "MOCK");
             repository.update(paidOrder);
             paymentResultService.markPaid(
-                    OrderNo.of(paid.getOrderNo()),
-                    PaymentNo.of("PAY-1"),
-                    "MOCK",
-                    BigDecimal.valueOf(20),
-                    Instant.parse("2026-03-26T10:00:00Z"));
+                    new OrderMarkPaidCommand(
+                            OrderNo.of(paid.getOrderNo()),
+                            PaymentNo.of("PAY-1"),
+                            "MOCK",
+                            BigDecimal.valueOf(20),
+                            Instant.parse("2026-03-26T10:00:00Z")));
         });
 
         OrderPageResult page = runWithContext(
                 1001L,
                 2001L,
-                () -> queryService.page(UserId.of(2001L), null, null, PayStatus.UNPAID, null, null, null, 1, 10));
+                () -> queryService.page(
+                        new OrderPageQuery(
+                                UserId.of(2001L),
+                                null,
+                                null,
+                                PayStatus.UNPAID,
+                                null,
+                                null,
+                                null,
+                                1,
+                                10)));
 
         assertEquals(1, page.getTotal());
         assertEquals(1, page.getRecords().size());
@@ -248,7 +269,10 @@ class OrderCreateApplicationServiceTest {
                         List.of(new CreateOrderItemCommand(
                                 101L, "item-1", "https://cdn.example.com/101.png", 1, BigDecimal.valueOf(10))))));
 
-        runWithContext(1001L, 2001L, () -> cancelService.cancel(OrderNo.of(created.getOrderNo()), "SYSTEM_CANCELLED"));
+        runWithContext(
+                1001L,
+                2001L,
+                () -> cancelService.cancel(new OrderCancelCommand(OrderNo.of(created.getOrderNo()), "SYSTEM_CANCELLED")));
         Order found = runWithContext(1001L, 2001L, () -> repository
                 .findByOrderNo(OrderNo.of(created.getOrderNo()))
                 .orElseThrow());

@@ -1,12 +1,11 @@
 package com.github.thundax.bacon.order.interfaces.provider;
 
-import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
-import com.github.thundax.bacon.common.commerce.codec.PaymentNoCodec;
-import com.github.thundax.bacon.order.api.request.OrderCloseExpiredFacadeRequest;
 import com.github.thundax.bacon.order.api.request.OrderMarkPaidFacadeRequest;
 import com.github.thundax.bacon.order.api.request.OrderMarkPaymentFailedFacadeRequest;
+import com.github.thundax.bacon.order.api.request.OrderCloseExpiredFacadeRequest;
 import com.github.thundax.bacon.order.application.command.OrderPaymentResultApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderTimeoutApplicationService;
+import com.github.thundax.bacon.order.interfaces.assembler.OrderInterfaceAssembler;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
@@ -33,26 +32,17 @@ public class OrderCommandProviderController {
 
     @PostMapping("/mark-paid")
     public void markPaid(@Valid @RequestBody OrderMarkPaidFacadeRequest request) {
-        orderPaymentResultApplicationService.markPaid(
-                OrderNoCodec.toDomain(request.getOrderNo()),
-                PaymentNoCodec.toDomain(request.getPaymentNo()),
-                request.getChannelCode(),
-                request.getPaidAmount(),
-                request.getPaidTime());
+        orderPaymentResultApplicationService.markPaid(OrderInterfaceAssembler.toMarkPaidCommand(request));
     }
 
     @PostMapping("/mark-payment-failed")
     public void markPaymentFailed(@Valid @RequestBody OrderMarkPaymentFailedFacadeRequest request) {
         orderPaymentResultApplicationService.markPaymentFailed(
-                OrderNoCodec.toDomain(request.getOrderNo()),
-                PaymentNoCodec.toDomain(request.getPaymentNo()),
-                request.getReason(),
-                request.getChannelStatus(),
-                request.getFailedTime());
+                OrderInterfaceAssembler.toMarkPaymentFailedCommand(request));
     }
 
     @PostMapping("/close-expired")
     public void closeExpired(@Valid @RequestBody OrderCloseExpiredFacadeRequest request) {
-        orderTimeoutApplicationService.closeExpiredOrder(OrderNoCodec.toDomain(request.getOrderNo()), request.getReason());
+        orderTimeoutApplicationService.closeExpiredOrder(OrderInterfaceAssembler.toCloseExpiredCommand(request));
     }
 }

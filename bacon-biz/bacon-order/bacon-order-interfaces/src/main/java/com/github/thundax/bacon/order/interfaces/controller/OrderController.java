@@ -1,7 +1,5 @@
 package com.github.thundax.bacon.order.interfaces.controller;
 
-import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
-import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.order.application.codec.OrderIdCodec;
@@ -10,9 +8,7 @@ import com.github.thundax.bacon.order.application.command.OrderCancelApplication
 import com.github.thundax.bacon.order.application.command.OrderCreateApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderOutboxDeadLetterReplayApplicationService;
 import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
-import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
-import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
-import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
+import com.github.thundax.bacon.order.interfaces.assembler.OrderInterfaceAssembler;
 import com.github.thundax.bacon.order.interfaces.request.CancelOrderRequest;
 import com.github.thundax.bacon.order.interfaces.request.CreateOrderRequest;
 import com.github.thundax.bacon.order.interfaces.request.OrderPageRequest;
@@ -61,37 +57,29 @@ public class OrderController {
     @HasPermission("order:order:create")
     @PostMapping
     public OrderSummaryResponse create(@Valid @RequestBody CreateOrderRequest request) {
-        return OrderSummaryResponse.from(orderCreateApplicationService.create(request.toCommand()));
+        return OrderInterfaceAssembler.toSummaryResponse(
+                orderCreateApplicationService.create(OrderInterfaceAssembler.toCreateCommand(request)));
     }
 
     @Operation(summary = "按 ID 查询订单")
     @HasPermission("order:order:view")
     @GetMapping("/{orderId}")
     public OrderDetailResponse getById(@PathVariable @Positive Long orderId) {
-        return OrderDetailResponse.from(orderQueryService.getById(OrderIdCodec.toDomain(orderId)));
+        return OrderInterfaceAssembler.toDetailResponse(orderQueryService.getById(OrderIdCodec.toDomain(orderId)));
     }
 
     @Operation(summary = "分页查询订单")
     @HasPermission("order:order:view")
     @GetMapping
     public OrderPageResponse page(@Valid @ModelAttribute OrderPageRequest request) {
-        return OrderPageResponse.from(orderQueryService.page(
-                UserIdCodec.toDomain(request.getUserId()),
-                OrderNoCodec.toDomain(request.getOrderNo()),
-                request.getOrderStatus() == null ? null : OrderStatus.from(request.getOrderStatus()),
-                request.getPayStatus() == null ? null : PayStatus.from(request.getPayStatus()),
-                request.getInventoryStatus() == null ? null : InventoryStatus.from(request.getInventoryStatus()),
-                request.getCreatedAtFrom(),
-                request.getCreatedAtTo(),
-                request.getPageNo(),
-                request.getPageSize()));
+        return OrderInterfaceAssembler.toPageResponse(orderQueryService.page(OrderInterfaceAssembler.toPageQuery(request)));
     }
 
     @Operation(summary = "取消订单")
     @HasPermission("order:order:cancel")
     @PostMapping("/{orderNo}/cancel")
     public void cancel(@PathVariable @NotBlank String orderNo, @Valid @RequestBody CancelOrderRequest request) {
-        orderCancelApplicationService.cancel(OrderNoCodec.toDomain(orderNo), request.reason());
+        orderCancelApplicationService.cancel(OrderInterfaceAssembler.toCancelCommand(orderNo, request));
     }
 
     @Operation(summary = "回放订单出站死信")
@@ -99,7 +87,7 @@ public class OrderController {
     @PostMapping("/outbox/dead-letters/{deadLetterId}/replay")
     public OrderOutboxDeadLetterReplayResponse replayDeadLetter(
             @PathVariable("deadLetterId") @Positive Long deadLetterId) {
-        return OrderOutboxDeadLetterReplayResponse.from(orderOutboxDeadLetterReplayApplicationService.replay(
+        return OrderInterfaceAssembler.toReplayResponse(orderOutboxDeadLetterReplayApplicationService.replay(
                 OrderOutboxDeadLetterIdCodec.toDomain(deadLetterId)));
     }
 }

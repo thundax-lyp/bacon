@@ -46,13 +46,13 @@ public class OrderTimeoutApplicationService {
     }
 
     @Transactional
-    public void closeExpiredOrder(OrderNo orderNo, String reason) {
+    public void closeExpiredOrder(OrderCloseExpiredCommand command) {
         BaconContextHolder.requireTenantId();
         // 超时关单同样走幂等执行器，防止定时任务重复扫描时对同一订单反复关单和释放资源。
         orderIdempotencyExecutor.execute(
                 OrderIdempotencyExecutor.EVENT_CLOSE_EXPIRED,
-                OrderNoCodec.toValue(orderNo),
-                () -> doCloseExpiredOrder(orderNo, reason));
+                OrderNoCodec.toValue(command.orderNo()),
+                () -> doCloseExpiredOrder(command.orderNo(), command.reason()));
     }
 
     private void doCloseExpiredOrder(OrderNo orderNo, String reason) {

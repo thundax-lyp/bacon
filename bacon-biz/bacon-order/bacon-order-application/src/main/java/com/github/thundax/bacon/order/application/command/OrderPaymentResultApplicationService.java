@@ -48,25 +48,33 @@ public class OrderPaymentResultApplicationService {
     }
 
     @Transactional
-    public void markPaid(
-            OrderNo orderNo, PaymentNo paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
+    public void markPaid(OrderMarkPaidCommand command) {
         BaconContextHolder.requireTenantId();
         // 支付成功回写是跨域回调入口，必须走幂等执行器，避免同一支付结果被重复扣减库存。
         orderIdempotencyExecutor.execute(
                 OrderIdempotencyExecutor.EVENT_MARK_PAID,
-                OrderNoCodec.toValue(orderNo),
-                () -> doMarkPaid(orderNo, paymentNo, channelCode, paidAmount, paidTime));
+                OrderNoCodec.toValue(command.orderNo()),
+                () -> doMarkPaid(
+                        command.orderNo(),
+                        command.paymentNo(),
+                        command.channelCode(),
+                        command.paidAmount(),
+                        command.paidTime()));
     }
 
     @Transactional
-    public void markPaymentFailed(
-            OrderNo orderNo, PaymentNo paymentNo, String reason, String channelStatus, Instant failedTime) {
+    public void markPaymentFailed(OrderMarkPaymentFailedCommand command) {
         BaconContextHolder.requireTenantId();
         // 支付失败回写同样需要幂等，避免重复失败通知把释放库存动作执行多次。
         orderIdempotencyExecutor.execute(
                 OrderIdempotencyExecutor.EVENT_MARK_PAYMENT_FAILED,
-                OrderNoCodec.toValue(orderNo),
-                () -> doMarkPaymentFailed(orderNo, paymentNo, reason, channelStatus, failedTime));
+                OrderNoCodec.toValue(command.orderNo()),
+                () -> doMarkPaymentFailed(
+                        command.orderNo(),
+                        command.paymentNo(),
+                        command.reason(),
+                        command.channelStatus(),
+                        command.failedTime()));
     }
 
     private void doMarkPaid(

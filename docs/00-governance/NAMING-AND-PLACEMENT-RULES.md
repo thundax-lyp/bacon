@@ -56,7 +56,7 @@
 - `LAYER_PERSISTENCE_ASSEMBLER_PLACEMENT`：`*PersistenceAssembler` 必须位于 `infra.persistence.assembler..`
 - `LAYER_PERSISTENCE_ASSEMBLER_PUBLIC_METHODS`：`*PersistenceAssembler` 公开方法只允许 `toDomain(...)`、`toDataObject(...)`
 - `LAYER_APPLICATION_INFRA_NO_ILLEGAL_ARGUMENT`：`application` 与 `infra.repository.impl/support` 禁止把 `IllegalArgumentException` 作为业务异常出口
-- `LAYER_APPLICATION_ASSEMBLER_EXCLUSIVE_MAPPING`：`application.command/query/audit` 不得直接构造 `api.dto`、`interfaces.response`；DTO/Response 装配统一收敛到 `application.assembler`
+- `LAYER_APPLICATION_ASSEMBLER_EXCLUSIVE_MAPPING`：`application.command/query/audit/support` 禁止直接构造业务 `*DTO/*Response`；`Domain <-> DTO/Result` 装配固定收敛到 `application.assembler`
 - `LAYER_ANNOTATION_PLACEMENT_WHITELIST`：`@RestController` 仅允许在 `interfaces.controller/provider`，`@FeignClient` 仅允许在 `infra.facade.remote`，`@Mapper` 仅允许在 `infra.persistence.mapper`，`@TableName/@TableField` 仅允许在 `infra.persistence.dataobject`
 
 ### Naming & Placement

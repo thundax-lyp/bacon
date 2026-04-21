@@ -103,6 +103,30 @@ public abstract class AbstractLayerArchitectureTest {
     }
 
     @Test
+    void shouldKeepRestControllerOnlyInInterfacesControllerAndProvider() {
+        LayerArchitectureRuleSupport.restControllerShouldOnlyAppearInInterfacesControllerAndProvider(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    void shouldKeepFeignClientOnlyInInfraFacadeRemote() {
+        LayerArchitectureRuleSupport.feignClientShouldOnlyAppearInInfraFacadeRemote(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    void shouldKeepMapperOnlyInInfraPersistenceMapper() {
+        LayerArchitectureRuleSupport.mapperShouldOnlyAppearInInfraPersistenceMapper(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    void shouldKeepTableAnnotationsOnlyInInfraPersistenceDataobject() {
+        LayerArchitectureRuleSupport.tableAnnotationsShouldOnlyAppearInInfraPersistenceDataobject(basePackage())
+                .check(classes());
+    }
+
+    @Test
     void shouldKeepDomainRepositoryDependencyInsideInfraRepositoryImpl() {
         LayerArchitectureRuleSupport.infraShouldOnlyDependOnDomainRepositoryAsImplementation(basePackage())
                 .check(classes());

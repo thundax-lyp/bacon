@@ -6,7 +6,6 @@
    - 先收口 `interfaces -> application` 合同
    - 再评审 `auth-api` 中哪些 DTO 真正属于稳定跨域契约
 2. `upms`
-   - 先收尾 `api.dto -> application.dto` 迁移残留
    - 再回收 `UserRepositoryImpl` 中残留业务
 3. `storage`
    - 先统一 `objectId -> storedObjectNo`
@@ -75,24 +74,6 @@
   - 验收点：auth facade 仅保留跨域必要返回模型，避免 `api.dto` 扩散成应用内部模型
   - 重要度：7/10
 
-- [ ] `upms-application`：按领域拆分并下沉用户/租户/角色/部门/资源/岗位读模型
-  - 当前对象：`UserDTO`、`TenantDTO`、`RoleDTO`、`DepartmentDTO`、`DepartmentTreeDTO`、`ResourceDTO`、`PostDTO`
-  - 验收点：这些对象只在 upms 内部查询与装配链路流转
-  - 重要度：9/10
-
-- [ ] `upms-application`：收尾 `api.dto -> application.dto` 迁移残留
-  - 当前阻塞：`DepartmentAssembler`、`UserQueryApplicationService`、`TenantApplicationService` 等仍引用已下沉的 `api.dto`
-  - 验收点：相关模块联编不再因 `com.github.thundax.bacon.upms.api.dto` 缺失而失败
-  - 重要度：9/10
-
-### P1 - Repository 命名统一治理清单
-
-- [ ] `upms`：评审剩余 Repository 是否继续压短，先不直接批量改名
-  - 现状对比：关系型仓储已拆出 `UserRoleRepository`、`RoleMenuRepository`、`RoleResourceRepository`、`RoleDataScopeRepository`；剩余待评审的主要是 `PermissionRepository.listMenuTreeByUserId`、`UserRoleRepository.updateRoleIds`、`SysLogRepository.insertToDatabase/insertToFile`、`DepartmentRepository.listTree`
-  - 处理动作：逐个判断哪些是必要条件信息、哪些仍然带过重业务前缀；输出结论后再改名，不做无结论扫改
-  - 验收点：形成一份 `建议改 / 建议保留 / 暂缓` 结论，且结论基于现有拆分后的仓储版图
-  - 重要度：6/10
-
 ### P2 - 测试覆盖对齐
 
 - [ ] 对齐五域测试深度（重点补 `auth/upms` 的复杂流程用例）
@@ -119,18 +100,6 @@
   - 验收点：controller/provider 不再直接暴露 `domain entity`、`DO`、`FacadeResponse`、跨域 `DTO`
   - 重要度：9/10
 
-- [ ] 增加 ArchUnit 规则：协议模型分层隔离
-  - 现状：application 公共方法已禁止直接使用协议模型，但 `domain/infra/api` 对 `interfaces.request/response`、`api.dto` 的反向依赖仍可继续硬化
-  - 处理动作：限制 `domain` 不得依赖 `interfaces.request/response`、`api.dto`；限制 `infra` 不得依赖 `interfaces.request/response`；限制 `api.facade` 不得使用 `interfaces.*` 模型
-  - 验收点：协议对象停留在各自边界层，防止模型职责串层
-  - 重要度：8/10
-
-- [ ] 增加 ArchUnit 规则：注解使用位置白名单扩展
-  - 现状：当前已限制 `@Transactional` 与 `@SysLog` 的位置，但 `@RestController`、`@FeignClient`、`@Mapper`、MyBatis-Plus 注解尚未统一门禁
-  - 处理动作：限制 `@RestController` 仅出现在 `interfaces.controller/provider`，`@FeignClient` 仅出现在 `infra.facade.remote`，`@Mapper` 仅出现在 `infra.persistence.mapper`，`@TableName/@TableField` 仅出现在 `infra.persistence.dataobject`
-  - 验收点：技术注解位置与目录职责一致，异常用法可直接阻断
-  - 重要度：8/10
-
 - [ ] 增加 ArchUnit 规则：目录反向命名校验
   - 现状：当前大多是“某后缀应该放在哪个目录”，但还缺少“某目录下的类必须使用该后缀”的反向门禁
   - 处理动作：限制 `interfaces.controller` 目录下类必须以 `Controller` 结尾，`domain.repository` 下接口必须以 `Repository` 结尾，`infra.persistence.mapper` 下类必须以 `Mapper` 结尾，其他关键目录同理
@@ -146,7 +115,7 @@
 ### 建议执行顺序（细化）
 
 1. 先走 `auth` 主线：收口 `interfaces -> application` 合同 -> 评审并收口 `auth-api dto`
-2. 再走 `upms` 主线：收尾 `api.dto -> application.dto` 残留 -> `UserRepositoryImpl` 业务外提
+2. 再走 `upms` 主线：`UserRepositoryImpl` 业务外提
 3. 然后处理 `storage`：`objectId -> storedObjectNo` -> 删除 `StoredObjectPageQueryDTO` -> 收口 interfaces/application 合同
 4. 再处理 `order`：provider/interfaces/application 合同收口 -> assembler 收口 -> 用例补齐
 5. 然后处理 `payment` 与 `inventory` 的局部整形任务

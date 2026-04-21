@@ -1,93 +1,72 @@
 package com.github.thundax.bacon.upms.application.command;
 
-import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.upms.application.assembler.PostAssembler;
-import com.github.thundax.bacon.common.core.result.PageResult;
-import com.github.thundax.bacon.upms.application.codec.PostCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.PostIdCodec;
 import com.github.thundax.bacon.upms.application.dto.PostDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class PostApplicationService {
+public class PostCommandApplicationService {
 
     private static final String POST_ID_BIZ_TAG = "post-id";
 
     private final PostRepository postRepository;
     private final IdGenerator idGenerator;
 
-    public PostApplicationService(PostRepository postRepository, IdGenerator idGenerator) {
+    public PostCommandApplicationService(PostRepository postRepository, IdGenerator idGenerator) {
         this.postRepository = postRepository;
         this.idGenerator = idGenerator;
     }
 
-    public PageResult<PostDTO> page(
-            String code, String name, DepartmentId departmentId, PostStatus status, Integer pageNo, Integer pageSize) {
-        int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
-        int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
-        return new PageResult<>(
-                postRepository
-                        .page(
-                                PostCodeCodec.toDomain(code),
-                                name,
-                                departmentId,
-                                status,
-                                normalizedPageNo,
-                                normalizedPageSize)
-                        .stream()
-                        .map(PostAssembler::toDto)
-                        .toList(),
-                postRepository.count(PostCodeCodec.toDomain(code), name, departmentId, status),
-                normalizedPageNo,
-                normalizedPageSize);
-    }
-
-    public PostDTO getPostById(PostId postId) {
-        return PostAssembler.toDto(requirePost(postId));
-    }
-
     @Transactional
-    public PostDTO createPost(String code, String name, DepartmentId departmentId) {
-        validateRequired(code, "code");
-        validateRequired(name, "name");
+    public PostDTO create(PostCreateCommand command) {
+        validateRequired(command.name(), "name");
+        if (command.code() == null) {
+            throw new BadRequestException("code must not be null");
+        }
         return PostAssembler.toDto(postRepository.insert(Post.create(
                 PostIdCodec.toDomain(idGenerator.nextId(POST_ID_BIZ_TAG)),
-                PostCodeCodec.toDomain(code),
-                trimPreservingNull(name),
-                departmentId)));
+                command.code(),
+                trimPreservingNull(command.name()),
+                command.departmentId())));
     }
 
     @Transactional
-    public PostDTO updatePost(PostId postId, String code, String name, DepartmentId departmentId, PostStatus status) {
-        Post currentPost = requirePost(postId);
-        validateRequired(code, "code");
-        validateRequired(name, "name");
-        currentPost.recodeAs(PostCodeCodec.toDomain(code));
-        currentPost.rename(trimPreservingNull(name));
-        currentPost.assignDepartment(departmentId);
-        if (status != null) {
-            if (status == PostStatus.ENABLED) {
-                currentPost.enable();
-            } else {
-                currentPost.disable();
-            }
+    public PostDTO update(PostUpdateCommand command) {
+        Post currentPost = requirePost(command.postId());
+        validateRequired(command.name(), "name");
+        if (command.code() == null) {
+            throw new BadRequestException("code must not be null");
+        }
+        currentPost.recodeAs(command.code());
+        currentPost.rename(trimPreservingNull(command.name()));
+        currentPost.assignDepartment(command.departmentId());
+        if (command.status() != null) {
+            updateStatus(currentPost, command.status());
         }
         return PostAssembler.toDto(postRepository.update(currentPost));
     }
 
     @Transactional
-    public void deletePost(PostId postId) {
+    public void delete(PostId postId) {
         requirePost(postId);
         postRepository.delete(postId);
+    }
+
+    private void updateStatus(Post post, PostStatus status) {
+        if (status == PostStatus.ENABLED) {
+            post.enable();
+        } else {
+            post.disable();
+        }
     }
 
     private Post requirePost(PostId postId) {

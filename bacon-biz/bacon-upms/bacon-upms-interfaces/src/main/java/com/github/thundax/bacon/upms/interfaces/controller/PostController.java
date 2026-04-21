@@ -4,10 +4,9 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
-import com.github.thundax.bacon.upms.application.codec.PostIdCodec;
-import com.github.thundax.bacon.upms.application.command.PostApplicationService;
-import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
+import com.github.thundax.bacon.upms.application.command.PostCommandApplicationService;
+import com.github.thundax.bacon.upms.application.query.PostQueryApplicationService;
+import com.github.thundax.bacon.upms.interfaces.assembler.PostInterfaceAssembler;
 import com.github.thundax.bacon.upms.interfaces.request.PostCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.request.PostPageRequest;
 import com.github.thundax.bacon.upms.interfaces.request.PostUpdateRequest;
@@ -35,10 +34,14 @@ import org.springframework.validation.annotation.Validated;
 @Tag(name = "UPMS-Post", description = "岗位管理接口")
 public class PostController {
 
-    private final PostApplicationService postApplicationService;
+    private final PostCommandApplicationService postCommandApplicationService;
+    private final PostQueryApplicationService postQueryApplicationService;
 
-    public PostController(PostApplicationService postApplicationService) {
-        this.postApplicationService = postApplicationService;
+    public PostController(
+            PostCommandApplicationService postCommandApplicationService,
+            PostQueryApplicationService postQueryApplicationService) {
+        this.postCommandApplicationService = postCommandApplicationService;
+        this.postQueryApplicationService = postQueryApplicationService;
     }
 
     @Operation(summary = "分页查询岗位")
@@ -46,13 +49,8 @@ public class PostController {
     @SysLog(module = "UPMS", action = "分页查询岗位", eventType = LogEventType.QUERY)
     @GetMapping("/page")
     public PostPageResponse page(@Valid @ModelAttribute PostPageRequest request) {
-        return PostPageResponse.from(postApplicationService.page(
-                request.getCode(),
-                request.getName(),
-                DepartmentIdCodec.toDomain(request.getDepartmentId()),
-                request.getStatus() == null ? null : PostStatus.from(request.getStatus()),
-                request.getPageNo(),
-                request.getPageSize()));
+        return PostInterfaceAssembler.toPageResponse(
+                postQueryApplicationService.page(PostInterfaceAssembler.toPageQuery(request)));
     }
 
     @Operation(summary = "按岗位 ID 查询岗位")
@@ -61,7 +59,8 @@ public class PostController {
     @GetMapping("/{postId}")
     public PostResponse getPostById(
             @PathVariable("postId") @Positive(message = "postId must be greater than 0") Long postId) {
-        return PostResponse.from(postApplicationService.getPostById(PostIdCodec.toDomain(postId)));
+        return PostInterfaceAssembler.toResponse(
+                postQueryApplicationService.getById(PostInterfaceAssembler.toPostId(postId)));
     }
 
     @Operation(summary = "创建岗位")
@@ -69,8 +68,8 @@ public class PostController {
     @SysLog(module = "UPMS", action = "创建岗位", eventType = LogEventType.CREATE)
     @PostMapping
     public PostResponse createPost(@Valid @RequestBody PostCreateRequest request) {
-        return PostResponse.from(postApplicationService.createPost(
-                request.code(), request.name(), DepartmentIdCodec.toDomain(request.departmentId())));
+        return PostInterfaceAssembler.toResponse(
+                postCommandApplicationService.create(PostInterfaceAssembler.toCreateCommand(request)));
     }
 
     @Operation(summary = "修改岗位")
@@ -80,12 +79,8 @@ public class PostController {
     public PostResponse updatePost(
             @PathVariable("postId") @Positive(message = "postId must be greater than 0") Long postId,
             @Valid @RequestBody PostUpdateRequest request) {
-        return PostResponse.from(postApplicationService.updatePost(
-                PostIdCodec.toDomain(postId),
-                request.code(),
-                request.name(),
-                DepartmentIdCodec.toDomain(request.departmentId()),
-                request.status() == null || request.status().isBlank() ? null : PostStatus.from(request.status())));
+        return PostInterfaceAssembler.toResponse(
+                postCommandApplicationService.update(PostInterfaceAssembler.toUpdateCommand(postId, request)));
     }
 
     @Operation(summary = "删除岗位")
@@ -93,6 +88,6 @@ public class PostController {
     @SysLog(module = "UPMS", action = "删除岗位", eventType = LogEventType.DELETE)
     @DeleteMapping("/{postId}")
     public void deletePost(@PathVariable("postId") @Positive(message = "postId must be greater than 0") Long postId) {
-        postApplicationService.deletePost(PostIdCodec.toDomain(postId));
+        postCommandApplicationService.delete(PostInterfaceAssembler.toPostId(postId));
     }
 }

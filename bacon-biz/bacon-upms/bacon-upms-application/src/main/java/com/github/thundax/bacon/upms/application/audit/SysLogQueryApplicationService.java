@@ -4,7 +4,7 @@ import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.upms.application.assembler.SysLogAssembler;
 import com.github.thundax.bacon.upms.application.dto.SysLogDTO;
-import com.github.thundax.bacon.common.core.result.PageResult;
+import com.github.thundax.bacon.common.application.page.PageResult;
 import com.github.thundax.bacon.upms.domain.model.valueobject.SysLogId;
 import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
 import org.springframework.stereotype.Service;

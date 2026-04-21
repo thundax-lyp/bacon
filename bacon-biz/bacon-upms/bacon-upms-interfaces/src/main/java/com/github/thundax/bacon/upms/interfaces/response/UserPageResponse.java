@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
-import com.github.thundax.bacon.common.core.result.PageResult;
+import com.github.thundax.bacon.common.application.page.PageResult;
 import java.util.List;
 
 /**

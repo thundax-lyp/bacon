@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.application.query;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.common.core.result.PageResult;
+import com.github.thundax.bacon.common.application.page.PageResult;
 import com.github.thundax.bacon.upms.application.assembler.PostAssembler;
 import com.github.thundax.bacon.upms.application.dto.PostDTO;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;

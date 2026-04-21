@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.application.query;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.common.core.result.PageResult;
+import com.github.thundax.bacon.common.application.page.PageResult;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.application.assembler.RoleAssembler;
 import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;

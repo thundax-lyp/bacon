@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.application.query;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.common.core.result.PageResult;
+import com.github.thundax.bacon.common.application.page.PageResult;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.upms.application.assembler.ResourceAssembler;
 import com.github.thundax.bacon.upms.application.dto.ResourceDTO;

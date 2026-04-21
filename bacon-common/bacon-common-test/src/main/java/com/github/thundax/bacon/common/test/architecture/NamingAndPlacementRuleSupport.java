@@ -371,6 +371,18 @@ public final class NamingAndPlacementRuleSupport {
                 .because("RULE NAME_FACADE_RESPONSE: classes in api.response must end with FacadeResponse");
     }
 
+    public static ArchRule applicationPageContractShouldUseApplicationPagePackage() {
+        return ArchRuleDefinition.classes()
+                .that()
+                .haveSimpleName("PageQuery")
+                .or()
+                .haveSimpleName("PageResult")
+                .should()
+                .resideInAPackage("com.github.thundax.bacon.common.application.page..")
+                .allowEmptyShould(true)
+                .because("RULE PATH_APPLICATION_PAGE_CONTRACT: PageQuery/PageResult belong to common.application.page");
+    }
+
     public static ArchRule facadeMethodShouldUseFacadeRequestAndResponse(String basePackage) {
         return ArchRuleDefinition.classes()
                 .that()

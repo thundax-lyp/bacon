@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.assembler;
 
-import com.github.thundax.bacon.common.core.result.PageResult;
+import com.github.thundax.bacon.common.application.page.PageResult;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.upms.application.codec.ResourceCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.ResourceIdCodec;

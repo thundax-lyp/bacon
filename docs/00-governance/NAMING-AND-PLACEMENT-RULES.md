@@ -45,6 +45,7 @@
 - `PATH_PROVIDER_PREFIX`：`interfaces.provider` 类级路径必须以 `/providers/{domain}` 开头
 - `PATH_CONTROLLER_NO_PROVIDERS`：`interfaces.controller` 不得使用 `/providers/**` 前缀
 - `PATH_DOMAIN_CANONICAL`：`{domain}` 固定与业务域目录名一致，不混用别名
+- `PATH_APPLICATION_PAGE_CONTRACT`：`PageQuery` / `PageResult` 必须位于 `com.github.thundax.bacon.common.application.page..`
 
 ### Layer
 

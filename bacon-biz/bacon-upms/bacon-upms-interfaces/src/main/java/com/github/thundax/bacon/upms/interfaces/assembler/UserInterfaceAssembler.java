@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.assembler;
 
-import com.github.thundax.bacon.common.core.result.PageResult;
+import com.github.thundax.bacon.common.application.page.PageResult;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.request.UserCredentialGetFacadeRequest;
 import com.github.thundax.bacon.upms.api.request.UserIdentityGetFacadeRequest;

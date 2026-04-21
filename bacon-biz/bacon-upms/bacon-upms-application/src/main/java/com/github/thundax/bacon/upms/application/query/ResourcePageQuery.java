@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.application.query;
 
-import com.github.thundax.bacon.common.core.result.PageQuery;
+import com.github.thundax.bacon.common.application.page.PageQuery;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;

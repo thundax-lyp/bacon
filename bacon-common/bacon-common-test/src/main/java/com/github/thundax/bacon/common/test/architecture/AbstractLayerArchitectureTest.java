@@ -131,4 +131,10 @@ public abstract class AbstractLayerArchitectureTest {
         LayerArchitectureRuleSupport.applicationServicesShouldUseAssemblersForDtoMapping(basePackage())
                 .check(classes());
     }
+
+    @Test
+    void shouldKeepApplicationAndInfraRepositoryAwayFromIllegalArgumentException() {
+        LayerArchitectureRuleSupport.applicationAndInfraRepositoryShouldNotUseIllegalArgumentException(basePackage())
+                .check(classes());
+    }
 }

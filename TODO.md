@@ -141,12 +141,6 @@
   - 验收点：技术注解位置与目录职责一致，异常用法可直接阻断
   - 重要度：8/10
 
-- [ ] 增加 ArchUnit 规则：`application/infra` 禁止新增 `IllegalArgumentException` 作为业务异常出口
-  - 现状：架构文档已明确异常约定，TODO 里也已有治理项，但尚未形成自动门禁
-  - 处理动作：扫描 `application` 与 `infra.repository.impl/support` 的 `throw new IllegalArgumentException(...)` 和等价调用，要求改为稳定业务异常
-  - 验收点：业务链路异常语义稳定，`IllegalArgumentException` 不再成为默认兜底
-  - 重要度：8/10
-
 - [ ] 增加 ArchUnit 规则：`application.assembler` 独占 DTO/Response 装配职责
   - 现状：当前仅限制 `ApplicationService` 不得本地 `toDto` 或直接 `new api.dto`，还可以继续扩大到 `interfaces.response` 与跨域 DTO 装配
   - 处理动作：限制 `application.command/query/audit` 不得直接构造 `api.dto`、`interfaces.response`，DTO/Response 装配统一收敛到 `application.assembler`

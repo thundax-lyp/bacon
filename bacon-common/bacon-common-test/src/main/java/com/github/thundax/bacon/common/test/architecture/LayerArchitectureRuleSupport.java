@@ -325,6 +325,30 @@ public final class LayerArchitectureRuleSupport {
                 .because("application service 应通过 application.assembler 完成 DTO 映射，而不是本地 toDto 或直接 new DTO");
     }
 
+    public static ArchRule applicationAndInfraRepositoryShouldNotUseIllegalArgumentException(String basePackage) {
+        return ArchRuleDefinition.noClasses()
+                .that()
+                .resideInAnyPackage(
+                        basePackage + ".application..",
+                        basePackage + ".infra.repository.impl..",
+                        basePackage + ".infra.repository.support..")
+                .should(new ArchCondition<>("construct IllegalArgumentException as business exception") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        for (JavaConstructorCall constructorCall : item.getConstructorCallsFromSelf()) {
+                            JavaClass targetOwner = constructorCall.getTargetOwner();
+                            if (IllegalArgumentException.class.getName().equals(targetOwner.getName())) {
+                                events.add(SimpleConditionEvent.violated(item, constructorCall.getDescription()));
+                            }
+                        }
+                    }
+                })
+                .because(
+                        "RULE LAYER_APPLICATION_INFRA_NO_ILLEGAL_ARGUMENT: application and "
+                                + "infra.repository.impl/support must not use IllegalArgumentException "
+                                + "as business exception");
+    }
+
     private static boolean isForbiddenDomainTechnologyPackage(String packageName) {
         return DOMAIN_FORBIDDEN_TECH_PACKAGES.stream().anyMatch(packageName::startsWith);
     }

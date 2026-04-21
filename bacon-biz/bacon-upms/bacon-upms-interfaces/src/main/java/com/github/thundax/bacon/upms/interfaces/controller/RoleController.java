@@ -4,14 +4,9 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
-import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
-import com.github.thundax.bacon.upms.application.codec.RoleIdCodec;
-import com.github.thundax.bacon.upms.application.command.RoleApplicationService;
-import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
-import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
-import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.application.command.RoleCommandApplicationService;
+import com.github.thundax.bacon.upms.application.query.RoleQueryApplicationService;
+import com.github.thundax.bacon.upms.interfaces.assembler.RoleInterfaceAssembler;
 import com.github.thundax.bacon.upms.interfaces.request.RoleCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.request.RoleDataScopeAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.request.RoleMenuAssignRequest;
@@ -27,7 +22,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -46,10 +40,14 @@ import org.springframework.validation.annotation.Validated;
 @Tag(name = "UPMS-Role", description = "角色管理接口")
 public class RoleController {
 
-    private final RoleApplicationService roleApplicationService;
+    private final RoleCommandApplicationService roleCommandApplicationService;
+    private final RoleQueryApplicationService roleQueryApplicationService;
 
-    public RoleController(RoleApplicationService roleApplicationService) {
-        this.roleApplicationService = roleApplicationService;
+    public RoleController(
+            RoleCommandApplicationService roleCommandApplicationService,
+            RoleQueryApplicationService roleQueryApplicationService) {
+        this.roleCommandApplicationService = roleCommandApplicationService;
+        this.roleQueryApplicationService = roleQueryApplicationService;
     }
 
     @Operation(summary = "分页查询角色")
@@ -57,13 +55,8 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "分页查询角色", eventType = LogEventType.QUERY)
     @GetMapping("/page")
     public RolePageResponse page(@Valid @ModelAttribute RolePageRequest request) {
-        return RolePageResponse.from(roleApplicationService.page(
-                request.getCode(),
-                request.getName(),
-                request.getRoleType() == null ? null : RoleType.from(request.getRoleType()),
-                request.getStatus() == null ? null : RoleStatus.from(request.getStatus()),
-                request.getPageNo(),
-                request.getPageSize()));
+        return RoleInterfaceAssembler.toPageResponse(
+                roleQueryApplicationService.page(RoleInterfaceAssembler.toPageQuery(request)));
     }
 
     @Operation(summary = "创建角色")
@@ -71,11 +64,8 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "创建角色", eventType = LogEventType.CREATE)
     @PostMapping
     public RoleResponse createRole(@Valid @RequestBody RoleCreateRequest request) {
-        return RoleResponse.from(roleApplicationService.createRole(
-                request.code(),
-                request.name(),
-                request.roleType() == null ? null : RoleType.from(request.roleType()),
-                request.dataScopeType() == null ? null : RoleDataScopeType.from(request.dataScopeType())));
+        return RoleInterfaceAssembler.toResponse(
+                roleCommandApplicationService.create(RoleInterfaceAssembler.toCreateCommand(request)));
     }
 
     @Operation(summary = "修改角色")
@@ -85,12 +75,8 @@ public class RoleController {
     public RoleResponse updateRole(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId,
             @Valid @RequestBody RoleUpdateRequest request) {
-        return RoleResponse.from(roleApplicationService.updateRole(
-                RoleIdCodec.toDomain(roleId),
-                request.code(),
-                request.name(),
-                request.roleType() == null ? null : RoleType.from(request.roleType()),
-                request.dataScopeType() == null ? null : RoleDataScopeType.from(request.dataScopeType())));
+        return RoleInterfaceAssembler.toResponse(
+                roleCommandApplicationService.update(RoleInterfaceAssembler.toUpdateCommand(roleId, request)));
     }
 
     @Operation(summary = "按角色 ID 查询角色")
@@ -99,7 +85,8 @@ public class RoleController {
     @GetMapping("/{roleId}")
     public RoleResponse getRoleById(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId) {
-        return RoleResponse.from(roleApplicationService.getRoleById(RoleIdCodec.toDomain(roleId)));
+        return RoleInterfaceAssembler.toResponse(
+                roleQueryApplicationService.getById(RoleInterfaceAssembler.toRoleId(roleId)));
     }
 
     @Operation(summary = "启用或停用角色")
@@ -109,8 +96,9 @@ public class RoleController {
     public RoleResponse updateRoleStatus(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId,
             @Valid @RequestBody RoleStatusUpdateRequest request) {
-        return RoleResponse.from(roleApplicationService.updateRoleStatus(
-                RoleIdCodec.toDomain(roleId), request.status() == null ? null : RoleStatus.from(request.status())));
+        return RoleInterfaceAssembler.toResponse(
+                roleCommandApplicationService.updateStatus(
+                        RoleInterfaceAssembler.toStatusUpdateCommand(roleId, request)));
     }
 
     @Operation(summary = "删除角色")
@@ -118,7 +106,7 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "删除角色", eventType = LogEventType.DELETE)
     @DeleteMapping("/{roleId}")
     public void delete(@PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId) {
-        roleApplicationService.delete(RoleIdCodec.toDomain(roleId));
+        roleCommandApplicationService.delete(RoleInterfaceAssembler.toRoleId(roleId));
     }
 
     @Operation(summary = "分配角色菜单")
@@ -127,7 +115,7 @@ public class RoleController {
     @GetMapping("/{roleId}/menus")
     public Set<String> getAssignedMenus(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId) {
-        return roleApplicationService.getMenuIds(RoleIdCodec.toDomain(roleId));
+        return roleQueryApplicationService.getMenuIds(RoleInterfaceAssembler.toRoleId(roleId));
     }
 
     @Operation(summary = "分配角色菜单")
@@ -137,11 +125,8 @@ public class RoleController {
     public Set<String> assignMenus(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId,
             @Valid @RequestBody RoleMenuAssignRequest request) {
-        return roleApplicationService.updateMenuIds(
-                RoleIdCodec.toDomain(roleId),
-                request.menuIds() == null
-                        ? Set.of()
-                        : request.menuIds().stream().map(MenuIdCodec::toDomain).collect(Collectors.toSet()));
+        return roleCommandApplicationService.updateMenuIds(
+                RoleInterfaceAssembler.toMenuAssignCommand(roleId, request));
     }
 
     @Operation(summary = "查询角色资源授权")
@@ -150,7 +135,7 @@ public class RoleController {
     @GetMapping("/{roleId}/resources")
     public Set<String> getAssignedResources(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId) {
-        return roleApplicationService.getResourceCodes(RoleIdCodec.toDomain(roleId));
+        return roleQueryApplicationService.getResourceCodes(RoleInterfaceAssembler.toRoleId(roleId));
     }
 
     @Operation(summary = "分配角色资源")
@@ -160,7 +145,8 @@ public class RoleController {
     public Set<String> assignResources(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId,
             @Valid @RequestBody RoleResourceAssignRequest request) {
-        return roleApplicationService.updateResourceCodes(RoleIdCodec.toDomain(roleId), request.resourceCodes());
+        return roleCommandApplicationService.updateResourceCodes(
+                RoleInterfaceAssembler.toResourceAssignCommand(roleId, request));
     }
 
     @Operation(summary = "查询角色数据权限配置")
@@ -169,11 +155,9 @@ public class RoleController {
     @GetMapping("/{roleId}/data-scope")
     public RoleDataScopeResponse getAssignedDataScope(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId) {
-        return new RoleDataScopeResponse(
-                roleApplicationService.getDataScopeType(RoleIdCodec.toDomain(roleId)).value(),
-                roleApplicationService.getDataScopeDepartmentIds(RoleIdCodec.toDomain(roleId)).stream()
-                        .map(DepartmentId::value)
-                        .collect(Collectors.toSet()));
+        return RoleInterfaceAssembler.toDataScopeResponse(
+                roleQueryApplicationService.getDataScopeType(RoleInterfaceAssembler.toRoleId(roleId)).value(),
+                roleQueryApplicationService.getDataScopeDepartmentIds(RoleInterfaceAssembler.toRoleId(roleId)));
     }
 
     @Operation(summary = "配置角色数据权限")
@@ -183,17 +167,8 @@ public class RoleController {
     public Set<Long> assignDataScope(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId,
             @Valid @RequestBody RoleDataScopeAssignRequest request) {
-        return roleApplicationService
-                .updateDataScope(
-                        RoleIdCodec.toDomain(roleId),
-                        request.dataScopeType() == null ? null : RoleDataScopeType.from(request.dataScopeType()),
-                        request.departmentIds() == null
-                                ? Set.of()
-                                : request.departmentIds().stream()
-                                        .map(DepartmentIdCodec::toDomain)
-                                        .collect(Collectors.toSet()))
-                .stream()
-                .map(DepartmentId::value)
-                .collect(Collectors.toSet());
+        return RoleInterfaceAssembler.toDepartmentIdValues(
+                roleCommandApplicationService.updateDataScope(
+                        RoleInterfaceAssembler.toDataScopeAssignCommand(roleId, request)));
     }
 }

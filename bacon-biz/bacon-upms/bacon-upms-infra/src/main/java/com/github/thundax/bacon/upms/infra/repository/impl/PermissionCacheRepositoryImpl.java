@@ -18,7 +18,7 @@ public class PermissionCacheRepositoryImpl implements PermissionCacheRepository 
     }
 
     @Override
-    public void evictUserPermission(TenantId tenantId, UserId userId) {
+    public void deleteUserPermission(TenantId tenantId, UserId userId) {
         cacheSupport.evictUserPermission(tenantId, userId);
     }
 }

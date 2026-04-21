@@ -5,5 +5,5 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 
 public interface PermissionCacheRepository {
 
-    void evictUserPermission(TenantId tenantId, UserId userId);
+    void deleteUserPermission(TenantId tenantId, UserId userId);
 }

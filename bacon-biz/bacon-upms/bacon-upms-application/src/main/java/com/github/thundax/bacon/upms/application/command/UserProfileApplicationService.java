@@ -174,7 +174,7 @@ public class UserProfileApplicationService {
         List<RoleDTO> roles = userRoleRepository.updateRoleIds(userId, domainRoleIds).stream()
                 .map(RoleAssembler::toDto)
                 .toList();
-        permissionCacheRepository.evictUserPermission(TenantId.of(BaconContextHolder.requireTenantId()), userId);
+        permissionCacheRepository.deleteUserPermission(TenantId.of(BaconContextHolder.requireTenantId()), userId);
         return roles;
     }
 

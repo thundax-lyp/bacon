@@ -162,6 +162,6 @@ class UserProfileApplicationServiceTest {
 
         service.updateRoleIds(UserId.of(101L), java.util.List.of(RoleId.of(301L)));
 
-        verify(permissionCacheRepository).evictUserPermission(TENANT_ID, UserId.of(101L));
+        verify(permissionCacheRepository).deleteUserPermission(TENANT_ID, UserId.of(101L));
     }
 }

@@ -41,7 +41,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-class InventoryControllerContractTest {
+class InventoryControllerTest {
 
     private MockMvc mockMvc;
     private InventoryController controller;

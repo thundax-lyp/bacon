@@ -43,7 +43,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-class InventoryAuditCompensationControllerContractTest {
+class InventoryAuditCompensationControllerTest {
 
     private static final IdGenerator ID_GENERATOR = bizTag -> 1L;
 

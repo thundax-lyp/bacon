@@ -46,7 +46,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-class OrderInterfaceContractTest {
+class OrderInterfaceTest {
 
     private static final String PROVIDER_TOKEN_HEADER = "X-Bacon-Provider-Token";
     private static final String PROVIDER_TOKEN = "order-token";
@@ -57,7 +57,7 @@ class OrderInterfaceContractTest {
     }
 
     @Test
-    void wrappedControllerShouldReturnUnifiedSuccessEnvelope() throws Exception {
+    void shouldReturnUnifiedSuccessEnvelope() throws Exception {
         OrderController controller = new OrderController(
                 null,
                 new StubOrderQueryApplicationService(),
@@ -76,7 +76,7 @@ class OrderInterfaceContractTest {
     }
 
     @Test
-    void wrappedControllerShouldReturnBadRequestForIllegalArgument() throws Exception {
+    void shouldReturnBadRequestForIllegalArgument() throws Exception {
         OrderController controller = new OrderController(
                 null,
                 new StubOrderQueryApplicationService(),
@@ -94,7 +94,7 @@ class OrderInterfaceContractTest {
     }
 
     @Test
-    void wrappedControllerShouldReturnBadRequestForIllegalEnumFilter() throws Exception {
+    void shouldReturnBadRequestForIllegalEnumFilter() throws Exception {
         OrderController controller = new OrderController(
                 null,
                 new StubOrderQueryApplicationService(),
@@ -116,7 +116,7 @@ class OrderInterfaceContractTest {
     }
 
     @Test
-    void wrappedControllerShouldExposeDeadLetterReplayEndpoint() throws Exception {
+    void shouldExposeDeadLetterReplayEndpoint() throws Exception {
         OrderController controller = new OrderController(
                 null,
                 new StubOrderQueryApplicationService(),
@@ -137,7 +137,7 @@ class OrderInterfaceContractTest {
     }
 
     @Test
-    void providerControllerShouldKeepRawDtoContract() throws Exception {
+    void shouldKeepRawDtoContractWithoutResponseEnvelope() throws Exception {
         OrderReadProviderController controller = new OrderReadProviderController(new StubOrderQueryApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -156,7 +156,7 @@ class OrderInterfaceContractTest {
     }
 
     @Test
-    void providerDetailControllerShouldUseFacadeRequestContract() throws Exception {
+    void shouldUseFacadeRequestContract() throws Exception {
         OrderReadProviderController controller = new OrderReadProviderController(new StubOrderQueryApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -172,7 +172,7 @@ class OrderInterfaceContractTest {
     }
 
     @Test
-    void providerControllerShouldExposeRawExceptionSemantic() throws Exception {
+    void shouldExposeRawExceptionSemantic() throws Exception {
         OrderReadProviderController controller = new OrderReadProviderController(new StubOrderQueryApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -190,7 +190,7 @@ class OrderInterfaceContractTest {
     }
 
     @Test
-    void providerControllerShouldRejectMissingToken() throws Exception {
+    void shouldRejectMissingToken() throws Exception {
         OrderReadProviderController controller = new OrderReadProviderController(new StubOrderQueryApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -203,7 +203,7 @@ class OrderInterfaceContractTest {
     }
 
     @Test
-    void providerControllerShouldRejectWrongToken() throws Exception {
+    void shouldRejectWrongToken() throws Exception {
         OrderReadProviderController controller = new OrderReadProviderController(new StubOrderQueryApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -219,7 +219,7 @@ class OrderInterfaceContractTest {
     }
 
     @Test
-    void commandProviderControllerShouldExposeWriteEndpoints() throws Exception {
+    void shouldExposeWriteEndpoints() throws Exception {
         OrderCommandProviderController controller = new OrderCommandProviderController(
                 new StubOrderPaymentResultApplicationService(), new StubOrderTimeoutApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)

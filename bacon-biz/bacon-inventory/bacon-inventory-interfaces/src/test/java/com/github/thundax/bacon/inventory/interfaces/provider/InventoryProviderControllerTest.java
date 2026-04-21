@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-class InventoryProviderControllerContractTest {
+class InventoryProviderControllerTest {
 
     private static final String PROVIDER_TOKEN_HEADER = "X-Bacon-Provider-Token";
     private static final String PROVIDER_TOKEN = "inventory-token";

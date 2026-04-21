@@ -11,16 +11,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
+import com.github.thundax.bacon.common.application.page.PageResult;
 import com.github.thundax.bacon.storage.application.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.application.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.application.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.application.dto.StoredObjectPageResultDTO;
-import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
-import com.github.thundax.bacon.storage.api.request.StoredObjectDeleteFacadeRequest;
-import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
-import com.github.thundax.bacon.storage.api.response.MultipartUploadPartFacadeResponse;
-import com.github.thundax.bacon.storage.api.response.MultipartUploadSessionFacadeResponse;
-import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
+import com.github.thundax.bacon.storage.application.command.StoredObjectCommandApplicationService;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
 import java.time.Instant;
 import java.util.List;
@@ -37,15 +32,15 @@ class StorageProviderControllerContractTest {
     private static final String PROVIDER_TOKEN = "storage-token";
 
     private MockMvc mockMvc;
-    private StoredObjectCommandFacade storedObjectCommandFacade;
+    private StoredObjectCommandApplicationService storedObjectCommandApplicationService;
 
     @BeforeEach
     void setUp() {
-        storedObjectCommandFacade = Mockito.mock(StoredObjectCommandFacade.class);
+        storedObjectCommandApplicationService = Mockito.mock(StoredObjectCommandApplicationService.class);
         StoredObjectQueryApplicationService storedObjectQueryApplicationService =
                 Mockito.mock(StoredObjectQueryApplicationService.class);
         StorageProviderController controller =
-                new StorageProviderController(storedObjectCommandFacade, storedObjectQueryApplicationService);
+                new StorageProviderController(storedObjectCommandApplicationService, storedObjectQueryApplicationService);
         InternalApiGuardProperties guardProperties = new InternalApiGuardProperties();
         guardProperties.setEnabled(true);
         guardProperties.setToken(PROVIDER_TOKEN);
@@ -57,7 +52,7 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeUploadProviderPath() throws Exception {
-        StoredObjectFacadeResponse dto = new StoredObjectFacadeResponse(
+        when(storedObjectCommandApplicationService.uploadObject(any())).thenReturn(new StoredObjectDTO(
                 "storage-20260327100000-000001",
                 "LOCAL_FILE",
                 "default",
@@ -68,8 +63,7 @@ class StorageProviderControllerContractTest {
                 "/files/attachment/a.txt",
                 "ACTIVE",
                 "UNREFERENCED",
-                Instant.parse("2026-03-27T10:00:00Z"));
-        when(storedObjectCommandFacade.uploadObject(any())).thenReturn(dto);
+                Instant.parse("2026-03-27T10:00:00Z")));
 
         MockMultipartFile file = new MockMultipartFile("file", "a.txt", "text/plain", new byte[] {1, 2, 3});
 
@@ -85,8 +79,8 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeMultipartInitPath() throws Exception {
-        when(storedObjectCommandFacade.initMultipartUpload(any()))
-                .thenReturn(new MultipartUploadSessionFacadeResponse(
+        when(storedObjectCommandApplicationService.initMultipartUpload(any()))
+                .thenReturn(new MultipartUploadSessionDTO(
                         "storage20260327100000-001001",
                         "GENERIC_ATTACHMENT",
                         "owner-1",
@@ -114,8 +108,8 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeMultipartPartUploadPath() throws Exception {
-        when(storedObjectCommandFacade.uploadMultipartPart(any()))
-                .thenReturn(new MultipartUploadPartFacadeResponse("1", 1, "etag-1"));
+        when(storedObjectCommandApplicationService.uploadMultipartPart(any()))
+                .thenReturn(new MultipartUploadPartDTO("1", 1, "etag-1"));
         MockMultipartFile file =
                 new MockMultipartFile("file", "part-1.bin", "application/octet-stream", new byte[] {1, 2, 3});
 
@@ -133,8 +127,8 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeMultipartCompletePath() throws Exception {
-        when(storedObjectCommandFacade.completeMultipartUpload(any()))
-                .thenReturn(new StoredObjectFacadeResponse(
+        when(storedObjectCommandApplicationService.completeMultipartUpload(any()))
+                .thenReturn(new StoredObjectDTO(
                         "storage-20260327100000-000002",
                         "OSS",
                         "bucket",
@@ -158,7 +152,7 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeMultipartAbortPath() throws Exception {
-        doNothing().when(storedObjectCommandFacade).abortMultipartUpload(any());
+        doNothing().when(storedObjectCommandApplicationService).abortMultipartUpload(any());
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/multipart/{uploadId}", "1")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
@@ -172,11 +166,11 @@ class StorageProviderControllerContractTest {
         StoredObjectQueryApplicationService storedObjectQueryApplicationService =
                 Mockito.mock(StoredObjectQueryApplicationService.class);
         StorageProviderController controller =
-                new StorageProviderController(storedObjectCommandFacade, storedObjectQueryApplicationService);
+                new StorageProviderController(storedObjectCommandApplicationService, storedObjectQueryApplicationService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
-        when(storedObjectQueryApplicationService.getObjectByNo("storage-20260327100000-000100"))
+        when(storedObjectQueryApplicationService.getObjectByNo(any()))
                 .thenReturn(new StoredObjectDTO(
                         "storage-20260327100000-000100",
                         "LOCAL_FILE",
@@ -202,12 +196,12 @@ class StorageProviderControllerContractTest {
         StoredObjectQueryApplicationService storedObjectQueryApplicationService =
                 Mockito.mock(StoredObjectQueryApplicationService.class);
         StorageProviderController controller =
-                new StorageProviderController(storedObjectCommandFacade, storedObjectQueryApplicationService);
+                new StorageProviderController(storedObjectCommandApplicationService, storedObjectQueryApplicationService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
-        when(storedObjectQueryApplicationService.page(any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(new StoredObjectPageResultDTO(
+        when(storedObjectQueryApplicationService.page(any()))
+                .thenReturn(new PageResult<>(
                         java.util.List.of(new StoredObjectDTO(
                                 "storage-20260327100000-000101",
                                 "LOCAL_FILE",
@@ -218,8 +212,8 @@ class StorageProviderControllerContractTest {
                                 5L,
                                 "/files/attachment/e.txt",
                                 "ACTIVE",
-                                "UNREFERENCED",
-                                Instant.parse("2026-03-27T10:00:00Z"))),
+                        "UNREFERENCED",
+                        Instant.parse("2026-03-27T10:00:00Z"))),
                         1L,
                         1,
                         20));
@@ -238,11 +232,7 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeMarkReferencePath() throws Exception {
-        doNothing()
-                .when(storedObjectCommandFacade)
-                .markObjectReferenced(
-                        new StoredObjectReferenceFacadeRequest(
-                                "storage-20260327100000-000100", "GENERIC_ATTACHMENT", "owner-1"));
+        doNothing().when(storedObjectCommandApplicationService).markObjectReferenced(any());
 
         mockMvc.perform(post("/providers/storage/objects/{storedObjectNo}/references", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
@@ -253,11 +243,7 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeClearReferencePath() throws Exception {
-        doNothing()
-                .when(storedObjectCommandFacade)
-                .clearObjectReference(
-                        new StoredObjectReferenceFacadeRequest(
-                                "storage-20260327100000-000100", "GENERIC_ATTACHMENT", "owner-1"));
+        doNothing().when(storedObjectCommandApplicationService).clearObjectReference(any());
 
         mockMvc.perform(MockMvcRequestBuilders.delete(
                                 "/providers/storage/objects/{storedObjectNo}/references", "storage-20260327100000-000100")
@@ -269,9 +255,7 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeDeleteObjectPath() throws Exception {
-        doNothing()
-                .when(storedObjectCommandFacade)
-                .deleteObject(new StoredObjectDeleteFacadeRequest("storage-20260327100000-000100"));
+        doNothing().when(storedObjectCommandApplicationService).deleteObject(any());
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(

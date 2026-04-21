@@ -2,11 +2,9 @@ package com.github.thundax.bacon.storage.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
+import com.github.thundax.bacon.storage.application.command.StoredObjectCommandApplicationService;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
-import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
-import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
-import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
+import com.github.thundax.bacon.storage.interfaces.assembler.StorageInterfaceAssembler;
 import com.github.thundax.bacon.storage.interfaces.request.StoredObjectPageRequest;
 import com.github.thundax.bacon.storage.interfaces.response.StoredObjectPageResponse;
 import com.github.thundax.bacon.storage.interfaces.response.StoredObjectResponse;
@@ -29,13 +27,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Storage-Management", description = "存储对象管理接口")
 public class StorageController {
 
-    private final StoredObjectApplicationService storedObjectApplicationService;
+    private final StoredObjectCommandApplicationService storedObjectCommandApplicationService;
     private final StoredObjectQueryApplicationService storedObjectQueryApplicationService;
 
     public StorageController(
-            StoredObjectApplicationService storedObjectApplicationService,
+            StoredObjectCommandApplicationService storedObjectCommandApplicationService,
             StoredObjectQueryApplicationService storedObjectQueryApplicationService) {
-        this.storedObjectApplicationService = storedObjectApplicationService;
+        this.storedObjectCommandApplicationService = storedObjectCommandApplicationService;
         this.storedObjectQueryApplicationService = storedObjectQueryApplicationService;
     }
 
@@ -44,15 +42,7 @@ public class StorageController {
     @GetMapping
     public StoredObjectPageResponse page(@Valid @ModelAttribute StoredObjectPageRequest request) {
         return StoredObjectPageResponse.from(storedObjectQueryApplicationService.page(
-                request.getStorageType() == null ? null : StorageType.from(request.getStorageType()),
-                request.getObjectStatus() == null ? null : StoredObjectStatus.from(request.getObjectStatus()),
-                request.getReferenceStatus() == null
-                        ? null
-                        : StoredObjectReferenceStatus.from(request.getReferenceStatus()),
-                request.getOriginalFilename(),
-                request.getObjectKey(),
-                request.getPageNo(),
-                request.getPageSize()));
+                StorageInterfaceAssembler.toPageQuery(request)));
     }
 
     @Operation(summary = "查询存储对象详情")
@@ -60,7 +50,8 @@ public class StorageController {
     @GetMapping("/{objectId}")
     public StoredObjectResponse getObjectById(
             @PathVariable("objectId") @NotBlank(message = "objectId must not be blank") String objectId) {
-        return StoredObjectResponse.from(storedObjectQueryApplicationService.getObjectByNo(objectId));
+        return StoredObjectResponse.from(storedObjectQueryApplicationService.getObjectByNo(
+                StorageInterfaceAssembler.toGetQuery(objectId)));
     }
 
     @Operation(summary = "删除存储对象")
@@ -68,6 +59,6 @@ public class StorageController {
     @DeleteMapping("/{objectId}")
     public void deleteObject(
             @PathVariable("objectId") @NotBlank(message = "objectId must not be blank") String objectId) {
-        storedObjectApplicationService.deleteObject(objectId);
+        storedObjectCommandApplicationService.deleteObject(StorageInterfaceAssembler.toDeleteCommand(objectId));
     }
 }

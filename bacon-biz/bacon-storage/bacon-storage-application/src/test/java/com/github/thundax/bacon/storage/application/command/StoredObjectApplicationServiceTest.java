@@ -15,6 +15,8 @@ import com.github.thundax.bacon.storage.application.support.StoredObjectDeletion
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectNo;
+import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRepository;
+import com.github.thundax.bacon.storage.domain.repository.MultipartUploadSessionRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
@@ -26,7 +28,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class StoredObjectApplicationServiceTest {
+class StoredObjectCommandApplicationServiceTest {
 
     @Mock
     private StoredObjectRepository storedObjectRepository;
@@ -36,6 +38,12 @@ class StoredObjectApplicationServiceTest {
 
     @Mock
     private StoredObjectStorageRepository storedObjectStorageRepository;
+
+    @Mock
+    private MultipartUploadSessionRepository multipartUploadSessionRepository;
+
+    @Mock
+    private MultipartUploadPartRepository multipartUploadPartRepository;
 
     @Mock
     private StorageAuditApplicationService storageAuditApplicationService;
@@ -49,14 +57,16 @@ class StoredObjectApplicationServiceTest {
     @Mock
     private IdGenerator idGenerator;
 
-    private StoredObjectApplicationService service;
+    private StoredObjectCommandApplicationService service;
 
     @BeforeEach
     void setUp() {
-        service = new StoredObjectApplicationService(
+        service = new StoredObjectCommandApplicationService(
                 storedObjectRepository,
                 storedObjectReferenceRepository,
                 storedObjectStorageRepository,
+                multipartUploadSessionRepository,
+                multipartUploadPartRepository,
                 storageAuditApplicationService,
                 storedObjectDeletionTransactionService,
                 storageUploadLimitValidator,
@@ -81,7 +91,7 @@ class StoredObjectApplicationServiceTest {
         when(storedObjectDeletionTransactionService.markDeleting(StoredObjectId.of(100L)))
                 .thenReturn(storedObject);
 
-        service.deleteObject("storage-20260327100000-000100");
+        service.deleteObject(new StoredObjectDeleteCommand(StoredObjectNo.of("storage-20260327100000-000100")));
 
         verify(storedObjectStorageRepository).delete(storedObject);
         verify(storedObjectDeletionTransactionService).markDeleted(StoredObjectId.of(100L));
@@ -106,7 +116,7 @@ class StoredObjectApplicationServiceTest {
         when(storedObjectDeletionTransactionService.markDeleting(StoredObjectId.of(101L)))
                 .thenReturn(storedObject);
 
-        service.deleteObject("storage-20260327100000-000101");
+        service.deleteObject(new StoredObjectDeleteCommand(StoredObjectNo.of("storage-20260327100000-000101")));
 
         verify(storedObjectStorageRepository, never()).delete(storedObject);
         verify(storedObjectDeletionTransactionService, never()).markDeleted(StoredObjectId.of(101L));
@@ -130,7 +140,8 @@ class StoredObjectApplicationServiceTest {
 
         assertThrows(
                 NotFoundException.class,
-                () -> service.markObjectReferenced("storage-20260327100000-000102", "GENERIC_ATTACHMENT", "owner-1"));
+                () -> service.markObjectReferenced(new StoredObjectReferenceCommand(
+                        StoredObjectNo.of("storage-20260327100000-000102"), "GENERIC_ATTACHMENT", "owner-1")));
         verify(storedObjectReferenceRepository, never()).insert(org.mockito.ArgumentMatchers.any());
     }
 
@@ -153,7 +164,8 @@ class StoredObjectApplicationServiceTest {
                 .thenReturn(true);
         when(storedObjectRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        service.markObjectReferenced("storage-20260327100000-000103", "GENERIC_ATTACHMENT", "owner-1");
+        service.markObjectReferenced(new StoredObjectReferenceCommand(
+                StoredObjectNo.of("storage-20260327100000-000103"), "GENERIC_ATTACHMENT", "owner-1"));
 
         verify(storedObjectReferenceRepository).insert(any());
         verify(storedObjectRepository).update(any());
@@ -181,7 +193,8 @@ class StoredObjectApplicationServiceTest {
         when(storedObjectReferenceRepository.exists(StoredObjectId.of(104L)))
                 .thenReturn(true);
 
-        service.clearObjectReference("storage-20260327100000-000104", "GENERIC_ATTACHMENT", "owner-2");
+        service.clearObjectReference(new StoredObjectReferenceCommand(
+                StoredObjectNo.of("storage-20260327100000-000104"), "GENERIC_ATTACHMENT", "owner-2"));
 
         verify(storageAuditApplicationService, never()).record(any(), any(), any(), any(), any(), any(), any());
     }
@@ -205,7 +218,8 @@ class StoredObjectApplicationServiceTest {
                 .thenReturn(true);
         when(storedObjectRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        service.markObjectReferenced("storage-20260327100000-000105", "GENERIC_ATTACHMENT", "owner-3");
+        service.markObjectReferenced(new StoredObjectReferenceCommand(
+                StoredObjectNo.of("storage-20260327100000-000105"), "GENERIC_ATTACHMENT", "owner-3"));
 
         verify(storedObjectRepository).update(any());
         verify(storageAuditApplicationService, never()).record(any(), any(), any(), any(), any(), any(), any());
@@ -233,7 +247,8 @@ class StoredObjectApplicationServiceTest {
                 .thenReturn(false);
         when(storedObjectRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        service.clearObjectReference("storage-20260327100000-000106", "GENERIC_ATTACHMENT", "owner-4");
+        service.clearObjectReference(new StoredObjectReferenceCommand(
+                StoredObjectNo.of("storage-20260327100000-000106"), "GENERIC_ATTACHMENT", "owner-4"));
 
         verify(storedObjectRepository).update(any());
         verify(storageAuditApplicationService, never()).record(any(), any(), any(), any(), any(), any(), any());

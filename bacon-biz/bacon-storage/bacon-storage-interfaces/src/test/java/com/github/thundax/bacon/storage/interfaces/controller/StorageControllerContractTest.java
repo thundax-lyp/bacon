@@ -8,11 +8,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.thundax.bacon.common.application.page.PageResult;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.storage.application.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.application.dto.StoredObjectPageResultDTO;
-import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
+import com.github.thundax.bacon.storage.application.command.StoredObjectCommandApplicationService;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
 import java.time.Instant;
 import java.util.List;
@@ -27,15 +27,15 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 class StorageControllerContractTest {
 
     private MockMvc mockMvc;
-    private StoredObjectApplicationService storedObjectApplicationService;
+    private StoredObjectCommandApplicationService storedObjectCommandApplicationService;
     private StoredObjectQueryApplicationService storedObjectQueryApplicationService;
 
     @BeforeEach
     void setUp() {
-        storedObjectApplicationService = Mockito.mock(StoredObjectApplicationService.class);
+        storedObjectCommandApplicationService = Mockito.mock(StoredObjectCommandApplicationService.class);
         storedObjectQueryApplicationService = Mockito.mock(StoredObjectQueryApplicationService.class);
         StorageController controller =
-                new StorageController(storedObjectApplicationService, storedObjectQueryApplicationService);
+                new StorageController(storedObjectCommandApplicationService, storedObjectQueryApplicationService);
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
@@ -46,8 +46,8 @@ class StorageControllerContractTest {
 
     @Test
     void shouldWrapPageObjectsForAdminFrontend() throws Exception {
-        when(storedObjectQueryApplicationService.page(any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(new StoredObjectPageResultDTO(
+        when(storedObjectQueryApplicationService.page(any()))
+                .thenReturn(new PageResult<>(
                         List.of(new StoredObjectDTO(
                                 "storage-20260327100000-000101",
                                 "LOCAL_FILE",
@@ -77,7 +77,7 @@ class StorageControllerContractTest {
 
     @Test
     void shouldWrapGetObjectForAdminFrontend() throws Exception {
-        when(storedObjectQueryApplicationService.getObjectByNo("storage-20260327100000-000100"))
+        when(storedObjectQueryApplicationService.getObjectByNo(any()))
                 .thenReturn(new StoredObjectDTO(
                         "storage-20260327100000-000100",
                         "LOCAL_FILE",
@@ -99,7 +99,7 @@ class StorageControllerContractTest {
 
     @Test
     void shouldWrapDeleteForAdminFrontend() throws Exception {
-        doNothing().when(storedObjectApplicationService).deleteObject("storage-20260327100000-000100");
+        doNothing().when(storedObjectCommandApplicationService).deleteObject(any());
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/storage/objects/{objectId}", "storage-20260327100000-000100"))
                 .andExpect(status().isOk())

@@ -1,13 +1,9 @@
 package com.github.thundax.bacon.storage.interfaces.facade;
 
-import com.github.thundax.bacon.storage.application.dto.AbortMultipartUploadCommand;
-import com.github.thundax.bacon.storage.application.dto.CompleteMultipartUploadCommand;
-import com.github.thundax.bacon.storage.application.dto.InitMultipartUploadCommand;
+import com.github.thundax.bacon.storage.application.command.StoredObjectCommandApplicationService;
 import com.github.thundax.bacon.storage.application.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.application.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.application.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.application.dto.UploadMultipartPartCommand;
-import com.github.thundax.bacon.storage.application.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
 import com.github.thundax.bacon.storage.api.request.AbortMultipartUploadFacadeRequest;
@@ -21,9 +17,8 @@ import com.github.thundax.bacon.storage.api.request.UploadObjectFacadeRequest;
 import com.github.thundax.bacon.storage.api.response.MultipartUploadPartFacadeResponse;
 import com.github.thundax.bacon.storage.api.response.MultipartUploadSessionFacadeResponse;
 import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
-import com.github.thundax.bacon.storage.application.command.MultipartUploadApplicationService;
-import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
+import com.github.thundax.bacon.storage.interfaces.assembler.StorageInterfaceAssembler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -31,88 +26,68 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
 public class StoredObjectFacadeLocalImpl implements StoredObjectCommandFacade, StoredObjectReadFacade {
 
-    private final StoredObjectApplicationService storedObjectApplicationService;
-    private final MultipartUploadApplicationService multipartUploadApplicationService;
+    private final StoredObjectCommandApplicationService storedObjectCommandApplicationService;
     private final StoredObjectQueryApplicationService storedObjectQueryApplicationService;
 
     public StoredObjectFacadeLocalImpl(
-            StoredObjectApplicationService storedObjectApplicationService,
-            MultipartUploadApplicationService multipartUploadApplicationService,
+            StoredObjectCommandApplicationService storedObjectCommandApplicationService,
             StoredObjectQueryApplicationService storedObjectQueryApplicationService) {
-        this.storedObjectApplicationService = storedObjectApplicationService;
-        this.multipartUploadApplicationService = multipartUploadApplicationService;
+        this.storedObjectCommandApplicationService = storedObjectCommandApplicationService;
         this.storedObjectQueryApplicationService = storedObjectQueryApplicationService;
     }
 
     @Override
     public StoredObjectFacadeResponse uploadObject(UploadObjectFacadeRequest request) {
-        StoredObjectDTO dto = storedObjectApplicationService.uploadObject(new UploadObjectCommand(
-                request.getOwnerType(),
-                request.getCategory(),
-                request.getOriginalFilename(),
-                request.getContentType(),
-                request.getSize(),
-                request.getInputStream()));
+        StoredObjectDTO dto = storedObjectCommandApplicationService.uploadObject(
+                StorageInterfaceAssembler.toUploadObjectCommand(request));
         return toStoredObjectFacadeResponse(dto);
     }
 
     @Override
     public MultipartUploadSessionFacadeResponse initMultipartUpload(InitMultipartUploadFacadeRequest request) {
         return toMultipartUploadSessionFacadeResponse(
-                multipartUploadApplicationService.initMultipartUpload(new InitMultipartUploadCommand(
-                        request.getOwnerType(),
-                        request.getOwnerId(),
-                        request.getCategory(),
-                        request.getOriginalFilename(),
-                        request.getContentType(),
-                        request.getTotalSize(),
-                        request.getPartSize())));
+                storedObjectCommandApplicationService.initMultipartUpload(
+                        StorageInterfaceAssembler.toInitMultipartUploadCommand(request)));
     }
 
     @Override
     public MultipartUploadPartFacadeResponse uploadMultipartPart(UploadMultipartPartFacadeRequest request) {
         return toMultipartUploadPartFacadeResponse(
-                multipartUploadApplicationService.uploadMultipartPart(new UploadMultipartPartCommand(
-                        request.getUploadId(),
-                        request.getOwnerType(),
-                        request.getOwnerId(),
-                        request.getPartNumber(),
-                        request.getSize(),
-                        request.getInputStream())));
+                storedObjectCommandApplicationService.uploadMultipartPart(
+                        StorageInterfaceAssembler.toUploadMultipartPartCommand(request)));
     }
 
     @Override
     public StoredObjectFacadeResponse completeMultipartUpload(CompleteMultipartUploadFacadeRequest request) {
-        return toStoredObjectFacadeResponse(multipartUploadApplicationService.completeMultipartUpload(
-                new CompleteMultipartUploadCommand(request.getUploadId(), request.getOwnerType(), request.getOwnerId())));
+        return toStoredObjectFacadeResponse(storedObjectCommandApplicationService.completeMultipartUpload(
+                StorageInterfaceAssembler.toCompleteMultipartUploadCommand(request)));
     }
 
     @Override
     public void abortMultipartUpload(AbortMultipartUploadFacadeRequest request) {
-        multipartUploadApplicationService.abortMultipartUpload(
-                new AbortMultipartUploadCommand(request.getUploadId(), request.getOwnerType(), request.getOwnerId()));
+        storedObjectCommandApplicationService.abortMultipartUpload(
+                StorageInterfaceAssembler.toAbortMultipartUploadCommand(request));
     }
 
     @Override
     public StoredObjectFacadeResponse getObjectByNo(StoredObjectGetFacadeRequest request) {
-        return toStoredObjectFacadeResponse(storedObjectQueryApplicationService.getObjectByNo(request.getStoredObjectNo()));
+        return toStoredObjectFacadeResponse(
+                storedObjectQueryApplicationService.getObjectByNo(StorageInterfaceAssembler.toGetQuery(request)));
     }
 
     @Override
     public void markObjectReferenced(StoredObjectReferenceFacadeRequest request) {
-        storedObjectApplicationService.markObjectReferenced(
-                request.getStoredObjectNo(), request.getOwnerType(), request.getOwnerId());
+        storedObjectCommandApplicationService.markObjectReferenced(StorageInterfaceAssembler.toReferenceCommand(request));
     }
 
     @Override
     public void clearObjectReference(StoredObjectReferenceFacadeRequest request) {
-        storedObjectApplicationService.clearObjectReference(
-                request.getStoredObjectNo(), request.getOwnerType(), request.getOwnerId());
+        storedObjectCommandApplicationService.clearObjectReference(StorageInterfaceAssembler.toReferenceCommand(request));
     }
 
     @Override
     public void deleteObject(StoredObjectDeleteFacadeRequest request) {
-        storedObjectApplicationService.deleteObject(request.getStoredObjectNo());
+        storedObjectCommandApplicationService.deleteObject(StorageInterfaceAssembler.toDeleteCommand(request));
     }
 
     private StoredObjectFacadeResponse toStoredObjectFacadeResponse(StoredObjectDTO dto) {

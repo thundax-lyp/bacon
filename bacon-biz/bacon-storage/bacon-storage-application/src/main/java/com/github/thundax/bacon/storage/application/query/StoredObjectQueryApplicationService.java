@@ -1,14 +1,10 @@
 package com.github.thundax.bacon.storage.application.query;
 
+import com.github.thundax.bacon.common.application.page.PageResult;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.storage.application.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.application.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.application.assembler.StoredObjectAssembler;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
-import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
-import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
-import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectNo;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import java.util.List;
@@ -26,8 +22,9 @@ public class StoredObjectQueryApplicationService {
         this.storedObjectRepository = storedObjectRepository;
     }
 
-    public StoredObjectDTO getObjectByNo(String storedObjectNo) {
-        StoredObjectNo objectNo = StoredObjectNo.of(storedObjectNo);
+    public StoredObjectDTO getObjectByNo(StoredObjectGetQuery query) {
+        StoredObjectNo objectNo = query == null ? null : query.storedObjectNo();
+        String storedObjectNo = objectNo == null ? null : objectNo.value();
         StoredObject storedObject = storedObjectRepository
                 .findByNo(objectNo)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + storedObjectNo));
@@ -37,29 +34,25 @@ public class StoredObjectQueryApplicationService {
         return StoredObjectAssembler.toDto(storedObject);
     }
 
-    public StoredObjectPageResultDTO page(
-            StorageType storageType,
-            StoredObjectStatus objectStatus,
-            StoredObjectReferenceStatus referenceStatus,
-            String originalFilename,
-            String objectKey,
-            Integer pageNo,
-            Integer pageSize) {
-        int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
-        int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
+    public PageResult<StoredObjectDTO> page(StoredObjectPageQuery query) {
+        StoredObjectPageQuery pageQuery = query == null ? new StoredObjectPageQuery(null, null, null, null, null, 1, 20) : query;
         long total = storedObjectRepository.count(
-                storageType, objectStatus, referenceStatus, originalFilename, objectKey);
+                pageQuery.getStorageType(),
+                pageQuery.getObjectStatus(),
+                pageQuery.getReferenceStatus(),
+                pageQuery.getOriginalFilename(),
+                pageQuery.getObjectKey());
         List<StoredObjectDTO> records = (total <= 0
                         ? List.<StoredObject>of()
                         : storedObjectRepository.page(
-                                storageType,
-                                objectStatus,
-                                referenceStatus,
-                                originalFilename,
-                                objectKey,
-                                normalizedPageNo,
-                                normalizedPageSize))
+                                pageQuery.getStorageType(),
+                                pageQuery.getObjectStatus(),
+                                pageQuery.getReferenceStatus(),
+                                pageQuery.getOriginalFilename(),
+                                pageQuery.getObjectKey(),
+                                pageQuery.getPageNo(),
+                                pageQuery.getPageSize()))
                 .stream().map(StoredObjectAssembler::toDto).toList();
-        return StoredObjectAssembler.toPageResult(records, total, normalizedPageNo, normalizedPageSize);
+        return new PageResult<>(records, total, pageQuery.getPageNo(), pageQuery.getPageSize());
     }
 }

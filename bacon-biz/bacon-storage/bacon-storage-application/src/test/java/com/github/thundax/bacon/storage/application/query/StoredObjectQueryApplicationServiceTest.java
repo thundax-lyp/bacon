@@ -5,8 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import com.github.thundax.bacon.common.application.page.PageResult;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.storage.application.dto.StoredObjectPageResultDTO;
+import com.github.thundax.bacon.storage.application.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
@@ -51,7 +52,9 @@ class StoredObjectQueryApplicationServiceTest {
         when(storedObjectRepository.findByNo(StoredObjectNo.of("storage-20260327100000-000103")))
                 .thenReturn(Optional.of(storedObject));
 
-        assertThrows(NotFoundException.class, () -> service.getObjectByNo("storage-20260327100000-000103"));
+        assertThrows(
+                NotFoundException.class,
+                () -> service.getObjectByNo(new StoredObjectGetQuery(StoredObjectNo.of("storage-20260327100000-000103"))));
     }
 
     @Test
@@ -83,14 +86,14 @@ class StoredObjectQueryApplicationServiceTest {
                         eq(200)))
                 .thenReturn(List.of(storedObject));
 
-        StoredObjectPageResultDTO result = service.page(
+        PageResult<StoredObjectDTO> result = service.page(new StoredObjectPageQuery(
                 StorageType.LOCAL_FILE,
                 StoredObjectStatus.ACTIVE,
                 StoredObjectReferenceStatus.UNREFERENCED,
                 "e.bin",
                 "attachment",
                 0,
-                500);
+                500));
 
         assertEquals(1L, result.getTotal());
         assertEquals(1, result.getPageNo());

@@ -14,10 +14,10 @@ import static org.mockito.Mockito.when;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.storage.application.dto.AbortMultipartUploadCommand;
-import com.github.thundax.bacon.storage.application.dto.CompleteMultipartUploadCommand;
-import com.github.thundax.bacon.storage.application.dto.InitMultipartUploadCommand;
-import com.github.thundax.bacon.storage.application.dto.UploadMultipartPartCommand;
+import com.github.thundax.bacon.storage.application.command.AbortMultipartUploadCommand;
+import com.github.thundax.bacon.storage.application.command.CompleteMultipartUploadCommand;
+import com.github.thundax.bacon.storage.application.command.InitMultipartUploadCommand;
+import com.github.thundax.bacon.storage.application.command.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
 import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
@@ -43,7 +43,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class MultipartUploadApplicationServiceTest {
+class StoredObjectCommandApplicationServiceMultipartTest {
 
     @Mock
     private MultipartUploadSessionRepository multipartUploadSessionRepository;
@@ -55,6 +55,9 @@ class MultipartUploadApplicationServiceTest {
     private StoredObjectRepository storedObjectRepository;
 
     @Mock
+    private com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository storedObjectReferenceRepository;
+
+    @Mock
     private StoredObjectStorageRepository storedObjectStorageRepository;
 
     @Mock
@@ -64,18 +67,23 @@ class MultipartUploadApplicationServiceTest {
     private StorageUploadLimitValidator storageUploadLimitValidator;
 
     @Mock
+    private com.github.thundax.bacon.storage.application.support.StoredObjectDeletionTransactionService storedObjectDeletionTransactionService;
+
+    @Mock
     private IdGenerator idGenerator;
 
-    private MultipartUploadApplicationService service;
+    private StoredObjectCommandApplicationService service;
 
     @BeforeEach
     void setUp() {
-        service = new MultipartUploadApplicationService(
+        service = new StoredObjectCommandApplicationService(
+                storedObjectRepository,
+                storedObjectReferenceRepository,
+                storedObjectStorageRepository,
                 multipartUploadSessionRepository,
                 multipartUploadPartRepository,
-                storedObjectRepository,
-                storedObjectStorageRepository,
                 storageAuditApplicationService,
+                storedObjectDeletionTransactionService,
                 storageUploadLimitValidator,
                 idGenerator);
     }

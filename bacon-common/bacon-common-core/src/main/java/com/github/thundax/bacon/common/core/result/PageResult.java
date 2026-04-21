@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.upms.application.result;
+package com.github.thundax.bacon.common.core.result;
 
 import java.util.List;
 import lombok.AllArgsConstructor;

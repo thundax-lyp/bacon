@@ -16,7 +16,7 @@ import com.github.thundax.bacon.upms.application.dto.TenantDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
-import com.github.thundax.bacon.upms.application.result.PageResult;
+import com.github.thundax.bacon.common.core.result.PageResult;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;

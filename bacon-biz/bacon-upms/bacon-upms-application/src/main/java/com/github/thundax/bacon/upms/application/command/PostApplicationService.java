@@ -5,7 +5,7 @@ import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.upms.application.assembler.PostAssembler;
-import com.github.thundax.bacon.upms.application.result.PageResult;
+import com.github.thundax.bacon.common.core.result.PageResult;
 import com.github.thundax.bacon.upms.application.codec.PostCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.PostIdCodec;
 import com.github.thundax.bacon.upms.application.dto.PostDTO;

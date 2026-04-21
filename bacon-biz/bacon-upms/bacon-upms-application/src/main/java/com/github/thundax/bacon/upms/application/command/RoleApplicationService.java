@@ -6,7 +6,7 @@ import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.application.assembler.RoleAssembler;
-import com.github.thundax.bacon.upms.application.result.PageResult;
+import com.github.thundax.bacon.common.core.result.PageResult;
 import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
 import com.github.thundax.bacon.upms.application.codec.ResourceCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.RoleCodeCodec;

@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
 import com.github.thundax.bacon.upms.application.dto.SysLogDTO;
-import com.github.thundax.bacon.upms.application.result.PageResult;
+import com.github.thundax.bacon.common.core.result.PageResult;
 import java.util.List;
 
 /**

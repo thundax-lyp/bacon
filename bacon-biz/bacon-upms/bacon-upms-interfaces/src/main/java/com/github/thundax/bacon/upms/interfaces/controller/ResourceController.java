@@ -4,10 +4,9 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.application.codec.ResourceIdCodec;
-import com.github.thundax.bacon.upms.application.command.ResourceApplicationService;
-import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
-import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
+import com.github.thundax.bacon.upms.application.command.ResourceCommandApplicationService;
+import com.github.thundax.bacon.upms.application.query.ResourceQueryApplicationService;
+import com.github.thundax.bacon.upms.interfaces.assembler.ResourceInterfaceAssembler;
 import com.github.thundax.bacon.upms.interfaces.request.ResourceCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.request.ResourcePageRequest;
 import com.github.thundax.bacon.upms.interfaces.request.ResourceUpdateRequest;
@@ -35,10 +34,14 @@ import org.springframework.validation.annotation.Validated;
 @Tag(name = "UPMS-Resource", description = "资源权限管理接口")
 public class ResourceController {
 
-    private final ResourceApplicationService resourceApplicationService;
+    private final ResourceCommandApplicationService resourceCommandApplicationService;
+    private final ResourceQueryApplicationService resourceQueryApplicationService;
 
-    public ResourceController(ResourceApplicationService resourceApplicationService) {
-        this.resourceApplicationService = resourceApplicationService;
+    public ResourceController(
+            ResourceCommandApplicationService resourceCommandApplicationService,
+            ResourceQueryApplicationService resourceQueryApplicationService) {
+        this.resourceCommandApplicationService = resourceCommandApplicationService;
+        this.resourceQueryApplicationService = resourceQueryApplicationService;
     }
 
     @Operation(summary = "分页查询资源")
@@ -46,13 +49,8 @@ public class ResourceController {
     @SysLog(module = "UPMS", action = "分页查询资源", eventType = LogEventType.QUERY)
     @GetMapping("/page")
     public ResourcePageResponse page(@Valid @ModelAttribute ResourcePageRequest request) {
-        return ResourcePageResponse.from(resourceApplicationService.page(
-                request.getCode(),
-                request.getName(),
-                request.getResourceType() == null ? null : ResourceType.from(request.getResourceType()),
-                request.getStatus() == null ? null : ResourceStatus.from(request.getStatus()),
-                request.getPageNo(),
-                request.getPageSize()));
+        return ResourceInterfaceAssembler.toPageResponse(
+                resourceQueryApplicationService.page(ResourceInterfaceAssembler.toPageQuery(request)));
     }
 
     @Operation(summary = "按资源 ID 查询资源")
@@ -61,7 +59,8 @@ public class ResourceController {
     @GetMapping("/{resourceId}")
     public ResourceResponse getResourceById(
             @PathVariable("resourceId") @Positive(message = "resourceId must be greater than 0") Long resourceId) {
-        return ResourceResponse.from(resourceApplicationService.getResourceById(ResourceIdCodec.toDomain(resourceId)));
+        return ResourceInterfaceAssembler.toResponse(
+                resourceQueryApplicationService.getById(ResourceInterfaceAssembler.toResourceId(resourceId)));
     }
 
     @Operation(summary = "创建资源")
@@ -69,12 +68,8 @@ public class ResourceController {
     @SysLog(module = "UPMS", action = "创建资源", eventType = LogEventType.CREATE)
     @PostMapping
     public ResourceResponse createResource(@Valid @RequestBody ResourceCreateRequest request) {
-        return ResourceResponse.from(resourceApplicationService.createResource(
-                request.code(),
-                request.name(),
-                request.resourceType() == null ? null : ResourceType.from(request.resourceType()),
-                request.httpMethod(),
-                request.uri()));
+        return ResourceInterfaceAssembler.toResponse(
+                resourceCommandApplicationService.create(ResourceInterfaceAssembler.toCreateCommand(request)));
     }
 
     @Operation(summary = "修改资源")
@@ -84,16 +79,8 @@ public class ResourceController {
     public ResourceResponse updateResource(
             @PathVariable("resourceId") @Positive(message = "resourceId must be greater than 0") Long resourceId,
             @Valid @RequestBody ResourceUpdateRequest request) {
-        return ResourceResponse.from(resourceApplicationService.updateResource(
-                ResourceIdCodec.toDomain(resourceId),
-                request.code(),
-                request.name(),
-                ResourceType.from(request.resourceType()),
-                request.httpMethod(),
-                request.uri(),
-                request.status() == null || request.status().isBlank()
-                        ? null
-                        : ResourceStatus.from(request.status().trim())));
+        return ResourceInterfaceAssembler.toResponse(
+                resourceCommandApplicationService.update(ResourceInterfaceAssembler.toUpdateCommand(resourceId, request)));
     }
 
     @Operation(summary = "删除资源")
@@ -102,6 +89,6 @@ public class ResourceController {
     @DeleteMapping("/{resourceId}")
     public void deleteResource(
             @PathVariable("resourceId") @Positive(message = "resourceId must be greater than 0") Long resourceId) {
-        resourceApplicationService.deleteResource(ResourceIdCodec.toDomain(resourceId));
+        resourceCommandApplicationService.delete(ResourceInterfaceAssembler.toResourceId(resourceId));
     }
 }

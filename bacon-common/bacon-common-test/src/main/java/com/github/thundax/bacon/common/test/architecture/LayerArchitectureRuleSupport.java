@@ -6,6 +6,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -25,6 +26,11 @@ public final class LayerArchitectureRuleSupport {
 
     private static final String ROOT_PACKAGE = "com.github.thundax.bacon";
     private static final String SYS_LOG_ANNOTATION = "com.github.thundax.bacon.common.log.annotation.SysLog";
+    private static final String REST_CONTROLLER_ANNOTATION = "org.springframework.web.bind.annotation.RestController";
+    private static final String FEIGN_CLIENT_ANNOTATION = "org.springframework.cloud.openfeign.FeignClient";
+    private static final String MYBATIS_MAPPER_ANNOTATION = "org.apache.ibatis.annotations.Mapper";
+    private static final List<String> MYBATIS_PLUS_TABLE_ANNOTATIONS =
+            List.of("com.baomidou.mybatisplus.annotation.TableName", "com.baomidou.mybatisplus.annotation.TableField");
     private static final List<String> TRANSACTIONAL_ANNOTATIONS =
             List.of("org.springframework.transaction.annotation.Transactional", "jakarta.transaction.Transactional");
     private static final Set<String> BUSINESS_DOMAINS =
@@ -233,6 +239,40 @@ public final class LayerArchitectureRuleSupport {
                 "@Transactional 默认只允许出现在 application");
     }
 
+    public static ArchRule restControllerShouldOnlyAppearInInterfacesControllerAndProvider(String basePackage) {
+        return noClassesOutsidePackageShouldUseAnnotations(
+                basePackage + ".interfaces.controller..",
+                basePackage + ".interfaces.provider..",
+                List.of(REST_CONTROLLER_ANNOTATION),
+                "@RestController",
+                "RULE LAYER_ANNOTATION_PLACEMENT_WHITELIST: @RestController only in interfaces.controller/provider");
+    }
+
+    public static ArchRule feignClientShouldOnlyAppearInInfraFacadeRemote(String basePackage) {
+        return noClassesOutsidePackageShouldUseAnnotations(
+                basePackage + ".infra.facade.remote..",
+                List.of(FEIGN_CLIENT_ANNOTATION),
+                "@FeignClient",
+                "RULE LAYER_ANNOTATION_PLACEMENT_WHITELIST: @FeignClient only in infra.facade.remote");
+    }
+
+    public static ArchRule mapperShouldOnlyAppearInInfraPersistenceMapper(String basePackage) {
+        return noClassesOutsidePackageShouldUseAnnotations(
+                basePackage + ".infra.persistence.mapper..",
+                List.of(MYBATIS_MAPPER_ANNOTATION),
+                "@Mapper",
+                "RULE LAYER_ANNOTATION_PLACEMENT_WHITELIST: @Mapper only in infra.persistence.mapper");
+    }
+
+    public static ArchRule tableAnnotationsShouldOnlyAppearInInfraPersistenceDataobject(String basePackage) {
+        return noClassesOutsidePackageShouldUseAnnotations(
+                basePackage + ".infra.persistence.dataobject..",
+                MYBATIS_PLUS_TABLE_ANNOTATIONS,
+                "@TableName/@TableField",
+                "RULE LAYER_ANNOTATION_PLACEMENT_WHITELIST: @TableName/@TableField only in "
+                        + "infra.persistence.dataobject");
+    }
+
     public static ArchRule infraShouldOnlyDependOnDomainRepositoryAsImplementation(String basePackage) {
         return ArchRuleDefinition.noClasses()
                 .that()
@@ -296,41 +336,47 @@ public final class LayerArchitectureRuleSupport {
                 .resideInAnyPackage(
                         basePackage + ".application.command..",
                         basePackage + ".application.query..",
-                        basePackage + ".application.audit..")
-                .and()
-                .haveSimpleNameEndingWith("ApplicationService")
+                        basePackage + ".application.audit..",
+                        basePackage + ".application.support..")
                 .should(new ArchCondition<>("avoid local dto/response mapping and direct construction") {
                     @Override
                     public void check(JavaClass item, ConditionEvents events) {
                         for (JavaMethod method : item.getMethods()) {
-                            if (method.getOwner().equals(item) && "toDto".equals(method.getName())) {
+                            if (!method.getOwner().equals(item)) {
+                                continue;
+                            }
+                            String methodName = method.getName();
+                            if ("toDto".equals(methodName)
+                                    || "toResponse".equals(methodName)
+                                    || "fromDto".equals(methodName)
+                                    || "fromResponse".equals(methodName)) {
                                 events.add(
                                         SimpleConditionEvent.violated(
                                                 method,
                                                 method.getFullName()
-                                                        + " declares local dto mapping; move mapping to application.assembler"));
+                                                        + " declares local dto/response mapping; move mapping to "
+                                                        + "application.assembler"));
                             }
                         }
                         for (JavaConstructorCall constructorCall : item.getConstructorCallsFromSelf()) {
                             JavaClass targetOwner = constructorCall.getTargetOwner();
                             String targetPackage = targetOwner.getPackageName();
-                            boolean buildsAnyApiDto =
-                                    targetPackage.startsWith(ROOT_PACKAGE + ".") && targetPackage.contains(".api.dto.");
-                            boolean buildsInterfacesResponse =
-                                    targetPackage.startsWith(basePackage + ".interfaces.response.");
-                            if (buildsAnyApiDto || buildsInterfacesResponse) {
+                            boolean isBusinessModel = targetPackage.startsWith(ROOT_PACKAGE + ".");
+                            boolean isDtoOrResponse = targetOwner.getSimpleName().endsWith("DTO")
+                                    || targetOwner.getSimpleName().endsWith("Response");
+                            if (isBusinessModel && isDtoOrResponse) {
                                 events.add(SimpleConditionEvent.violated(
                                         item,
                                         constructorCall.getDescription()
-                                                + " constructs api dto/interfaces response directly; "
+                                                + " constructs business DTO/Response directly; "
                                                 + "use application.assembler instead"));
                             }
                         }
                     }
                 })
                 .because(
-                        "RULE LAYER_APPLICATION_ASSEMBLER_EXCLUSIVE_MAPPING: application.command/query/audit "
-                                + "should map DTO/Response in application.assembler");
+                        "RULE LAYER_APPLICATION_ASSEMBLER_EXCLUSIVE_MAPPING: application.command/query/audit/support "
+                                + "must map DTO/Response in application.assembler");
     }
 
     public static ArchRule applicationAndInfraRepositoryShouldNotUseIllegalArgumentException(String basePackage) {
@@ -372,6 +418,46 @@ public final class LayerArchitectureRuleSupport {
                         if (hasAnyAnnotation(item.getAnnotations(), annotationNames)) {
                             events.add(SimpleConditionEvent.violated(
                                     item, item.getName() + " is annotated with " + annotationDescription));
+                        }
+                        for (JavaField field : item.getFields()) {
+                            if (hasAnyAnnotation(field.getAnnotations(), annotationNames)) {
+                                events.add(SimpleConditionEvent.violated(
+                                        field, field.getFullName() + " is annotated with " + annotationDescription));
+                            }
+                        }
+                        for (JavaCodeUnit codeUnit : item.getCodeUnits()) {
+                            if (hasAnyAnnotation(codeUnit.getAnnotations(), annotationNames)) {
+                                events.add(SimpleConditionEvent.violated(
+                                        codeUnit,
+                                        codeUnit.getFullName() + " is annotated with " + annotationDescription));
+                            }
+                        }
+                    }
+                })
+                .because(because);
+    }
+
+    private static ArchRule noClassesOutsidePackageShouldUseAnnotations(
+            String allowedPackageA,
+            String allowedPackageB,
+            List<String> annotationNames,
+            String annotationDescription,
+            String because) {
+        return ArchRuleDefinition.noClasses()
+                .that()
+                .resideOutsideOfPackages(allowedPackageA, allowedPackageB)
+                .should(new ArchCondition<>("use " + annotationDescription) {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        if (hasAnyAnnotation(item.getAnnotations(), annotationNames)) {
+                            events.add(SimpleConditionEvent.violated(
+                                    item, item.getName() + " is annotated with " + annotationDescription));
+                        }
+                        for (JavaField field : item.getFields()) {
+                            if (hasAnyAnnotation(field.getAnnotations(), annotationNames)) {
+                                events.add(SimpleConditionEvent.violated(
+                                        field, field.getFullName() + " is annotated with " + annotationDescription));
+                            }
                         }
                         for (JavaCodeUnit codeUnit : item.getCodeUnits()) {
                             if (hasAnyAnnotation(codeUnit.getAnnotations(), annotationNames)) {

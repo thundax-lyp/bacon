@@ -2,33 +2,27 @@
 
 ### 当前主线顺序（按模块执行）
 
-1. `upms`
-2. `storage`
-   - 先统一 `objectId -> storedObjectNo`
-   - 再清理 `StoredObjectPageQueryDTO` 和 interfaces/application 合同
-3. `order`
-   - 先收口 provider/interfaces/application 合同
-   - 再补 provider / application / domain 关键回归测试
-4. `payment` / `inventory`
-   - `payment` 先收口 controller 路由语义
-   - 然后把 `inventory` 固化成接口层校验模板域
-5. 横切收尾
-   - 最后统一横切注解策略、租户边界与剩余 ArchUnit 增量规则
+1. `storage`
+   - 统一 `objectId -> storedObjectNo`
+   - 收口 `interfaces/application` 合同
+2. `order`
+   - 收口 `provider/interfaces/application` 合同
+   - 补 `provider/application/domain` 关键回归测试
+3. `payment`
+   - 收口 `/payment` 根路径下查询/审计/回调分组语义
+   - 同步 OpenAPI tag 与 controller 命名
+4. `inventory`
+   - 对齐 controller 校验注解门禁（`@Validated/@Valid/@HasPermission`）
+   - 固化为接口层校验模板域
+5. `upms` / `auth`
+   - 补齐 `controller/provider` 参数校验门禁
+   - 统一横切注解策略（`@SysLog/@HasPermission/@Operation`）
+6. 横切收尾
+   - 统一租户边界（`requireTenantId` 落点、平台级/租户级边界）
+   - 增加剩余 ArchUnit 规则并逐步加严
    - 保持“先业务收口、后门禁加严”的节奏，避免治理反向阻塞主线
 
 ### P0 - 2026-04-17 跨域扫描新增（统一性优先）
-
-- [ ] `storage-interfaces/application`：收口 StoredObject 合同为 Command/Query/VO
-  - 范围对象：`StorageController`、`StorageProviderController`、`StoredObjectApplicationService`、`StoredObjectQueryApplicationService`
-  - 处理动作：对象创建、分页、状态变更、引用绑定/解绑入口统一为 `StoredObject*Command|Query`
-  - 验收点：storage application 公共方法不再新增多 primitive 入参
-  - 重要度：9/10
-
-- [ ] `payment-interfaces/application`：收口 Payment 查询/回调合同为 Command/Query/VO
-  - 范围对象：`PaymentQueryController`、`PaymentCallbackController`、`PaymentCreateApplicationService`、`PaymentCallbackApplicationService`、`PaymentAuditQueryApplicationService`
-  - 处理动作：支付创建、回调处理、查询与审计查询统一为 `Payment*Command|Query`
-  - 验收点：payment application 公共方法签名统一，不再按参数堆叠扩展
-  - 重要度：8/10
 
 - [ ] 统一横切注解策略（`@SysLog/@HasPermission/@Operation`）
   - 现状对比：`upms` 注解密度远高于其他域；`auth` 基本无权限与审计注解
@@ -62,22 +56,6 @@
   - 验收点：支付域路由和 controller 命名一一对应，便于 AI 稳定路由推断
   - 重要度：6/10
 
-### P1 - 各模块 `api.dto` 残留治理清单
-
-- [ ] `storage-application`：把 `StoredObjectPageQueryDTO` 改为 `query/StoredObjectPageQuery`
-  - 当前状态：`StoredObjectPageQueryDTO` 仍滞留在 `application.dto`，且仓内已无实际调用，属于待清理旧模型
-  - 处理动作：删除未使用的 `StoredObjectPageQueryDTO`，如仍需保留分页查询契约，则改为 `application.query.StoredObjectPageQuery`
-  - 验收点：`rg -n "StoredObjectPageQueryDTO" bacon-biz` 结果为空；查询对象命名与 inventory/order 新规一致
-  - 重要度：7/10
-
-### P2 - 测试覆盖对齐
-
-- [ ] 对齐五域测试深度（重点补 `auth/upms` 的复杂流程用例）
-  - 当前对比：`inventory` 测试数量与场景深度领先；`order-domain` 已补最小但关键的领域单测闭环；`auth/upms` 在复杂路径（鉴权、导入、密码、回调异常分支）覆盖仍偏薄
-  - 处理动作：后续重点转到 `auth/upms`，按“成功路径 + 参数非法 + 状态冲突 + 资源不存在”补最小闭环测试集
-  - 验收点：五域关键业务链路均具备可回归的正反用例，AI 改动后能快速自检
-  - 重要度：7/10
-
 ### P2 - 租户边界统一
 
 - [ ] 梳理五个域 application 层中 `requireTenantId` 的落点
@@ -110,8 +88,9 @@
 
 ### 建议执行顺序（细化）
 
-1. 先走 `upms` 主线：`UserRepositoryImpl` 业务外提
-2. 然后处理 `storage`：`objectId -> storedObjectNo` -> 删除 `StoredObjectPageQueryDTO` -> 收口 interfaces/application 合同
-3. 再处理 `order`：provider/interfaces/application 合同收口 -> assembler 收口 -> 用例补齐
-4. 然后处理 `payment` 与 `inventory` 的局部整形任务
-5. 最后处理横切：注解矩阵、租户边界、剩余 ArchUnit 门禁统一
+1. `storage`：`objectId -> storedObjectNo` -> 收口 `interfaces/application` 合同
+2. `order`：收口 `provider/interfaces/application` 合同 -> 补关键回归测试
+3. `payment`：收口 `/payment` 路由语义 -> 对齐 OpenAPI tag 与 controller 命名
+4. `inventory`：补齐 `@Validated/@Valid/@HasPermission` 门禁并固化模板
+5. `upms` / `auth`：补齐参数校验门禁并统一横切注解矩阵
+6. 横切治理：租户边界清单 -> `interfaces.controller/provider` 协议模型门禁 -> 目录反向命名门禁

@@ -35,7 +35,7 @@ class PaymentAuditLogControllerTest {
     }
 
     @Test
-    void shouldReturnWrappedAuditLogs() throws Exception {
+    void shouldReturnAuditLogsWhenRequestIsValid() throws Exception {
         mockMvc.perform(get("/payment/PAY-10001/audit-logs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].paymentNo").value("PAY-10001"))

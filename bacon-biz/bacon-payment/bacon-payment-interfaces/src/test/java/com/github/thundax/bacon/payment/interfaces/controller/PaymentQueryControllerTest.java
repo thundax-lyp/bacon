@@ -38,7 +38,7 @@ class PaymentQueryControllerTest {
     }
 
     @Test
-    void shouldReturnWrappedResponseWhenRequestIsValid() throws Exception {
+    void shouldReturnPaymentDetailsWhenRequestIsValid() throws Exception {
         mockMvc.perform(get("/payment/PAY-10001"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.paymentNo").value("PAY-10001"))
@@ -46,7 +46,7 @@ class PaymentQueryControllerTest {
     }
 
     @Test
-    void shouldExposePaymentErrorCodeWhenBusinessExceptionOccurs() throws Exception {
+    void shouldReturnNotFoundWhenPaymentDoesNotExist() throws Exception {
         mockMvc.perform(get("/payment/PAY-40401"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(PaymentErrorCode.PAYMENT_NOT_FOUND.code()));

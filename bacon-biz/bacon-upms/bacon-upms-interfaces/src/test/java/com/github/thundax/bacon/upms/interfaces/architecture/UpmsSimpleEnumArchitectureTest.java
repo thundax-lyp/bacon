@@ -9,7 +9,7 @@ class UpmsSimpleEnumArchitectureTest {
     @Test
     @DisplayName(
             "domain.model.enums：简单枚举统一成 value() -> name()、from() 走 Arrays.stream(values()) + equalsIgnoreCase + orElseThrow(...)")
-    void upmsSimpleEnumsShouldUseNameAndFromConvention() {
+    void shouldUseNameAndFromConventionForUpmsSimpleEnums() {
         NamingAndPlacementRuleSupport.simpleEnumShouldUseNameAndFromConvention(
                         "com.github.thundax.bacon.upms.domain.model.enums.*")
                 .check(NamingAndPlacementRuleSupport.importDomainClasses("com.github.thundax.bacon.upms"));

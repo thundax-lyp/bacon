@@ -3,6 +3,7 @@ package com.github.thundax.bacon.auth.application.command;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,6 +12,8 @@ import com.github.thundax.bacon.auth.application.dto.OAuth2TokenDTO;
 import com.github.thundax.bacon.auth.application.query.SessionQueryApplicationService;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
 import com.github.thundax.bacon.auth.domain.model.enums.ClientStatus;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
@@ -158,6 +161,72 @@ class OAuth2AuthorizationCommandApplicationServiceTest {
         assertEquals("openid profile", result.getScope());
         verify(authorizationRepository).update(any(com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken.class));
         verify(authorizationRepository).update(any(com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken.class));
+    }
+
+    @Test
+    void shouldRevokeBothAccessAndRefreshTokensWhenTokenIsValid() {
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        OAuthAuthorizationRepository authorizationRepository = mock(OAuthAuthorizationRepository.class);
+        OAuthClientRepository clientRepository = mock(OAuthClientRepository.class);
+        OAuthClient client = new OAuthClient(
+                1L,
+                "demo-client",
+                "demo-secret",
+                "Demo OAuth Client",
+                "CONFIDENTIAL",
+                List.of("refresh_token"),
+                List.of("openid"),
+                List.of(),
+                1800L,
+                2592000L,
+                ClientStatus.ENABLED,
+                null,
+                null,
+                Instant.now(),
+                Instant.now());
+        when(clientRepository.findByClientCode(anyString())).thenReturn(Optional.of(client));
+        OAuthAccessToken accessToken = new OAuthAccessToken(
+                "access-token-id",
+                "token-hash",
+                "demo-client",
+                1001L,
+                2001L,
+                List.of("openid"),
+                Instant.now().minusSeconds(10),
+                Instant.now().plusSeconds(600));
+        OAuthRefreshToken refreshToken = new OAuthRefreshToken(
+                "refresh-token-id",
+                "token-hash",
+                "access-token-id",
+                "demo-client",
+                1001L,
+                2001L,
+                Instant.now().minusSeconds(10),
+                Instant.now().plusSeconds(600));
+
+        when(authorizationRepository.findAccessByHash("token-hash")).thenReturn(Optional.of(accessToken));
+        when(authorizationRepository.findByHash("token-hash")).thenReturn(Optional.of(refreshToken));
+        when(authorizationRepository.update(any(OAuthAccessToken.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0, OAuthAccessToken.class));
+        when(authorizationRepository.update(any(OAuthRefreshToken.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0, OAuthRefreshToken.class));
+        com.github.thundax.bacon.auth.application.codec.TokenCodec tokenCodec =
+                mock(com.github.thundax.bacon.auth.application.codec.TokenCodec.class);
+        when(tokenCodec.sha256("token")).thenReturn("token-hash");
+
+        OAuth2AuthorizationCommandApplicationService service = new OAuth2AuthorizationCommandApplicationService(
+                clientRepository,
+                authorizationRepository,
+                mock(SessionQueryApplicationService.class),
+                tokenCodec,
+                passwordEncoder);
+
+        service.revoke(new OAuth2RevokeCommand("token", "demo-client", "demo-secret"));
+
+        assertEquals("REVOKED", accessToken.getStatusValue());
+        assertEquals("REVOKED", refreshToken.getTokenStatus());
+        verify(authorizationRepository).update(accessToken);
+        verify(authorizationRepository).update(refreshToken);
     }
 
     private OAuthClientRepository oauthClientRepository(OAuthClient client) {

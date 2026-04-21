@@ -22,7 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
-class PaymentFacadeRemoteContractTest {
+class PaymentFacadeRemoteTest {
 
     private static final String BASE_URL = "http://payment.test/api";
     private static final String PROVIDER_TOKEN = "payment-token";

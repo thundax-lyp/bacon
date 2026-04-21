@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-class PaymentProviderControllerContractTest {
+class PaymentProviderControllerTest {
 
     private static final String PROVIDER_TOKEN_HEADER = "X-Bacon-Provider-Token";
     private static final String PROVIDER_TOKEN = "payment-token";

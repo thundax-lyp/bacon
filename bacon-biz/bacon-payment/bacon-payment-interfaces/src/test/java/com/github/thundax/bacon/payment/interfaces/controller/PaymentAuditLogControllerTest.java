@@ -18,7 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-class PaymentAuditLogControllerContractTest {
+class PaymentAuditLogControllerTest {
 
     private MockMvc mockMvc;
 

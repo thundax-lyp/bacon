@@ -2,24 +2,24 @@
 
 ### 当前主线顺序（按模块执行）
 
-1. `upms`
-   - 再回收 `UserRepositoryImpl` 中残留业务
-   - 最后处理 `upms api.dto` 下沉
-2. `storage`
-   - 先统一 `objectId -> storedObjectNo`
-   - 再清理 `StoredObjectPageQueryDTO` 和 interfaces/application 合同
-3. `auth`
+1. `auth`
    - 先收口 `interfaces -> application` 合同
    - 再评审 `auth-api` 中哪些 DTO 真正属于稳定跨域契约
+2. `upms`
+   - 先收尾 `api.dto -> application.dto` 迁移残留
+   - 再回收 `UserRepositoryImpl` 中残留业务
+3. `storage`
+   - 先统一 `objectId -> storedObjectNo`
+   - 再清理 `StoredObjectPageQueryDTO` 和 interfaces/application 合同
 4. `order`
-   - 先收口 DTO 装配到 assembler
+   - 先收口 provider/interfaces/application 合同
    - 再补 provider / application / domain 关键回归测试
 5. `payment` / `inventory`
    - `payment` 先收口 controller 路由语义
    - 然后把 `inventory` 固化成接口层校验模板域
 6. 横切收尾
-   - 最后统一横切注解策略、租户边界与 ArchUnit 增量规则
-   - 这些规则以“前面主线稳定后再加门禁”为原则，避免先上门禁把治理动作卡死
+   - 最后统一横切注解策略、租户边界与剩余 ArchUnit 增量规则
+   - 保持“先业务收口、后门禁加严”的节奏，避免治理反向阻塞主线
 
 ### P0 - 2026-04-17 跨域扫描新增（统一性优先）
 
@@ -54,8 +54,6 @@
   - 处理动作：统一资源名与动作语义（按支付单、审计日志、回调）并同步 OpenAPI tag 命名
   - 验收点：支付域路由和 controller 命名一一对应，便于 AI 稳定路由推断
   - 重要度：6/10
-
-### P0 - `upms` 先拆大类
 
 ### P1 - `upms` 仓储职责回收
 
@@ -94,8 +92,6 @@
   - 处理动作：逐个判断哪些是必要条件信息、哪些仍然带过重业务前缀；输出结论后再改名，不做无结论扫改
   - 验收点：形成一份 `建议改 / 建议保留 / 暂缓` 结论，且结论基于现有拆分后的仓储版图
   - 重要度：6/10
-
-### P2 - DTO 装配位置统一
 
 ### P2 - 测试覆盖对齐
 
@@ -149,9 +145,9 @@
 
 ### 建议执行顺序（细化）
 
-1. 先走 `upms` 主线：`UserController` 拆分 -> `UserApplicationService` 拆分 -> `UserRepositoryImpl` 业务外提
-2. 再走 `storage` 主线：`objectId -> storedObjectNo` -> 删除 `StoredObjectPageQueryDTO` -> 收口 interfaces/application 合同
-3. 然后处理 `auth`：收口应用层合同 -> 评审 `auth-api dto`
-4. 再处理 `order`：provider 读写拆分 -> assembler 收口 -> 用例补齐
+1. 先走 `auth` 主线：收口 `interfaces -> application` 合同 -> 评审并收口 `auth-api dto`
+2. 再走 `upms` 主线：收尾 `api.dto -> application.dto` 残留 -> `UserRepositoryImpl` 业务外提
+3. 然后处理 `storage`：`objectId -> storedObjectNo` -> 删除 `StoredObjectPageQueryDTO` -> 收口 interfaces/application 合同
+4. 再处理 `order`：provider/interfaces/application 合同收口 -> assembler 收口 -> 用例补齐
 5. 然后处理 `payment` 与 `inventory` 的局部整形任务
-6. 最后再上 ArchUnit 增量门禁、注解矩阵和租户边界统一
+6. 最后处理横切：注解矩阵、租户边界、剩余 ArchUnit 门禁统一

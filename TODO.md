@@ -135,12 +135,6 @@
   - 验收点：技术注解位置与目录职责一致，异常用法可直接阻断
   - 重要度：8/10
 
-- [ ] 增加 ArchUnit 规则：`application.assembler` 独占 DTO/Response 装配职责
-  - 现状：当前仅限制 `ApplicationService` 不得本地 `toDto` 或直接 `new api.dto`，还可以继续扩大到 `interfaces.response` 与跨域 DTO 装配
-  - 处理动作：限制 `application.command/query/audit` 不得直接构造 `api.dto`、`interfaces.response`，DTO/Response 装配统一收敛到 `application.assembler`
-  - 验收点：应用服务只保留编排逻辑，模型装配职责有唯一归属
-  - 重要度：7/10
-
 - [ ] 增加 ArchUnit 规则：目录反向命名校验
   - 现状：当前大多是“某后缀应该放在哪个目录”，但还缺少“某目录下的类必须使用该后缀”的反向门禁
   - 处理动作：限制 `interfaces.controller` 目录下类必须以 `Controller` 结尾，`domain.repository` 下接口必须以 `Repository` 结尾，`infra.persistence.mapper` 下类必须以 `Mapper` 结尾，其他关键目录同理

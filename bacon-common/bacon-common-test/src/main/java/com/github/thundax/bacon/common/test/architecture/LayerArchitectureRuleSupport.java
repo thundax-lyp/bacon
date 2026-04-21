@@ -299,7 +299,7 @@ public final class LayerArchitectureRuleSupport {
                         basePackage + ".application.audit..")
                 .and()
                 .haveSimpleNameEndingWith("ApplicationService")
-                .should(new ArchCondition<>("avoid local dto mapping helpers and direct dto construction") {
+                .should(new ArchCondition<>("avoid local dto/response mapping and direct construction") {
                     @Override
                     public void check(JavaClass item, ConditionEvents events) {
                         for (JavaMethod method : item.getMethods()) {
@@ -313,16 +313,24 @@ public final class LayerArchitectureRuleSupport {
                         }
                         for (JavaConstructorCall constructorCall : item.getConstructorCallsFromSelf()) {
                             JavaClass targetOwner = constructorCall.getTargetOwner();
-                            if (targetOwner.getPackageName().startsWith(basePackage + ".api.dto.")) {
+                            String targetPackage = targetOwner.getPackageName();
+                            boolean buildsAnyApiDto =
+                                    targetPackage.startsWith(ROOT_PACKAGE + ".") && targetPackage.contains(".api.dto.");
+                            boolean buildsInterfacesResponse =
+                                    targetPackage.startsWith(basePackage + ".interfaces.response.");
+                            if (buildsAnyApiDto || buildsInterfacesResponse) {
                                 events.add(SimpleConditionEvent.violated(
                                         item,
                                         constructorCall.getDescription()
-                                                + " constructs api dto directly; use application.assembler instead"));
+                                                + " constructs api dto/interfaces response directly; "
+                                                + "use application.assembler instead"));
                             }
                         }
                     }
                 })
-                .because("application service 应通过 application.assembler 完成 DTO 映射，而不是本地 toDto 或直接 new DTO");
+                .because(
+                        "RULE LAYER_APPLICATION_ASSEMBLER_EXCLUSIVE_MAPPING: application.command/query/audit "
+                                + "should map DTO/Response in application.assembler");
     }
 
     public static ArchRule applicationAndInfraRepositoryShouldNotUseIllegalArgumentException(String basePackage) {

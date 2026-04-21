@@ -20,6 +20,8 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.repository.UserCredentialRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserIdentityRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserPasswordApplicationService {
 
     private static final String DEFAULT_PASSWORD = "123456";
+    private static final int PASSWORD_FAILED_LIMIT = 5;
+    private static final long PASSWORD_EXPIRE_DAYS = 90L;
     private static final String USER_CREDENTIAL_ID_BIZ_TAG = "user-credential-id";
 
     private final UserRepository userRepository;
@@ -56,7 +60,12 @@ public class UserPasswordApplicationService {
     public UserDTO initPassword(UserId userId) {
         requireUser(userId);
         User user = userRepository.updatePassword(
-                userId, DEFAULT_PASSWORD, true, UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
+                userId,
+                passwordEncoder.encode(DEFAULT_PASSWORD),
+                true,
+                PASSWORD_FAILED_LIMIT,
+                passwordExpiresAt(),
+                UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
         sessionCommandFacade.invalidateUserSessions(
                 new SessionInvalidateUserFacadeRequest(
                         BaconContextHolder.requireTenantId(), userId.value(), "USER_PASSWORD_INITIALIZED"));
@@ -69,8 +78,10 @@ public class UserPasswordApplicationService {
         validateRequired(command.newPassword(), "newPassword");
         User user = userRepository.updatePassword(
                 command.userId(),
-                command.newPassword().trim(),
+                passwordEncoder.encode(command.newPassword().trim()),
                 true,
+                PASSWORD_FAILED_LIMIT,
+                passwordExpiresAt(),
                 UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
         sessionCommandFacade.invalidateUserSessions(
                 new SessionInvalidateUserFacadeRequest(
@@ -91,8 +102,10 @@ public class UserPasswordApplicationService {
         }
         userRepository.updatePassword(
                 command.userId(),
-                command.newPassword().trim(),
+                passwordEncoder.encode(command.newPassword().trim()),
                 false,
+                PASSWORD_FAILED_LIMIT,
+                passwordExpiresAt(),
                 UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
     }
 
@@ -121,5 +134,9 @@ public class UserPasswordApplicationService {
         if (value == null || value.isBlank()) {
             throw new BadRequestException(fieldName + " must not be blank");
         }
+    }
+
+    private Instant passwordExpiresAt() {
+        return Instant.now().plus(PASSWORD_EXPIRE_DAYS, ChronoUnit.DAYS);
     }
 }

@@ -3,7 +3,6 @@
 ### 当前主线顺序（按模块执行）
 
 1. `upms`
-   - 再回收 `UserRepositoryImpl` 中残留业务
 2. `storage`
    - 先统一 `objectId -> storedObjectNo`
    - 再清理 `StoredObjectPageQueryDTO` 和 interfaces/application 合同
@@ -62,13 +61,6 @@
   - 处理动作：统一资源名与动作语义（按支付单、审计日志、回调）并同步 OpenAPI tag 命名
   - 验收点：支付域路由和 controller 命名一一对应，便于 AI 稳定路由推断
   - 重要度：6/10
-
-### P1 - `upms` 仓储职责回收
-
-- [ ] 把 `UserRepositoryImpl` 中的密码策略装配从 repository impl 提升到 application 或独立 domain service
-  - 目标类：默认密码、密码过期时间、失败上限、needChangePassword 规则
-  - 验收点：密码规则不再写死在 infra
-  - 重要度：8/10
 
 ### P1 - 各模块 `api.dto` 残留治理清单
 

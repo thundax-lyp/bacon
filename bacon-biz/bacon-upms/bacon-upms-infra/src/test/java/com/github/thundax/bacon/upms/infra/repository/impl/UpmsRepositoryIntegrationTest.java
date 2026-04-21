@@ -562,7 +562,13 @@ class UpmsRepositoryIntegrationTest {
                 .getCredentialValue();
 
         User updatedUser =
-                userRepository.updatePassword(createdUser.getId(), "654321", false, UserCredentialId.of(3304L));
+                userRepository.updatePassword(
+                        createdUser.getId(),
+                        CONTEXT.getBean(PasswordEncoder.class).encode("654321"),
+                        false,
+                        5,
+                        Instant.now().plus(90, ChronoUnit.DAYS),
+                        UserCredentialId.of(3304L));
 
         String updatedPasswordHash = userCredentialRepository
                 .findCredentialByUserId(createdUser.getId(), UserCredentialType.PASSWORD)
@@ -842,7 +848,6 @@ class UpmsRepositoryIntegrationTest {
                 UserIdentityPersistenceSupport userIdentityPersistenceSupport,
                 UserCredentialPersistenceSupport userCredentialPersistenceSupport,
                 UserRolePersistenceSupport userRolePersistenceSupport,
-                PasswordEncoder passwordEncoder,
                 UpmsPermissionCacheSupport upmsPermissionCacheSupport,
                 Ids ids,
                 IdGenerator idGenerator) {
@@ -851,7 +856,6 @@ class UpmsRepositoryIntegrationTest {
                     userIdentityPersistenceSupport,
                     userCredentialPersistenceSupport,
                     userRolePersistenceSupport,
-                    passwordEncoder,
                     upmsPermissionCacheSupport);
         }
 

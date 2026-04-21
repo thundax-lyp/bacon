@@ -15,27 +15,21 @@ import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @Profile("!test")
 public class UserRepositoryImpl implements UserRepository {
 
-    private static final String DEFAULT_PASSWORD = "123456";
     private static final UserCredentialType PASSWORD_CREDENTIAL_TYPE = UserCredentialType.PASSWORD;
-    private static final int PASSWORD_FAILED_LIMIT = 5;
-    private static final long PASSWORD_EXPIRE_DAYS = 90L;
     private final UserPersistenceSupport userSupport;
     private final UserIdentityPersistenceSupport userIdentitySupport;
     private final UserCredentialPersistenceSupport userCredentialSupport;
     private final UserRolePersistenceSupport userRoleSupport;
-    private final PasswordEncoder passwordEncoder;
     private final UpmsPermissionCacheSupport cacheSupport;
 
     public UserRepositoryImpl(
@@ -43,13 +37,11 @@ public class UserRepositoryImpl implements UserRepository {
             UserIdentityPersistenceSupport userIdentitySupport,
             UserCredentialPersistenceSupport userCredentialSupport,
             UserRolePersistenceSupport userRoleSupport,
-            PasswordEncoder passwordEncoder,
             UpmsPermissionCacheSupport cacheSupport) {
         this.userSupport = userSupport;
         this.userIdentitySupport = userIdentitySupport;
         this.userCredentialSupport = userCredentialSupport;
         this.userRoleSupport = userRoleSupport;
-        this.passwordEncoder = passwordEncoder;
         this.cacheSupport = cacheSupport;
     }
 
@@ -102,7 +94,12 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User updatePassword(
-            UserId userId, String password, boolean needChangePassword, UserCredentialId passwordCredentialIdIfAbsent) {
+            UserId userId,
+            String encodedPassword,
+            boolean needChangePassword,
+            int failedLimit,
+            Instant passwordExpiresAt,
+            UserCredentialId passwordCredentialIdIfAbsent) {
         User currentUser =
                 findById(userId).orElseThrow(() -> new NotFoundException("User not found: " + userId));
         User savedUser = userSupport.update(copyUser(currentUser));
@@ -110,9 +107,11 @@ public class UserRepositoryImpl implements UserRepository {
         upsertPasswordCredential(
                 savedUser,
                 accountIdentity,
-                passwordEncoder.encode(password),
+                encodedPassword,
                 false,
                 needChangePassword,
+                failedLimit,
+                passwordExpiresAt,
                 passwordCredentialIdIfAbsent);
         return savedUser;
     }
@@ -142,25 +141,17 @@ public class UserRepositoryImpl implements UserRepository {
                         "User identity not found: " + userId + "/" + identityType.value()));
     }
 
-    private String resolvePasswordHash(User user, boolean newUser) {
-        if (newUser) {
-            return passwordEncoder.encode(DEFAULT_PASSWORD);
-        }
-        return userCredentialSupport.findCredentialByUserId(user.getId(), PASSWORD_CREDENTIAL_TYPE)
-                .map(UserCredential::getCredentialValue)
-                .orElseGet(() -> passwordEncoder.encode(DEFAULT_PASSWORD));
-    }
-
     private void upsertPasswordCredential(
             User user,
             UserIdentity accountIdentity,
             String passwordHash,
             boolean newUser,
             boolean needChangePassword,
+            int failedLimit,
+            Instant passwordExpiresAt,
             UserCredentialId passwordCredentialIdIfAbsent) {
         UserCredential currentCredential =
                 userCredentialSupport.findCredentialByUserId(user.getId(), PASSWORD_CREDENTIAL_TYPE).orElse(null);
-        Instant passwordExpiresAt = Instant.now().plus(PASSWORD_EXPIRE_DAYS, ChronoUnit.DAYS);
         if (currentCredential == null) {
             userCredentialSupport.insert(UserCredential.createPassword(
                     passwordCredentialIdIfAbsent,
@@ -168,7 +159,7 @@ public class UserRepositoryImpl implements UserRepository {
                     accountIdentity.getId(),
                     passwordHash,
                     newUser || needChangePassword,
-                    PASSWORD_FAILED_LIMIT,
+                    failedLimit,
                     passwordExpiresAt));
             return;
         }

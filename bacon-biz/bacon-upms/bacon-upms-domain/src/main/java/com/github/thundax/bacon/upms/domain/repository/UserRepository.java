@@ -5,6 +5,7 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +28,12 @@ public interface UserRepository {
     User update(User user);
 
     User updatePassword(
-            UserId userId, String password, boolean needChangePassword, UserCredentialId passwordCredentialIdIfAbsent);
+            UserId userId,
+            String encodedPassword,
+            boolean needChangePassword,
+            int failedLimit,
+            Instant passwordExpiresAt,
+            UserCredentialId passwordCredentialIdIfAbsent);
 
     void delete(UserId userId);
 }

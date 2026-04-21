@@ -2,6 +2,7 @@ package com.github.thundax.bacon.auth.application.command;
 
 import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
 import com.github.thundax.bacon.auth.api.dto.UserTokenRefreshDTO;
+import com.github.thundax.bacon.auth.application.assembler.TokenAssembler;
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
@@ -60,7 +61,7 @@ public class TokenApplicationService {
                 Instant.now(),
                 Instant.now().plus(REFRESH_TOKEN_TTL_SECONDS, ChronoUnit.SECONDS)));
         authAuditApplicationService.record("TOKEN_REFRESH", "SUCCESS", authSession.getSessionId());
-        return new UserTokenRefreshDTO(
+        return TokenAssembler.toUserTokenRefreshDto(
                 newAccessToken, newRefreshToken, "Bearer", ACCESS_TOKEN_TTL_SECONDS, authSession.getSessionId());
     }
 
@@ -68,7 +69,7 @@ public class TokenApplicationService {
     public SessionValidationDTO verifyAccessToken(String accessToken) {
         Optional<String> sessionId = tokenCodec.parseSessionId(accessToken);
         if (sessionId.isEmpty()) {
-            return new SessionValidationDTO(false, null, null, null, null, null, null);
+            return TokenAssembler.toSessionValidationDto(false, null, null, null, null, null, null);
         }
         // access token 校验最终还是回到会话仓储，确保已吊销或已过期会话即使 JWT 结构合法也不会被继续接受。
         return authSessionRepository
@@ -78,7 +79,7 @@ public class TokenApplicationService {
                 .map(session -> {
                     session.touch(Instant.now());
                     authSessionRepository.update(session);
-                    return new SessionValidationDTO(
+                    return TokenAssembler.toSessionValidationDto(
                             true,
                             session.getTenantIdValue(),
                             session.getUserId() == null
@@ -89,7 +90,8 @@ public class TokenApplicationService {
                             session.getIdentityType(),
                             session.getExpireAt());
                 })
-                .orElseGet(() -> new SessionValidationDTO(false, null, null, sessionId.get(), null, null, null));
+                .orElseGet(() -> TokenAssembler.toSessionValidationDto(
+                        false, null, null, sessionId.get(), null, null, null));
     }
 
     public CurrentSessionDTO getSessionContext(String sessionId) {
@@ -97,7 +99,7 @@ public class TokenApplicationService {
                 .findBySessionId(sessionId)
                 .orElseThrow(() -> new NotFoundException("Session not found: " + sessionId));
         // 这里返回的是仓储里的当前会话快照，不重新解析 access token，避免出现 token 与服务端会话状态不一致。
-        return new CurrentSessionDTO(
+        return TokenAssembler.toCurrentSessionDto(
                 authSession.getSessionId(),
                 authSession.getTenantIdValue(),
                 authSession.getUserId() == null ? null : authSession.getUserId().value(),

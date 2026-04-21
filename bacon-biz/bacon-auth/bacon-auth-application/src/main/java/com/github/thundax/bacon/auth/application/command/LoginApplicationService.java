@@ -2,6 +2,7 @@ package com.github.thundax.bacon.auth.application.command;
 
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.dto.UserLoginDTO;
+import com.github.thundax.bacon.auth.application.assembler.LoginAssembler;
 import com.github.thundax.bacon.auth.application.result.PasswordLoginChallengeResult;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
 import com.github.thundax.bacon.auth.application.support.LoginSecurityApplicationService;
@@ -149,7 +150,7 @@ public class LoginApplicationService {
                 now.plus(REFRESH_TOKEN_TTL_SECONDS, ChronoUnit.SECONDS)));
 
         authAuditApplicationService.record("LOGIN_" + loginType, "SUCCESS", sessionId);
-        return new UserLoginDTO(
+        return LoginAssembler.toUserLoginDto(
                 accessToken,
                 refreshToken,
                 "Bearer",

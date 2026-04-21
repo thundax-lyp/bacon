@@ -4,6 +4,7 @@ import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.dto.OAuth2IntrospectionDTO;
 import com.github.thundax.bacon.auth.application.dto.OAuth2TokenDTO;
 import com.github.thundax.bacon.auth.application.dto.OAuth2UserinfoDTO;
+import com.github.thundax.bacon.auth.application.assembler.OAuth2AuthorizationAssembler;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
@@ -169,7 +170,7 @@ public class OAuth2AuthorizationApplicationService {
                 .findAccessByHash(tokenCodec.sha256(token))
                 .filter(OAuthAccessToken::isActive)
                 .filter(accessToken -> accessToken.getExpireAt().isAfter(Instant.now()))
-                .map(accessToken -> new OAuth2IntrospectionDTO(
+                .map(accessToken -> OAuth2AuthorizationAssembler.toIntrospectionDto(
                         true,
                         accessToken.getClientIdValue(),
                         String.join(" ", accessToken.getScopes()),
@@ -179,7 +180,7 @@ public class OAuth2AuthorizationApplicationService {
                                         : accessToken.getUserId().value()),
                         accessToken.getTenantIdValue(),
                         accessToken.getExpireAt().getEpochSecond()))
-                .orElse(new OAuth2IntrospectionDTO(false, clientId, "", "", null, 0L));
+                .orElse(OAuth2AuthorizationAssembler.toIntrospectionDto(false, clientId, "", "", null, 0L));
     }
 
     @Transactional
@@ -206,7 +207,7 @@ public class OAuth2AuthorizationApplicationService {
                 .orElseThrow(() -> new BadRequestException("OAuth access token invalid"));
         Long userId = token.getUserId() == null ? null : token.getUserId().value();
         String name = token.getScopes().contains("profile") ? "demo-user-" + userId : null;
-        return new OAuth2UserinfoDTO(String.valueOf(userId), token.getTenantIdValue(), name);
+        return OAuth2AuthorizationAssembler.toUserinfoDto(String.valueOf(userId), token.getTenantIdValue(), name);
     }
 
     private OAuth2TokenDTO issueOAuthTokens(OAuthClient client, Long tenantId, Long userId, Set<String> scopes) {
@@ -238,7 +239,7 @@ public class OAuth2AuthorizationApplicationService {
                 now.plusSeconds(client.getRefreshTokenTtlSeconds()));
         oAuthAuthorizationRepository.update(refreshToken);
 
-        return new OAuth2TokenDTO(
+        return OAuth2AuthorizationAssembler.toOAuth2TokenDto(
                 accessTokenValue,
                 "Bearer",
                 client.getAccessTokenTtlSeconds(),

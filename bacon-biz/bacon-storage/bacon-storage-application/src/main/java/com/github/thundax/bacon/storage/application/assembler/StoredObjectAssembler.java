@@ -1,11 +1,13 @@
 package com.github.thundax.bacon.storage.application.assembler;
 
 import com.github.thundax.bacon.storage.application.dto.StoredObjectDTO;
+import com.github.thundax.bacon.storage.application.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectNo;
+import java.util.List;
 
 public final class StoredObjectAssembler {
 
@@ -33,6 +35,11 @@ public final class StoredObjectAssembler {
                         ? null
                         : storedObject.getReferenceStatus().value(),
                 null);
+    }
+
+    public static StoredObjectPageResultDTO toPageResult(
+            List<StoredObjectDTO> records, long total, int pageNo, int pageSize) {
+        return new StoredObjectPageResultDTO(records, total, pageNo, pageSize);
     }
 
     public static StoredObject toDomain(StoredObjectDTO storedObjectDTO) {

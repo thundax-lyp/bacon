@@ -60,6 +60,6 @@ public class StoredObjectQueryApplicationService {
                                 normalizedPageNo,
                                 normalizedPageSize))
                 .stream().map(StoredObjectAssembler::toDto).toList();
-        return new StoredObjectPageResultDTO(records, total, normalizedPageNo, normalizedPageSize);
+        return StoredObjectAssembler.toPageResult(records, total, normalizedPageNo, normalizedPageSize);
     }
 }

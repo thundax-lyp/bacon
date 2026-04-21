@@ -5,9 +5,8 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
+import com.github.thundax.bacon.upms.interfaces.assembler.UserInterfaceAssembler;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
-import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
-import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.interfaces.request.UserIdentityQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.request.UserPageRequest;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
@@ -49,13 +48,8 @@ public class UserQueryController {
     @SysLog(module = "UPMS", action = "分页查询用户", eventType = LogEventType.QUERY)
     @GetMapping("/page")
     public UserPageResponse page(@Valid @ModelAttribute UserPageRequest request) {
-        return UserPageResponse.from(userQueryApplicationService.page(
-                request.getAccount(),
-                request.getName(),
-                request.getPhone(),
-                request.getStatus() == null ? null : UserStatus.from(request.getStatus()),
-                request.getPageNo(),
-                request.getPageSize()));
+        return UserInterfaceAssembler.toPageResponse(
+                userQueryApplicationService.page(UserInterfaceAssembler.toPageQuery(request)));
     }
 
     @Operation(summary = "按用户 ID 查询用户")
@@ -64,7 +58,7 @@ public class UserQueryController {
     @GetMapping("/{userId}")
     public UserResponse getUserById(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
-        return UserResponse.from(userQueryApplicationService.getUserById(UserIdCodec.toDomain(userId)));
+        return UserInterfaceAssembler.toResponse(userQueryApplicationService.getUserById(UserIdCodec.toDomain(userId)));
     }
 
     @Operation(summary = "访问用户头像")
@@ -86,8 +80,8 @@ public class UserQueryController {
     @SysLog(module = "UPMS", action = "查询用户身份", eventType = LogEventType.QUERY)
     @GetMapping("/identity")
     public UserIdentityResponse getUserIdentity(@Valid @ModelAttribute UserIdentityQueryRequest request) {
-        return UserIdentityResponse.from(userQueryApplicationService.getUserIdentity(
-                UserIdentityType.from(request.getIdentityType()), request.getIdentityValue()));
+        return UserInterfaceAssembler.toResponse(
+                userQueryApplicationService.getUserIdentity(UserInterfaceAssembler.toIdentityQuery(request)));
     }
 
     @Operation(summary = "查询用户角色列表")
@@ -106,14 +100,7 @@ public class UserQueryController {
     @SysLog(module = "UPMS", action = "导出用户", eventType = LogEventType.EXPORT)
     @GetMapping("/export")
     public List<UserResponse> exportUsers(@Valid @ModelAttribute UserPageRequest request) {
-        return userQueryApplicationService
-                .exportUsers(
-                        request.getAccount(),
-                        request.getName(),
-                        request.getPhone(),
-                        request.getStatus() == null ? null : UserStatus.from(request.getStatus()))
-                .stream()
-                .map(UserResponse::from)
-                .toList();
+        return UserInterfaceAssembler.toResponseList(
+                userQueryApplicationService.exportUsers(UserInterfaceAssembler.toExportQuery(request)));
     }
 }

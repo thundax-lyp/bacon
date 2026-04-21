@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
-import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
+import com.github.thundax.bacon.upms.interfaces.assembler.UserInterfaceAssembler;
 import com.github.thundax.bacon.upms.application.command.UserAvatarApplicationService;
 import com.github.thundax.bacon.upms.interfaces.response.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,11 +41,7 @@ public class UserAvatarController {
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
             @RequestParam("file") @NotNull(message = "file must not be null") MultipartFile file)
             throws IOException {
-        return UserResponse.from(userAvatarApplicationService.updateAvatar(
-                UserIdCodec.toDomain(userId),
-                file.getOriginalFilename(),
-                file.getContentType(),
-                file.getSize(),
-                file.getInputStream()));
+        return UserInterfaceAssembler.toResponse(
+                userAvatarApplicationService.updateAvatar(UserInterfaceAssembler.toAvatarUpdateCommand(userId, file)));
     }
 }

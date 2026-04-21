@@ -8,9 +8,9 @@ import com.github.thundax.bacon.upms.api.response.UserDataScopeFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.dto.DepartmentDTO;
-import com.github.thundax.bacon.upms.application.dto.TenantDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
+import com.github.thundax.bacon.upms.interfaces.assembler.UserInterfaceAssembler;
 import com.github.thundax.bacon.upms.interfaces.assembler.TenantInterfaceAssembler;
 import com.github.thundax.bacon.upms.application.query.DepartmentQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
@@ -38,13 +38,15 @@ public class CurrentUserReadFacadeLocalImpl implements CurrentUserReadFacade {
     @Override
     public UserFacadeResponse getCurrentUser() {
         BaconContextHolder.requireTenantId();
-        return toFacadeResponse(userQueryApplicationService.getUserById(BaconIdContextHelper.requireUserId()));
+        UserDTO user = userQueryApplicationService.getUserById(BaconIdContextHelper.requireUserId());
+        return UserInterfaceAssembler.toFacadeResponse(user, resolveDepartmentCode(user));
     }
 
     @Override
     public TenantFacadeResponse getCurrentTenant() {
         BaconContextHolder.requireTenantId();
-        return toFacadeResponse(userQueryApplicationService.getTenantByTenantId(BaconIdContextHelper.requireTenantId()));
+        return TenantInterfaceAssembler.toFacadeResponse(
+                userQueryApplicationService.getTenantByTenantId(BaconIdContextHelper.requireTenantId()));
     }
 
     @Override
@@ -53,16 +55,6 @@ public class CurrentUserReadFacadeLocalImpl implements CurrentUserReadFacade {
         UserDataScopeDTO dataScope = permissionQueryService.getUserDataScope(BaconIdContextHelper.requireUserId());
         return new UserDataScopeFacadeResponse(
                 dataScope.isAllAccess(), dataScope.getScopeTypes(), dataScope.getDepartmentIds());
-    }
-
-    private UserFacadeResponse toFacadeResponse(UserDTO user) {
-        return new UserFacadeResponse(
-                user.getId(), user.getAccount(), user.getName(), user.getAvatarStoredObjectNo(), user.getPhone(),
-                resolveDepartmentCode(user), user.getAvatarUrl(), user.getStatus());
-    }
-
-    private TenantFacadeResponse toFacadeResponse(TenantDTO tenant) {
-        return TenantInterfaceAssembler.toFacadeResponse(tenant);
     }
 
     private String resolveDepartmentCode(UserDTO user) {

@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -16,6 +15,7 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
+import com.github.thundax.bacon.upms.application.command.UserAvatarUpdateCommand;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.command.UserAvatarApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
@@ -65,12 +65,7 @@ class UserControllerContractTest {
 
     @Test
     void shouldUploadAvatarThroughMultipartPutEndpoint() throws Exception {
-        when(userAvatarApplicationService.updateAvatar(
-                        eq(UserId.of(101L)),
-                        eq("avatar.png"),
-                        eq("image/png"),
-                        eq(4L),
-                        org.mockito.ArgumentMatchers.any()))
+        when(userAvatarApplicationService.updateAvatar(org.mockito.ArgumentMatchers.any(UserAvatarUpdateCommand.class)))
                 .thenReturn(new UserDTO(
                         101L,
                         "alice",

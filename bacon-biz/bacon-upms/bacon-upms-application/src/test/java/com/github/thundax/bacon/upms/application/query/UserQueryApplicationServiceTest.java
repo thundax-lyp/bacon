@@ -112,7 +112,7 @@ class UserQueryApplicationServiceTest {
         when(userIdentityRepository.findIdentity(UserIdentityType.ACCOUNT, "alice"))
                 .thenReturn(Optional.of(accountIdentity));
 
-        UserIdentityDTO result = service.getUserIdentity(UserIdentityType.ACCOUNT, "alice");
+        UserIdentityDTO result = service.getUserIdentity(new UserIdentityQuery(UserIdentityType.ACCOUNT, "alice"));
 
         assertThat(result.getId()).isEqualTo(201L);
         assertThat(result.getUserId()).isEqualTo(101L);
@@ -136,7 +136,8 @@ class UserQueryApplicationServiceTest {
                 .thenReturn(Optional.of(passwordCredential));
         when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
 
-        UserLoginCredentialDTO credential = service.getUserLoginCredential(UserIdentityType.ACCOUNT, "alice");
+        UserLoginCredentialDTO credential =
+                service.getUserLoginCredential(new UserLoginCredentialQuery(UserIdentityType.ACCOUNT, "alice"));
 
         assertThat(credential.getUserId()).isEqualTo(101L);
         assertThat(credential.getIdentityId()).isEqualTo(201L);
@@ -161,7 +162,9 @@ class UserQueryApplicationServiceTest {
         when(userCredentialRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
                 .thenReturn(Optional.of(passwordCredential));
 
-        assertThatThrownBy(() -> service.getUserLoginCredential(UserIdentityType.ACCOUNT, "alice"))
+        assertThatThrownBy(
+                        () -> service.getUserLoginCredential(
+                                new UserLoginCredentialQuery(UserIdentityType.ACCOUNT, "alice")))
                 .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("User credential is expired");
     }
@@ -175,7 +178,7 @@ class UserQueryApplicationServiceTest {
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
         mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
 
-        PageResult<UserDTO> result = service.page(null, null, null, null, 1, 20);
+        PageResult<UserDTO> result = service.page(new UserPageQuery(null, null, null, null, 1, 20));
 
         assertThat(result.getRecords()).hasSize(1);
         assertThat(result.getRecords().get(0).getAvatarStoredObjectNo()).isEqualTo("storage-20260327100000-000501");
@@ -223,7 +226,7 @@ class UserQueryApplicationServiceTest {
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
         mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
 
-        List<UserDTO> users = service.exportUsers(null, null, null, null);
+        List<UserDTO> users = service.exportUsers(new UserExportQuery(null, null, null, null));
 
         assertThat(users).hasSize(1);
         assertThat(users.get(0).getAvatarUrl()).isNull();

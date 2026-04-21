@@ -5,10 +5,9 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
+import com.github.thundax.bacon.upms.interfaces.assembler.UserInterfaceAssembler;
 import com.github.thundax.bacon.upms.application.command.UserImportCommand;
 import com.github.thundax.bacon.upms.application.command.UserProfileApplicationService;
-import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.interfaces.request.UserCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.request.UserImportItemRequest;
 import com.github.thundax.bacon.upms.interfaces.request.UserImportRequest;
@@ -47,8 +46,8 @@ public class UserProfileController {
     @SysLog(module = "UPMS", action = "创建用户", eventType = LogEventType.CREATE)
     @PostMapping
     public UserResponse createUser(@Valid @RequestBody UserCreateRequest request) {
-        return UserResponse.from(userProfileApplicationService.createUser(
-                request.account(), request.name(), request.phone(), DepartmentId.of(request.departmentId())));
+        return UserInterfaceAssembler.toResponse(
+                userProfileApplicationService.createUser(UserInterfaceAssembler.toCreateCommand(request)));
     }
 
     @Operation(summary = "修改用户基本信息")
@@ -58,12 +57,8 @@ public class UserProfileController {
     public UserResponse updateUser(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
             @Valid @RequestBody UserUpdateRequest request) {
-        return UserResponse.from(userProfileApplicationService.updateUser(
-                UserIdCodec.toDomain(userId),
-                request.account(),
-                request.name(),
-                request.phone(),
-                DepartmentId.of(request.departmentId())));
+        return UserInterfaceAssembler.toResponse(
+                userProfileApplicationService.updateUser(UserInterfaceAssembler.toUpdateCommand(userId, request)));
     }
 
     @Operation(summary = "启用或停用用户")
@@ -73,8 +68,9 @@ public class UserProfileController {
     public UserResponse updateUserStatus(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
             @Valid @RequestBody UserStatusUpdateRequest request) {
-        return UserResponse.from(userProfileApplicationService.updateUserStatus(
-                UserIdCodec.toDomain(userId), request.status() == null ? null : UserStatus.from(request.status())));
+        return UserInterfaceAssembler.toResponse(
+                userProfileApplicationService.updateUserStatus(
+                        UserInterfaceAssembler.toStatusUpdateCommand(userId, request)));
     }
 
     @Operation(summary = "删除用户")

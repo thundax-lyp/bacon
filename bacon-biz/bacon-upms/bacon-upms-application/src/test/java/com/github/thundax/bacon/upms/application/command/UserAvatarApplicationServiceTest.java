@@ -75,12 +75,12 @@ class UserAvatarApplicationServiceTest {
         when(storedObjectCommandFacade.uploadObject(any())).thenReturn(storedObject);
         when(userRepository.update(any(User.class))).thenReturn(savedUser);
 
-        UserDTO result = service.updateAvatar(
+        UserDTO result = service.updateAvatar(new UserAvatarUpdateCommand(
                 UserId.of(101L),
                 "avatar.png",
                 "image/png",
                 1024L,
-                new ByteArrayInputStream(createImageBytes("png", 256, 256)));
+                new ByteArrayInputStream(createImageBytes("png", 256, 256))));
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).update(userCaptor.capture());
@@ -104,9 +104,12 @@ class UserAvatarApplicationServiceTest {
         User currentUser = User.reconstruct(UserId.of(101L), "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
         when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
 
-        assertThatThrownBy(() -> service.updateAvatar(
-                        UserId.of(101L), "avatar.gif", "image/gif", 12L, new ByteArrayInputStream(new byte[] {1, 2, 3
-                        })))
+        assertThatThrownBy(() -> service.updateAvatar(new UserAvatarUpdateCommand(
+                        UserId.of(101L),
+                        "avatar.gif",
+                        "image/gif",
+                        12L,
+                        new ByteArrayInputStream(new byte[] {1, 2, 3}))))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("avatar contentType must be image/jpeg or image/png");
     }
@@ -117,12 +120,12 @@ class UserAvatarApplicationServiceTest {
         byte[] bytes = createImageBytes("png", 256, 180);
         when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
 
-        assertThatThrownBy(() -> service.updateAvatar(
+        assertThatThrownBy(() -> service.updateAvatar(new UserAvatarUpdateCommand(
                         UserId.of(101L),
                         "avatar.png",
                         "image/png",
                         (long) bytes.length,
-                        new ByteArrayInputStream(bytes)))
+                        new ByteArrayInputStream(bytes))))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("avatar image must be square");
     }

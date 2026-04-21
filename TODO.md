@@ -22,17 +22,12 @@
 
 ### P0 - 2026-04-17 跨域扫描新增（统一性优先）
 
-- [ ] `upms-interfaces/application`：收口 User 合同为 Command/Query/VO
+- [x] `upms-interfaces/application`：收口 User 方法接口为 Command/Query/VO
   - 范围对象：`UserController`、`UserQueryController`、`UserProfileController`、`UserPasswordController` 对应的 application service 公共方法
   - 处理动作：把多 primitive 入参改为 `User*Command` / `User*Query` / `User*VO`
   - 验收点：`User*ApplicationService` 公共方法不再出现多 primitive 长参数
   - 重要度：9/10
 
-- [ ] `upms-interfaces/application`：收口 Tenant/Role/Post 合同为 Command/Query/VO
-  - 范围对象：`TenantApplicationService`、`RoleApplicationService`、`PostApplicationService` 及其 controller/provider 入口
-  - 处理动作：统一改为 `Tenant*Command|Query`、`Role*Command|Query`、`Post*Command|Query`
-  - 验收点：租户/角色/岗位相关 application 公共方法签名统一为对象参数
-  - 重要度：9/10
 
 - [ ] `auth-interfaces/application`：收口 OAuth2 合同为 Command/Query/VO
   - 范围对象：`OAuth2Controller`、`OAuth2AuthorizationApplicationService`、`OAuth2ClientApplicationService`

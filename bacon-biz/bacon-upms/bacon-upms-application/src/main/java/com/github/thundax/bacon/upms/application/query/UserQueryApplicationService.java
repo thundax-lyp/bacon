@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.application.query;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
@@ -11,6 +10,10 @@ import com.github.thundax.bacon.upms.application.assembler.RoleAssembler;
 import com.github.thundax.bacon.upms.application.assembler.TenantAssembler;
 import com.github.thundax.bacon.upms.application.assembler.UserAssembler;
 import com.github.thundax.bacon.upms.application.assembler.UserIdentityAssembler;
+import com.github.thundax.bacon.upms.application.query.UserExportQuery;
+import com.github.thundax.bacon.upms.application.query.UserIdentityQuery;
+import com.github.thundax.bacon.upms.application.query.UserLoginCredentialQuery;
+import com.github.thundax.bacon.upms.application.query.UserPageQuery;
 import com.github.thundax.bacon.upms.application.dto.RoleDTO;
 import com.github.thundax.bacon.upms.application.dto.TenantDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
@@ -23,7 +26,6 @@ import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
-import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
@@ -69,16 +71,16 @@ public class UserQueryApplicationService {
                 resolveAvatarUrl(user.getAvatarStoredObjectNo()));
     }
 
-    public UserIdentityDTO getUserIdentity(UserIdentityType identityType, String identityValue) {
+    public UserIdentityDTO getUserIdentity(UserIdentityQuery query) {
         UserIdentity userIdentity = userIdentityRepository
-                .findIdentity(identityType, identityValue)
+                .findIdentity(query.identityType(), query.identityValue())
                 .orElseThrow(() -> new NotFoundException("User identity not found"));
         return UserIdentityAssembler.toDto(userIdentity);
     }
 
-    public UserLoginCredentialDTO getUserLoginCredential(UserIdentityType identityType, String identityValue) {
+    public UserLoginCredentialDTO getUserLoginCredential(UserLoginCredentialQuery query) {
         UserIdentity userIdentity = userIdentityRepository
-                .findIdentity(identityType, identityValue)
+                .findIdentity(query.identityType(), query.identityValue())
                 .orElseThrow(() -> new NotFoundException("User identity not found"));
         UserCredential passwordCredential = userCredentialRepository
                 .findCredentialByUserId(userIdentity.getUserId(), UserCredentialType.PASSWORD)
@@ -97,19 +99,25 @@ public class UserQueryApplicationService {
         return TenantAssembler.toDto(tenant);
     }
 
-    public PageResult<UserDTO> page(
-            String account, String name, String phone, UserStatus status, Integer pageNo, Integer pageSize) {
-        int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
-        int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
+    public PageResult<UserDTO> page(UserPageQuery query) {
+        int normalizedPageNo = query.getPageNo();
+        int normalizedPageSize = query.getPageSize();
         return new PageResult<>(
-                userRepository.page(account, name, phone, status, normalizedPageNo, normalizedPageSize).stream()
+                userRepository.page(
+                                query.getAccount(),
+                                query.getName(),
+                                query.getPhone(),
+                                query.getStatus(),
+                                normalizedPageNo,
+                                normalizedPageSize)
+                        .stream()
                         .map(user -> UserAssembler.toDto(
                                 user,
                                 resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT),
                                 resolveIdentityValue(user.getId(), UserIdentityType.PHONE),
                                 null))
                         .toList(),
-                userRepository.count(account, name, phone, status),
+                userRepository.count(query.getAccount(), query.getName(), query.getPhone(), query.getStatus()),
                 normalizedPageNo,
                 normalizedPageSize);
     }
@@ -129,8 +137,8 @@ public class UserQueryApplicationService {
                 .toList();
     }
 
-    public List<UserDTO> exportUsers(String account, String name, String phone, UserStatus status) {
-        return userRepository.list(account, name, phone, status).stream()
+    public List<UserDTO> exportUsers(UserExportQuery query) {
+        return userRepository.list(query.account(), query.name(), query.phone(), query.status()).stream()
                 .map(user -> UserAssembler.toDto(
                         user,
                         resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT),

@@ -5,6 +5,7 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
+import com.github.thundax.bacon.upms.interfaces.assembler.UserInterfaceAssembler;
 import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
 import com.github.thundax.bacon.upms.interfaces.request.UserPasswordResetRequest;
 import com.github.thundax.bacon.upms.interfaces.response.UserResponse;
@@ -38,7 +39,7 @@ public class UserPasswordController {
     @PutMapping("/{userId}/passwords/init")
     public UserResponse initPassword(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
-        return UserResponse.from(userPasswordApplicationService.initPassword(UserIdCodec.toDomain(userId)));
+        return UserInterfaceAssembler.toResponse(userPasswordApplicationService.initPassword(UserIdCodec.toDomain(userId)));
     }
 
     @Operation(summary = "管理员重置密码")
@@ -48,7 +49,8 @@ public class UserPasswordController {
     public UserResponse resetPassword(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
             @Valid @RequestBody UserPasswordResetRequest request) {
-        return UserResponse.from(
-                userPasswordApplicationService.resetPassword(UserIdCodec.toDomain(userId), request.newPassword()));
+        return UserInterfaceAssembler.toResponse(
+                userPasswordApplicationService.resetPassword(
+                        UserInterfaceAssembler.toPasswordResetCommand(userId, request)));
     }
 }

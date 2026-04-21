@@ -8,6 +8,7 @@ import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeR
 import com.github.thundax.bacon.storage.api.request.UploadObjectFacadeRequest;
 import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
 import com.github.thundax.bacon.upms.application.assembler.UserAssembler;
+import com.github.thundax.bacon.upms.application.command.UserAvatarUpdateCommand;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
@@ -52,15 +53,15 @@ public class UserAvatarApplicationService {
     }
 
     @Transactional
-    public UserDTO updateAvatar(
-            UserId userId, String originalFilename, String contentType, Long size, InputStream inputStream) {
-        User currentUser = requireUser(userId);
-        AvatarImage avatarImage = readAndValidateAvatar(originalFilename, contentType, size, inputStream);
+    public UserDTO updateAvatar(UserAvatarUpdateCommand command) {
+        User currentUser = requireUser(command.userId());
+        AvatarImage avatarImage =
+                readAndValidateAvatar(command.originalFilename(), command.contentType(), command.size(), command.inputStream());
         StoredObjectFacadeResponse storedObject = uploadAvatarObject(avatarImage);
         AvatarStoredObjectNo avatarStoredObjectNo = AvatarStoredObjectNo.of(storedObject.getStoredObjectNo());
         storedObjectCommandFacade.markObjectReferenced(
                 new StoredObjectReferenceFacadeRequest(
-                        avatarStoredObjectNo.value(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value())));
+                        avatarStoredObjectNo.value(), USER_AVATAR_OWNER_TYPE, String.valueOf(command.userId().value())));
         AvatarStoredObjectNo previousAvatarStoredObjectNo = currentUser.getAvatarStoredObjectNo();
         try {
             currentUser.useAvatar(avatarStoredObjectNo);
@@ -70,7 +71,7 @@ public class UserAvatarApplicationService {
                         new StoredObjectReferenceFacadeRequest(
                                 previousAvatarStoredObjectNo.value(),
                                 USER_AVATAR_OWNER_TYPE,
-                                String.valueOf(userId.value())));
+                                String.valueOf(command.userId().value())));
             }
             return UserAssembler.toDto(
                     savedUser,
@@ -80,7 +81,7 @@ public class UserAvatarApplicationService {
         } catch (RuntimeException ex) {
             storedObjectCommandFacade.clearObjectReference(
                     new StoredObjectReferenceFacadeRequest(
-                            avatarStoredObjectNo.value(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value())));
+                            avatarStoredObjectNo.value(), USER_AVATAR_OWNER_TYPE, String.valueOf(command.userId().value())));
             throw ex;
         }
     }

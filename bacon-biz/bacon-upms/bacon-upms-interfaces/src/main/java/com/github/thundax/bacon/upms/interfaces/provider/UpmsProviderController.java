@@ -1,11 +1,14 @@
 package com.github.thundax.bacon.upms.interfaces.provider;
 
 import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
+import com.github.thundax.bacon.upms.api.request.UserCredentialGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.request.UserIdentityGetFacadeRequest;
 import com.github.thundax.bacon.upms.api.response.TenantFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserDataScopeFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
 import com.github.thundax.bacon.upms.api.request.UserPasswordChangeFacadeRequest;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
+import com.github.thundax.bacon.upms.interfaces.assembler.UserInterfaceAssembler;
 import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
 import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
@@ -14,7 +17,6 @@ import com.github.thundax.bacon.upms.interfaces.assembler.TenantInterfaceAssembl
 import com.github.thundax.bacon.upms.application.query.DepartmentQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
-import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -58,9 +60,7 @@ public class UpmsProviderController {
                 : departmentQueryApplicationService
                         .getById(DepartmentIdCodec.toDomain(user.getDepartmentId()))
                         .getCode();
-        return new UserFacadeResponse(
-                user.getId(), user.getAccount(), user.getName(), user.getAvatarStoredObjectNo(), user.getPhone(),
-                departmentCode, user.getAvatarUrl(), user.getStatus());
+        return UserInterfaceAssembler.toFacadeResponse(user, departmentCode);
     }
 
     @Operation(summary = "按身份标识查询用户身份")
@@ -69,7 +69,8 @@ public class UpmsProviderController {
             @RequestParam("identityType") @NotBlank(message = "identityType must not be blank") String identityType,
             @RequestParam("identityValue") @NotBlank(message = "identityValue must not be blank")
                     String identityValue) {
-        return userQueryApplicationService.getUserIdentity(UserIdentityType.from(identityType), identityValue);
+        return userQueryApplicationService.getUserIdentity(
+                UserInterfaceAssembler.toIdentityQuery(new UserIdentityGetFacadeRequest(identityType, identityValue)));
     }
 
     @Operation(summary = "按身份标识查询用户登录凭据")
@@ -78,16 +79,16 @@ public class UpmsProviderController {
             @RequestParam("identityType") @NotBlank(message = "identityType must not be blank") String identityType,
             @RequestParam("identityValue") @NotBlank(message = "identityValue must not be blank")
                     String identityValue) {
-        return userQueryApplicationService.getUserLoginCredential(UserIdentityType.from(identityType), identityValue);
+        return userQueryApplicationService.getUserLoginCredential(
+                UserInterfaceAssembler.toLoginCredentialQuery(
+                        new UserCredentialGetFacadeRequest(identityType, identityValue)));
     }
 
     @Operation(summary = "当前用户修改密码")
     @PostMapping("/users/current/passwords/change")
     public void changePassword(@Valid @RequestBody UserPasswordChangeFacadeRequest request) {
         userPasswordApplicationService.changePassword(
-                BaconIdContextHelper.requireUserId(),
-                request.getOldPassword(),
-                request.getNewPassword());
+                UserInterfaceAssembler.toPasswordChangeCommand(BaconIdContextHelper.requireUserId(), request));
     }
 
     @Operation(summary = "查询当前租户")

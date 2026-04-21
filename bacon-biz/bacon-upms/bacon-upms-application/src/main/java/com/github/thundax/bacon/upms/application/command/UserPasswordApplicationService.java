@@ -9,6 +9,8 @@ import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.application.assembler.UserAssembler;
+import com.github.thundax.bacon.upms.application.command.UserPasswordChangeCommand;
+import com.github.thundax.bacon.upms.application.command.UserPasswordResetCommand;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
@@ -62,30 +64,36 @@ public class UserPasswordApplicationService {
     }
 
     @Transactional
-    public UserDTO resetPassword(UserId userId, String newPassword) {
-        requireUser(userId);
-        validateRequired(newPassword, "newPassword");
+    public UserDTO resetPassword(UserPasswordResetCommand command) {
+        requireUser(command.userId());
+        validateRequired(command.newPassword(), "newPassword");
         User user = userRepository.updatePassword(
-                userId, newPassword.trim(), true, UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
+                command.userId(),
+                command.newPassword().trim(),
+                true,
+                UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
         sessionCommandFacade.invalidateUserSessions(
                 new SessionInvalidateUserFacadeRequest(
-                        BaconContextHolder.requireTenantId(), userId.value(), "USER_PASSWORD_RESET"));
+                        BaconContextHolder.requireTenantId(), command.userId().value(), "USER_PASSWORD_RESET"));
         return toUserDto(user);
     }
 
     @Transactional
-    public void changePassword(UserId userId, String oldPassword, String newPassword) {
-        requireUser(userId);
+    public void changePassword(UserPasswordChangeCommand command) {
+        requireUser(command.userId());
         UserCredential passwordCredential = userCredentialRepository
-                .findCredentialByUserId(userId, UserCredentialType.PASSWORD)
-                .orElseThrow(() -> new NotFoundException("Password credential not found: " + userId));
-        validateRequired(oldPassword, "oldPassword");
-        validateRequired(newPassword, "newPassword");
-        if (!passwordEncoder.matches(oldPassword, passwordCredential.getCredentialValue())) {
+                .findCredentialByUserId(command.userId(), UserCredentialType.PASSWORD)
+                .orElseThrow(() -> new NotFoundException("Password credential not found: " + command.userId()));
+        validateRequired(command.oldPassword(), "oldPassword");
+        validateRequired(command.newPassword(), "newPassword");
+        if (!passwordEncoder.matches(command.oldPassword(), passwordCredential.getCredentialValue())) {
             throw new BadRequestException("Old password invalid");
         }
         userRepository.updatePassword(
-                userId, newPassword.trim(), false, UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
+                command.userId(),
+                command.newPassword().trim(),
+                false,
+                UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
     }
 
     private User requireUser(UserId userId) {

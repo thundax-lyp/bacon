@@ -145,7 +145,8 @@ class UserProfileApplicationServiceTest {
                 .thenReturn(Optional.of(passwordCredential), Optional.of(passwordCredential));
         when(userCredentialRepository.update(passwordCredential)).thenAnswer(invocation -> invocation.getArgument(0));
 
-        service.updateUser(UserId.of(101L), "alice-new", "Alice Zhang", "13900000001", DEPARTMENT_ID);
+        service.updateUser(new UserUpdateCommand(
+                UserId.of(101L), "alice-new", "Alice Zhang", "13900000001", DEPARTMENT_ID));
 
         verify(userRepository).update(currentUser);
         verify(userIdentityRepository).update(accountIdentity);
@@ -160,7 +161,7 @@ class UserProfileApplicationServiceTest {
         when(userRoleRepository.updateRoleIds(UserId.of(101L), java.util.List.of(RoleId.of(301L))))
                 .thenReturn(java.util.List.of());
 
-        service.updateRoleIds(UserId.of(101L), java.util.List.of(RoleId.of(301L)));
+        service.updateRoleIds(new UserRoleAssignCommand(UserId.of(101L), java.util.List.of(RoleId.of(301L))));
 
         verify(permissionCacheRepository).deleteUserPermission(TENANT_ID, UserId.of(101L));
     }

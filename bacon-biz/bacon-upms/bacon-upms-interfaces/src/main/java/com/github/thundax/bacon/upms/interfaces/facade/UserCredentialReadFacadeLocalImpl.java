@@ -6,10 +6,10 @@ import com.github.thundax.bacon.upms.api.request.UserCredentialGetFacadeRequest;
 import com.github.thundax.bacon.upms.api.request.UserIdentityGetFacadeRequest;
 import com.github.thundax.bacon.upms.api.response.UserCredentialFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.UserIdentityFacadeResponse;
+import com.github.thundax.bacon.upms.interfaces.assembler.UserInterfaceAssembler;
 import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
-import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -27,37 +27,15 @@ public class UserCredentialReadFacadeLocalImpl implements UserCredentialReadFaca
     public UserIdentityFacadeResponse getUserIdentity(UserIdentityGetFacadeRequest request) {
         BaconContextHolder.requireTenantId();
         UserIdentityDTO userIdentity = userQueryApplicationService.getUserIdentity(
-                UserIdentityType.from(request.getIdentityType()), request.getIdentityValue());
-        return new UserIdentityFacadeResponse(
-                userIdentity.getId(),
-                userIdentity.getUserId(),
-                userIdentity.getIdentityType(),
-                userIdentity.getIdentityValue(),
-                userIdentity.getStatus());
+                UserInterfaceAssembler.toIdentityQuery(request));
+        return UserInterfaceAssembler.toIdentityFacadeResponse(userIdentity);
     }
 
     @Override
     public UserCredentialFacadeResponse getUserCredential(UserCredentialGetFacadeRequest request) {
         BaconContextHolder.requireTenantId();
         UserLoginCredentialDTO credential = userQueryApplicationService.getUserLoginCredential(
-                UserIdentityType.from(request.getIdentityType()), request.getIdentityValue());
-        return new UserCredentialFacadeResponse(
-                credential.getUserId(),
-                credential.getIdentityId(),
-                credential.getAccount(),
-                credential.getPhone(),
-                credential.getIdentityType(),
-                credential.getIdentityValue(),
-                credential.getIdentityStatus(),
-                credential.getCredentialId(),
-                credential.getCredentialType(),
-                credential.getCredentialStatus(),
-                credential.isNeedChangePassword(),
-                credential.getCredentialExpiresAt(),
-                credential.getLockedUntil(),
-                credential.isMfaRequired(),
-                credential.getSecondFactorTypes(),
-                credential.getStatus(),
-                credential.getPasswordHash());
+                UserInterfaceAssembler.toLoginCredentialQuery(request));
+        return UserInterfaceAssembler.toCredentialFacadeResponse(credential);
     }
 }

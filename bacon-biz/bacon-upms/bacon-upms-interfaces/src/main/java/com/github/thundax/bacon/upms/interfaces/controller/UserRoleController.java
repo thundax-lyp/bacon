@@ -1,12 +1,11 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
-import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
+import com.github.thundax.bacon.upms.interfaces.assembler.UserInterfaceAssembler;
 import com.github.thundax.bacon.upms.application.command.UserProfileApplicationService;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.interfaces.request.UserRoleAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,14 +40,7 @@ public class UserRoleController {
     public List<RoleResponse> updateRoleIds(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
             @Valid @RequestBody UserRoleAssignRequest request) {
-        return userProfileApplicationService
-                .updateRoleIds(
-                        UserIdCodec.toDomain(userId),
-                        request.roleIds() == null
-                                ? List.of()
-                                : request.roleIds().stream().map(RoleId::of).toList())
-                .stream()
-                .map(RoleResponse::from)
-                .toList();
+        return UserInterfaceAssembler.toRoleResponseList(
+                userProfileApplicationService.updateRoleIds(UserInterfaceAssembler.toRoleAssignCommand(userId, request)));
     }
 }

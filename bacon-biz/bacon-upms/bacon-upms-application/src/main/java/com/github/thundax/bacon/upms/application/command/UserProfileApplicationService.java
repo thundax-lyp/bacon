@@ -20,6 +20,10 @@ import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
 import com.github.thundax.bacon.upms.application.assembler.RoleAssembler;
 import com.github.thundax.bacon.upms.application.assembler.UserAssembler;
 import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
+import com.github.thundax.bacon.upms.application.command.UserCreateCommand;
+import com.github.thundax.bacon.upms.application.command.UserRoleAssignCommand;
+import com.github.thundax.bacon.upms.application.command.UserStatusUpdateCommand;
+import com.github.thundax.bacon.upms.application.command.UserUpdateCommand;
 import com.github.thundax.bacon.upms.application.dto.RoleDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
@@ -97,13 +101,13 @@ public class UserProfileApplicationService {
     }
 
     @Transactional
-    public UserDTO createUser(String account, String name, String phone, DepartmentId departmentId) {
-        validateRequired(account, "account");
-        validateRequired(name, "name");
-        ensureAccountUnique(account, null);
-        String normalizedAccount = account.trim();
-        String normalizedPhone = phone == null ? null : phone.trim();
-        User savedUser = userRepository.insert(User.create(ids.userId(), name.trim(), null, departmentId));
+    public UserDTO createUser(UserCreateCommand command) {
+        validateRequired(command.account(), "account");
+        validateRequired(command.name(), "name");
+        ensureAccountUnique(command.account(), null);
+        String normalizedAccount = command.account().trim();
+        String normalizedPhone = command.phone() == null ? null : command.phone().trim();
+        User savedUser = userRepository.insert(User.create(ids.userId(), command.name().trim(), null, command.departmentId()));
         UserIdentity accountIdentity = replaceAccountIdentity(savedUser.getId(), normalizedAccount);
         upsertPasswordCredential(savedUser, accountIdentity, true);
         replacePhoneIdentity(savedUser.getId(), normalizedPhone);
@@ -111,18 +115,18 @@ public class UserProfileApplicationService {
     }
 
     @Transactional
-    public UserDTO updateUser(UserId userId, String account, String name, String phone, DepartmentId departmentId) {
-        User currentUser = requireUser(userId);
-        validateRequired(account, "account");
-        validateRequired(name, "name");
-        ensureAccountUnique(account, userId);
-        String normalizedAccount = account.trim();
-        String normalizedPhone = phone == null ? null : phone.trim();
-        currentUser.rename(name.trim());
-        if (departmentId == null) {
+    public UserDTO updateUser(UserUpdateCommand command) {
+        User currentUser = requireUser(command.userId());
+        validateRequired(command.account(), "account");
+        validateRequired(command.name(), "name");
+        ensureAccountUnique(command.account(), command.userId());
+        String normalizedAccount = command.account().trim();
+        String normalizedPhone = command.phone() == null ? null : command.phone().trim();
+        currentUser.rename(command.name().trim());
+        if (command.departmentId() == null) {
             currentUser.clearDepartment();
         } else {
-            currentUser.assignDepartment(departmentId);
+            currentUser.assignDepartment(command.departmentId());
         }
         User savedUser = userRepository.update(currentUser);
         UserIdentity accountIdentity = replaceAccountIdentity(savedUser.getId(), normalizedAccount);
@@ -132,12 +136,12 @@ public class UserProfileApplicationService {
     }
 
     @Transactional
-    public UserDTO updateUserStatus(UserId userId, UserStatus status) {
-        User currentUser = requireUser(userId);
-        if (status == null) {
+    public UserDTO updateUserStatus(UserStatusUpdateCommand command) {
+        User currentUser = requireUser(command.userId());
+        if (command.status() == null) {
             throw new BadRequestException("status must not be null");
         }
-        if (UserStatus.ACTIVE == status) {
+        if (UserStatus.ACTIVE == command.status()) {
             currentUser.activate();
         } else {
             currentUser.disable();
@@ -146,7 +150,7 @@ public class UserProfileApplicationService {
         if (UserStatus.DISABLED == savedUser.getStatus()) {
             sessionCommandFacade.invalidateUserSessions(
                     new SessionInvalidateUserFacadeRequest(
-                            BaconContextHolder.requireTenantId(), userId.value(), "USER_DISABLED"));
+                            BaconContextHolder.requireTenantId(), command.userId().value(), "USER_DISABLED"));
         }
         return toUserDto(savedUser);
     }
@@ -168,13 +172,13 @@ public class UserProfileApplicationService {
     }
 
     @Transactional
-    public List<RoleDTO> updateRoleIds(UserId userId, List<RoleId> roleIds) {
-        requireUser(userId);
-        List<RoleId> domainRoleIds = roleIds == null ? List.of() : roleIds;
-        List<RoleDTO> roles = userRoleRepository.updateRoleIds(userId, domainRoleIds).stream()
+    public List<RoleDTO> updateRoleIds(UserRoleAssignCommand command) {
+        requireUser(command.userId());
+        List<RoleId> domainRoleIds = command.roleIds() == null ? List.of() : command.roleIds();
+        List<RoleDTO> roles = userRoleRepository.updateRoleIds(command.userId(), domainRoleIds).stream()
                 .map(RoleAssembler::toDto)
                 .toList();
-        permissionCacheRepository.deleteUserPermission(TenantId.of(BaconContextHolder.requireTenantId()), userId);
+        permissionCacheRepository.deleteUserPermission(TenantId.of(BaconContextHolder.requireTenantId()), command.userId());
         return roles;
     }
 
@@ -184,11 +188,11 @@ public class UserProfileApplicationService {
             return List.of();
         }
         return commands.stream()
-                .map(command -> createUser(
+                .map(command -> createUser(new UserCreateCommand(
                         command.account(),
                         command.name(),
                         command.phone(),
-                        resolveDepartmentIdByCode(command.departmentCode())))
+                        resolveDepartmentIdByCode(command.departmentCode()))))
                 .toList();
     }
 

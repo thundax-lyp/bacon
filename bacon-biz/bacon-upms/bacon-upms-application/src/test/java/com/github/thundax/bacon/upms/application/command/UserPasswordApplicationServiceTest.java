@@ -71,7 +71,7 @@ class UserPasswordApplicationServiceTest {
                 .thenReturn(Optional.of(passwordCredential));
         when(passwordEncoder.matches("old-password", "{noop}identity")).thenReturn(true);
 
-        service.changePassword(UserId.of(101L), "old-password", "new-password");
+        service.changePassword(new UserPasswordChangeCommand(UserId.of(101L), "old-password", "new-password"));
 
         verify(userRepository).updatePassword(
                 UserId.of(101L),

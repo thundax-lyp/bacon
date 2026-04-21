@@ -5,14 +5,9 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.application.codec.TenantCodeCodec;
 import com.github.thundax.bacon.upms.application.command.TenantCommandApplicationService;
-import com.github.thundax.bacon.upms.application.command.TenantCreateCommand;
-import com.github.thundax.bacon.upms.application.command.TenantStatusUpdateCommand;
-import com.github.thundax.bacon.upms.application.command.TenantUpdateCommand;
-import com.github.thundax.bacon.upms.application.query.TenantPageQuery;
 import com.github.thundax.bacon.upms.application.query.TenantQueryApplicationService;
-import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
+import com.github.thundax.bacon.upms.interfaces.assembler.TenantInterfaceAssembler;
 import com.github.thundax.bacon.upms.interfaces.request.TenantCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.request.TenantPageRequest;
 import com.github.thundax.bacon.upms.interfaces.request.TenantStatusUpdateRequest;
@@ -55,11 +50,8 @@ public class TenantController {
     @SysLog(module = "UPMS", action = "分页查询租户", eventType = LogEventType.QUERY)
     @GetMapping("/page")
     public TenantPageResponse page(@Valid @ModelAttribute TenantPageRequest request) {
-        return TenantPageResponse.from(tenantQueryApplicationService.page(new TenantPageQuery(
-                request.getName(),
-                request.getStatus() == null ? null : TenantStatus.from(request.getStatus()),
-                request.getPageNo(),
-                request.getPageSize())));
+        return TenantInterfaceAssembler.toPageResponse(
+                tenantQueryApplicationService.page(TenantInterfaceAssembler.toPageQuery(request)));
     }
 
     @Operation(summary = "创建租户")
@@ -67,8 +59,8 @@ public class TenantController {
     @SysLog(module = "UPMS", action = "创建租户", eventType = LogEventType.CREATE)
     @PostMapping
     public TenantResponse createTenant(@Valid @RequestBody TenantCreateRequest request) {
-        return TenantResponse.from(tenantCommandApplicationService.create(new TenantCreateCommand(
-                request.name(), TenantCodeCodec.toDomain(request.code()), request.expiredAt())));
+        return TenantInterfaceAssembler.toResponse(
+                tenantCommandApplicationService.create(TenantInterfaceAssembler.toCreateCommand(request)));
     }
 
     @Operation(summary = "修改租户")
@@ -78,11 +70,8 @@ public class TenantController {
     public TenantResponse updateTenant(
             @PathVariable("tenantId") @Positive(message = "tenantId must be greater than 0") Long tenantId,
             @Valid @RequestBody TenantUpdateRequest request) {
-        return TenantResponse.from(tenantCommandApplicationService.update(new TenantUpdateCommand(
-                TenantId.of(tenantId),
-                request.name(),
-                TenantCodeCodec.toDomain(request.code()),
-                request.expiredAt())));
+        return TenantInterfaceAssembler.toResponse(
+                tenantCommandApplicationService.update(TenantInterfaceAssembler.toUpdateCommand(tenantId, request)));
     }
 
     @Operation(summary = "按租户编号查询租户")
@@ -91,7 +80,7 @@ public class TenantController {
     @GetMapping("/{tenantId}")
     public TenantResponse getTenantByTenantId(
             @PathVariable("tenantId") @Positive(message = "tenantId must be greater than 0") Long tenantId) {
-        return TenantResponse.from(tenantQueryApplicationService.getById(TenantId.of(tenantId)));
+        return TenantInterfaceAssembler.toResponse(tenantQueryApplicationService.getById(TenantId.of(tenantId)));
     }
 
     @Operation(summary = "变更租户状态")
@@ -101,7 +90,7 @@ public class TenantController {
     public TenantResponse updateTenantStatus(
             @PathVariable("tenantId") @Positive(message = "tenantId must be greater than 0") Long tenantId,
             @Valid @RequestBody TenantStatusUpdateRequest request) {
-        return TenantResponse.from(tenantCommandApplicationService.updateStatus(new TenantStatusUpdateCommand(
-                TenantId.of(tenantId), request.status() == null ? null : TenantStatus.from(request.status()))));
+        return TenantInterfaceAssembler.toResponse(tenantCommandApplicationService.updateStatus(
+                TenantInterfaceAssembler.toStatusUpdateCommand(tenantId, request)));
     }
 }

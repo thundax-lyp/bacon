@@ -7,10 +7,10 @@ import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
 import com.github.thundax.bacon.upms.api.request.UserPasswordChangeFacadeRequest;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
-import com.github.thundax.bacon.upms.application.dto.TenantDTO;
 import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
+import com.github.thundax.bacon.upms.interfaces.assembler.TenantInterfaceAssembler;
 import com.github.thundax.bacon.upms.application.query.DepartmentQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
@@ -93,7 +93,8 @@ public class UpmsProviderController {
     @Operation(summary = "查询当前租户")
     @GetMapping("/tenants/current")
     public TenantFacadeResponse getCurrentTenant() {
-        return toTenantFacadeResponse(userQueryApplicationService.getTenantByTenantId(BaconIdContextHelper.requireTenantId()));
+        return TenantInterfaceAssembler.toFacadeResponse(
+                userQueryApplicationService.getTenantByTenantId(BaconIdContextHelper.requireTenantId()));
     }
 
     @Operation(summary = "查询当前用户数据权限范围")
@@ -104,7 +105,4 @@ public class UpmsProviderController {
                 dataScope.isAllAccess(), dataScope.getScopeTypes(), dataScope.getDepartmentIds());
     }
 
-    private TenantFacadeResponse toTenantFacadeResponse(TenantDTO tenant) {
-        return new TenantFacadeResponse(tenant.getName(), tenant.getCode(), tenant.getStatus(), tenant.getExpiredAt());
-    }
 }

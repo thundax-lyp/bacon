@@ -11,6 +11,7 @@ import com.github.thundax.bacon.upms.application.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.application.dto.TenantDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
+import com.github.thundax.bacon.upms.interfaces.assembler.TenantInterfaceAssembler;
 import com.github.thundax.bacon.upms.application.query.DepartmentQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
@@ -61,7 +62,7 @@ public class CurrentUserReadFacadeLocalImpl implements CurrentUserReadFacade {
     }
 
     private TenantFacadeResponse toFacadeResponse(TenantDTO tenant) {
-        return new TenantFacadeResponse(tenant.getName(), tenant.getCode(), tenant.getStatus(), tenant.getExpiredAt());
+        return TenantInterfaceAssembler.toFacadeResponse(tenant);
     }
 
     private String resolveDepartmentCode(UserDTO user) {

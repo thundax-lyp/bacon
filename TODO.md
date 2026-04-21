@@ -123,12 +123,6 @@
   - 验收点：controller/provider 不再直接暴露 `domain entity`、`DO`、`FacadeResponse`、跨域 `DTO`
   - 重要度：9/10
 
-- [ ] 增加 ArchUnit 规则：`application` 跨域调用只允许依赖外域 `api.facade`
-  - 现状：当前已禁止依赖外域 `infra`，但对外域 `api.dto`、其他散包的使用边界还不够明确
-  - 处理动作：限制 `application` 对外域依赖只允许落在 `api.facade`；如需跨域模型转换，固定收敛到指定 assembler/adapter 包
-  - 验收点：跨域编排统一经由 facade 入口，避免外域契约对象渗透进业务流程主体
-  - 重要度：8/10
-
 - [ ] 增加 ArchUnit 规则：协议模型分层隔离
   - 现状：application 公共方法已禁止直接使用协议模型，但 `domain/infra/api` 对 `interfaces.request/response`、`api.dto` 的反向依赖仍可继续硬化
   - 处理动作：限制 `domain` 不得依赖 `interfaces.request/response`、`api.dto`；限制 `infra` 不得依赖 `interfaces.request/response`；限制 `api.facade` 不得使用 `interfaces.*` 模型

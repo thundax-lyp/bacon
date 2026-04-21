@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-class MenuControllerContractTest {
+class MenuControllerTest {
 
     private MenuCommandApplicationService menuCommandApplicationService;
     private com.github.thundax.bacon.upms.application.query.MenuQueryApplicationService menuQueryApplicationService;

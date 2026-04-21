@@ -4,9 +4,9 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
-import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
-import com.github.thundax.bacon.upms.domain.model.enums.MenuType;
+import com.github.thundax.bacon.upms.application.command.MenuCommandApplicationService;
+import com.github.thundax.bacon.upms.application.query.MenuQueryApplicationService;
+import com.github.thundax.bacon.upms.interfaces.assembler.MenuInterfaceAssembler;
 import com.github.thundax.bacon.upms.interfaces.request.MenuCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.request.MenuSortUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.request.MenuUpdateRequest;
@@ -33,10 +33,14 @@ import org.springframework.validation.annotation.Validated;
 @Tag(name = "UPMS-Menu", description = "菜单管理接口")
 public class MenuController {
 
-    private final MenuApplicationService menuApplicationService;
+    private final MenuCommandApplicationService menuCommandApplicationService;
+    private final MenuQueryApplicationService menuQueryApplicationService;
 
-    public MenuController(MenuApplicationService menuApplicationService) {
-        this.menuApplicationService = menuApplicationService;
+    public MenuController(
+            MenuCommandApplicationService menuCommandApplicationService,
+            MenuQueryApplicationService menuQueryApplicationService) {
+        this.menuCommandApplicationService = menuCommandApplicationService;
+        this.menuQueryApplicationService = menuQueryApplicationService;
     }
 
     @Operation(summary = "查询菜单树")
@@ -44,9 +48,7 @@ public class MenuController {
     @SysLog(module = "UPMS", action = "查询菜单树", eventType = LogEventType.QUERY)
     @GetMapping("/tree")
     public List<MenuTreeResponse> getMenuTree() {
-        return menuApplicationService.getMenuTree().stream()
-                .map(MenuTreeResponse::from)
-                .toList();
+        return MenuInterfaceAssembler.toTreeResponseList(menuQueryApplicationService.tree());
     }
 
     @Operation(summary = "创建菜单")
@@ -54,14 +56,8 @@ public class MenuController {
     @SysLog(module = "UPMS", action = "创建菜单", eventType = LogEventType.CREATE)
     @PostMapping
     public MenuTreeResponse createMenu(@Valid @RequestBody MenuCreateRequest request) {
-        return MenuTreeResponse.from(menuApplicationService.createMenu(
-                MenuType.from(trimPreservingNull(request.menuType())),
-                trimPreservingNull(request.name()),
-                MenuIdCodec.toDomain(request.parentId()),
-                trimPreservingNull(request.routePath()),
-                trimPreservingNull(request.componentName()),
-                trimPreservingNull(request.icon()),
-                trimPreservingNull(request.permissionCode())));
+        return MenuInterfaceAssembler.toResponse(
+                menuCommandApplicationService.create(MenuInterfaceAssembler.toCreateCommand(request)));
     }
 
     @Operation(summary = "修改菜单")
@@ -71,16 +67,8 @@ public class MenuController {
     public MenuTreeResponse updateMenu(
             @PathVariable("menuId") @Positive(message = "menuId must be greater than 0") Long menuId,
             @Valid @RequestBody MenuUpdateRequest request) {
-        return MenuTreeResponse.from(menuApplicationService.updateMenu(
-                MenuIdCodec.toDomain(menuId),
-                MenuType.from(trimPreservingNull(request.menuType())),
-                trimPreservingNull(request.name()),
-                MenuIdCodec.toDomain(request.parentId()),
-                trimPreservingNull(request.routePath()),
-                trimPreservingNull(request.componentName()),
-                trimPreservingNull(request.icon()),
-                request.sort(),
-                trimPreservingNull(request.permissionCode())));
+        return MenuInterfaceAssembler.toResponse(
+                menuCommandApplicationService.update(MenuInterfaceAssembler.toUpdateCommand(menuId, request)));
     }
 
     @Operation(summary = "删除菜单")
@@ -88,7 +76,7 @@ public class MenuController {
     @SysLog(module = "UPMS", action = "删除菜单", eventType = LogEventType.DELETE)
     @DeleteMapping("/{menuId}")
     public void delete(@PathVariable("menuId") @Positive(message = "menuId must be greater than 0") Long menuId) {
-        menuApplicationService.delete(MenuIdCodec.toDomain(menuId));
+        menuCommandApplicationService.delete(MenuInterfaceAssembler.toMenuId(menuId));
     }
 
     @Operation(summary = "调整菜单排序")
@@ -98,11 +86,7 @@ public class MenuController {
     public MenuTreeResponse updateSort(
             @PathVariable("menuId") @Positive(message = "menuId must be greater than 0") Long menuId,
             @Valid @RequestBody MenuSortUpdateRequest request) {
-        return MenuTreeResponse.from(
-                menuApplicationService.updateMenuSort(MenuIdCodec.toDomain(menuId), request.sort()));
-    }
-
-    private String trimPreservingNull(String value) {
-        return value == null ? null : value.trim();
+        return MenuInterfaceAssembler.toResponse(
+                menuCommandApplicationService.updateSort(MenuInterfaceAssembler.toSortUpdateCommand(menuId, request)));
     }
 }

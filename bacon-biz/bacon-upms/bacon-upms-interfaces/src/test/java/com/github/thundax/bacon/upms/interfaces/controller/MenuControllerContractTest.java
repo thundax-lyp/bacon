@@ -9,8 +9,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
-import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
+import com.github.thundax.bacon.upms.application.command.MenuCommandApplicationService;
+import com.github.thundax.bacon.upms.application.command.MenuCreateCommand;
+import com.github.thundax.bacon.upms.application.command.MenuUpdateCommand;
 import com.github.thundax.bacon.upms.application.dto.MenuTreeDTO;
 import com.github.thundax.bacon.upms.domain.model.enums.MenuType;
 import java.util.List;
@@ -23,15 +24,17 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 class MenuControllerContractTest {
 
-    private MenuApplicationService menuApplicationService;
+    private MenuCommandApplicationService menuCommandApplicationService;
+    private com.github.thundax.bacon.upms.application.query.MenuQueryApplicationService menuQueryApplicationService;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        menuApplicationService = mock(MenuApplicationService.class);
+        menuCommandApplicationService = mock(MenuCommandApplicationService.class);
+        menuQueryApplicationService = mock(com.github.thundax.bacon.upms.application.query.MenuQueryApplicationService.class);
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
-        mockMvc = MockMvcBuilders.standaloneSetup(new MenuController(menuApplicationService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new MenuController(menuCommandApplicationService, menuQueryApplicationService))
                 .setValidator(validator)
                 .build();
     }
@@ -47,19 +50,19 @@ class MenuControllerContractTest {
                                 """))
                 .andExpect(status().isBadRequest());
 
-        verifyNoInteractions(menuApplicationService);
+        verifyNoInteractions(menuCommandApplicationService, menuQueryApplicationService);
     }
 
     @Test
     void shouldTrimAndConvertRequestBeforeCallingApplicationService() throws Exception {
-        when(menuApplicationService.createMenu(
-                        eq(MenuType.CATALOG),
-                        eq("Catalog"),
-                        eq(MenuIdCodec.toDomain(1L)),
-                        eq("/catalog"),
-                        eq("CatalogPage"),
-                        eq("catalog"),
-                        eq("upms:menu:view")))
+        when(menuCommandApplicationService.create(eq(new MenuCreateCommand(
+                        MenuType.CATALOG,
+                        "Catalog",
+                        com.github.thundax.bacon.upms.domain.model.valueobject.MenuId.of(1L),
+                        "/catalog",
+                        "CatalogPage",
+                        "catalog",
+                        "upms:menu:view"))))
                 .thenReturn(new MenuTreeDTO(
                         101L,
                         "CATALOG",
@@ -91,16 +94,16 @@ class MenuControllerContractTest {
 
     @Test
     void shouldTrimAndConvertMenuIdWhenUpdatingMenu() throws Exception {
-        when(menuApplicationService.updateMenu(
-                        eq(MenuIdCodec.toDomain(101L)),
-                        eq(MenuType.CATALOG),
-                        eq("Catalog"),
-                        eq(MenuIdCodec.toDomain(1L)),
-                        eq("/catalog"),
-                        eq("CatalogPage"),
-                        eq("catalog"),
-                        eq(2),
-                        eq("upms:menu:edit")))
+        when(menuCommandApplicationService.update(eq(new MenuUpdateCommand(
+                        com.github.thundax.bacon.upms.domain.model.valueobject.MenuId.of(101L),
+                        MenuType.CATALOG,
+                        "Catalog",
+                        com.github.thundax.bacon.upms.domain.model.valueobject.MenuId.of(1L),
+                        "/catalog",
+                        "CatalogPage",
+                        "catalog",
+                        2,
+                        "upms:menu:edit"))))
                 .thenReturn(new MenuTreeDTO(
                         101L,
                         "CATALOG",

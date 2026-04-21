@@ -2,7 +2,7 @@ package com.github.thundax.bacon.upms.application.query;
 
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.application.assembler.UserDataScopeAssembler;
-import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
+import com.github.thundax.bacon.upms.application.query.MenuQueryApplicationService;
 import com.github.thundax.bacon.upms.application.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.application.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
@@ -14,17 +14,17 @@ import org.springframework.stereotype.Service;
 public class PermissionQueryApplicationService {
 
     private final PermissionRepository permissionRepository;
-    private final MenuApplicationService menuApplicationService;
+    private final MenuQueryApplicationService menuQueryApplicationService;
 
     public PermissionQueryApplicationService(
-            PermissionRepository permissionRepository, MenuApplicationService menuApplicationService) {
+            PermissionRepository permissionRepository, MenuQueryApplicationService menuQueryApplicationService) {
         this.permissionRepository = permissionRepository;
-        this.menuApplicationService = menuApplicationService;
+        this.menuQueryApplicationService = menuQueryApplicationService;
     }
 
     public List<UserMenuTreeDTO> listMenuTreeByUserId(UserId userId) {
-        // 菜单树的最终组装仍由 MenuApplicationService 负责，这里只聚合权限仓储结果，不重复实现树构建规则。
-        return menuApplicationService.toMenuTree(permissionRepository.listMenuTreeByUserId(userId));
+        // 菜单树的最终组装仍由 MenuQueryApplicationService 负责，这里只聚合权限仓储结果，不重复实现树构建规则。
+        return menuQueryApplicationService.toMenuTree(permissionRepository.listMenuTreeByUserId(userId));
     }
 
     public Set<String> findPermissionCodesByUserId(UserId userId) {

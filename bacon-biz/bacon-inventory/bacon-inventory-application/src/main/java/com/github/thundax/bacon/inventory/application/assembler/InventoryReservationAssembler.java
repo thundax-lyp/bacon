@@ -57,9 +57,12 @@ public final class InventoryReservationAssembler {
             return List.of();
         }
         return items.stream()
-                .map(item -> new InventoryReservationItemDTO(
-                        item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity()))
+                .map(item -> toItemDto(item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity()))
                 .toList();
+    }
+
+    public static InventoryReservationItemDTO toItemDto(Long skuId, Integer quantity) {
+        return new InventoryReservationItemDTO(skuId, quantity);
     }
 
     public static List<InventoryReservationItem> toDomainItems(

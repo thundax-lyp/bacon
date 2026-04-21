@@ -167,7 +167,7 @@ public class InventoryReservationApplicationService {
             quantityBySku.merge(item.getSkuId(), item.getQuantity(), Integer::sum);
         }
         return quantityBySku.entrySet().stream()
-                .map(entry -> new InventoryReservationItemDTO(entry.getKey(), entry.getValue()))
+                .map(entry -> InventoryReservationAssembler.toItemDto(entry.getKey(), entry.getValue()))
                 .toList();
     }
 

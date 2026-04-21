@@ -6,10 +6,9 @@ import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditCompensationApplicationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTaskApplicationService;
 import com.github.thundax.bacon.inventory.application.codec.DeadLetterIdCodec;
-import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
 import com.github.thundax.bacon.inventory.application.codec.TaskIdCodec;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
-import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.interfaces.assembler.InventoryInterfaceAssembler;
 import com.github.thundax.bacon.inventory.interfaces.request.InventoryAuditBatchReplayRequest;
 import com.github.thundax.bacon.inventory.interfaces.request.InventoryAuditDeadLetterPageRequest;
 import com.github.thundax.bacon.inventory.interfaces.request.InventoryAuditReplayRequest;
@@ -58,10 +57,8 @@ public class InventoryAuditCompensationController {
     @GetMapping
     public InventoryAuditDeadLetterPageResponse pageDeadLetters(
             @Valid @ModelAttribute InventoryAuditDeadLetterPageRequest request) {
-        InventoryAuditReplayStatus replayStatus =
-                request.getReplayStatus() == null ? null : InventoryAuditReplayStatus.from(request.getReplayStatus());
-        return InventoryAuditDeadLetterPageResponse.from(inventoryQueryService.page(
-                OrderNoCodec.toDomain(request.getOrderNo()), replayStatus, request.getPageNo(), request.getPageSize()));
+        return InventoryAuditDeadLetterPageResponse.from(
+                inventoryQueryService.page(InventoryInterfaceAssembler.toAuditDeadLetterPageQuery(request)));
     }
 
     @Operation(summary = "重放单条库存审计死信")

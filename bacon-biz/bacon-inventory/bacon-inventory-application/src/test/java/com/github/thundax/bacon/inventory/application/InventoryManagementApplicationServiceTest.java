@@ -8,9 +8,13 @@ import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.inventory.application.dto.InventoryStockDTO;
-import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
+import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
+import com.github.thundax.bacon.inventory.application.command.InventoryCommandApplicationService;
+import com.github.thundax.bacon.inventory.application.command.InventoryCreateCommand;
+import com.github.thundax.bacon.inventory.application.command.InventoryStatusUpdateCommand;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
@@ -18,6 +22,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OnHandQuantity;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservedQuantity;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
@@ -33,11 +38,18 @@ class InventoryManagementApplicationServiceTest {
     @Test
     void createInventoryShouldInitializeAvailableQuantity() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryManagementApplicationService service =
-                new InventoryManagementApplicationService(repository, bizTag -> 10001L);
+        InventoryCommandApplicationService service =
+                new InventoryCommandApplicationService(
+                        repository,
+                        repository,
+                        new InventoryOperationLogSupport(repository, repository, bizTag -> 10001L),
+                        () -> "RSV-1",
+                        new com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor(),
+                        new com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier(),
+                        bizTag -> 10001L);
 
         InventoryStockDTO result = BaconContextHolder.callWithTenantId(
-                1001L, () -> service.createInventory(SkuId.of(103L), 30, InventoryStatus.ENABLED));
+                1001L, () -> service.create(new InventoryCreateCommand(SkuId.of(103L), 30, InventoryStatus.ENABLED)));
 
         assertEquals(103L, result.getSkuId());
         assertEquals(30, result.getOnHandQuantity());
@@ -49,11 +61,18 @@ class InventoryManagementApplicationServiceTest {
     @Test
     void updateInventoryStatusShouldPersistStatus() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryManagementApplicationService service =
-                new InventoryManagementApplicationService(repository, bizTag -> 10001L);
+        InventoryCommandApplicationService service =
+                new InventoryCommandApplicationService(
+                        repository,
+                        repository,
+                        new InventoryOperationLogSupport(repository, repository, bizTag -> 10001L),
+                        () -> "RSV-1",
+                        new com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor(),
+                        new com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier(),
+                        bizTag -> 10001L);
 
         InventoryStockDTO result = BaconContextHolder.callWithTenantId(
-                1001L, () -> service.updateInventoryStatus(SkuId.of(101L), InventoryStatus.DISABLED));
+                1001L, () -> service.updateStatus(new InventoryStatusUpdateCommand(SkuId.of(101L), InventoryStatus.DISABLED)));
 
         assertEquals(InventoryStatus.DISABLED.value(), result.getStatus());
         assertEquals(
@@ -66,7 +85,10 @@ class InventoryManagementApplicationServiceTest {
     }
 
     private static final class TestInventoryRepository
-            implements InventoryStockRepository, InventoryReservationRepository, InventoryAuditRecordRepository {
+            implements InventoryStockRepository,
+                    InventoryReservationRepository,
+                    InventoryAuditRecordRepository,
+                    InventoryAuditOutboxRepository {
 
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
 
@@ -180,6 +202,9 @@ class InventoryManagementApplicationServiceTest {
 
         @Override
         public void insertLog(InventoryAuditLog auditLog) {}
+
+        @Override
+        public void insert(InventoryAuditOutbox outbox) {}
 
         @Override
         public List<InventoryAuditLog> listLogs(OrderNo orderNo) {

@@ -12,11 +12,12 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.inventory.application.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.application.result.InventoryReservationResult;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditOutboxRetrier;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
-import com.github.thundax.bacon.inventory.application.command.InventoryReservationApplicationService;
+import com.github.thundax.bacon.inventory.application.command.InventoryCommandApplicationService;
+import com.github.thundax.bacon.inventory.application.command.InventoryReservationItemCommand;
+import com.github.thundax.bacon.inventory.application.command.InventoryReserveStockCommand;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -71,11 +72,13 @@ class InventoryWorkflowIntegrationTest {
         OptimisticInventoryRepository repository = new OptimisticInventoryRepository(false);
         InventoryOperationLogSupport operationLogService =
                 new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
-        InventoryReservationApplicationService service = new InventoryReservationApplicationService(
+        InventoryCommandApplicationService service = new InventoryCommandApplicationService(
                 repository,
                 repository,
                 operationLogService,
                 new SequenceInventoryReservationNoGenerator(),
+                new com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor(),
+                new com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier(),
                 ID_GENERATOR);
 
         CountDownLatch start = new CountDownLatch(1);
@@ -85,16 +88,18 @@ class InventoryWorkflowIntegrationTest {
                     1001L,
                     () -> AsyncTaskWrapper.wrap((Supplier<InventoryReservationResult>) () -> {
                         await(start);
-                        return service.reserveStock(
-                                OrderNo.of("ORDER-C1"), List.of(new InventoryReservationItemDTO(101L, 40)));
+                        return service.reserveStock(new InventoryReserveStockCommand(
+                                OrderNo.of("ORDER-C1"),
+                                List.of(new InventoryReservationItemCommand(SkuId.of(101L), 40))));
                     }));
             CompletableFuture<InventoryReservationResult> first = CompletableFuture.supplyAsync(firstTask, pool);
             Supplier<InventoryReservationResult> secondTask = BaconContextHolder.callWithTenantId(
                     1001L,
                     () -> AsyncTaskWrapper.wrap((Supplier<InventoryReservationResult>) () -> {
                         await(start);
-                        return service.reserveStock(
-                                OrderNo.of("ORDER-C2"), List.of(new InventoryReservationItemDTO(101L, 40)));
+                        return service.reserveStock(new InventoryReserveStockCommand(
+                                OrderNo.of("ORDER-C2"),
+                                List.of(new InventoryReservationItemCommand(SkuId.of(101L), 40))));
                     }));
             CompletableFuture<InventoryReservationResult> second = CompletableFuture.supplyAsync(secondTask, pool);
 

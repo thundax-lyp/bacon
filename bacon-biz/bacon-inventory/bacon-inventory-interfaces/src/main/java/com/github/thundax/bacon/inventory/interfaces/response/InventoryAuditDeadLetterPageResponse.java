@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.interfaces.response;
 
-import com.github.thundax.bacon.inventory.application.result.InventoryAuditDeadLetterPageResult;
+import com.github.thundax.bacon.common.application.page.PageResult;
+import com.github.thundax.bacon.inventory.application.dto.InventoryAuditDeadLetterDTO;
 import java.util.List;
 
 /**
@@ -16,7 +17,7 @@ public record InventoryAuditDeadLetterPageResponse(
         /** 每页条数。 */
         int pageSize) {
 
-    public static InventoryAuditDeadLetterPageResponse from(InventoryAuditDeadLetterPageResult dto) {
+    public static InventoryAuditDeadLetterPageResponse from(PageResult<InventoryAuditDeadLetterDTO> dto) {
         List<InventoryAuditDeadLetterResponse> recordResponses = dto.getRecords() == null
                 ? List.of()
                 : dto.getRecords().stream()

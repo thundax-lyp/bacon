@@ -2,8 +2,8 @@ package com.github.thundax.bacon.inventory.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
+import com.github.thundax.bacon.inventory.interfaces.assembler.InventoryInterfaceAssembler;
 import com.github.thundax.bacon.inventory.interfaces.request.InventoryOrderScopedRequest;
 import com.github.thundax.bacon.inventory.interfaces.response.InventoryAuditLogResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +33,9 @@ public class InventoryAuditLogController {
     @HasPermission("inventory:audit:view")
     @GetMapping
     public List<InventoryAuditLogResponse> listByOrderNo(@Valid @ModelAttribute InventoryOrderScopedRequest request) {
-        return inventoryQueryService.listAuditLogsByOrderNo(OrderNoCodec.toDomain(request.getOrderNo())).stream()
+        return inventoryQueryService.listAuditLogsByOrderNo(
+                        InventoryInterfaceAssembler.toAuditLogQuery(request.getOrderNo()))
+                .stream()
                 .map(InventoryAuditLogResponse::from)
                 .toList();
     }

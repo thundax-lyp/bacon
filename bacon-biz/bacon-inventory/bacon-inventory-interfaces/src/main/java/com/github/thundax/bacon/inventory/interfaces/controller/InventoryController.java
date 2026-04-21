@@ -1,11 +1,10 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
-import com.github.thundax.bacon.common.commerce.codec.SkuIdCodec;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
+import com.github.thundax.bacon.inventory.application.command.InventoryCommandApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
-import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.inventory.interfaces.assembler.InventoryInterfaceAssembler;
 import com.github.thundax.bacon.inventory.interfaces.request.CreateInventoryRequest;
 import com.github.thundax.bacon.inventory.interfaces.request.InventoryBatchQueryRequest;
 import com.github.thundax.bacon.inventory.interfaces.request.InventoryPageRequest;
@@ -17,8 +16,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -36,13 +33,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Inventory-Management", description = "库存查询接口")
 public class InventoryController {
 
-    private final InventoryManagementApplicationService inventoryManagementApplicationService;
+    private final InventoryCommandApplicationService inventoryCommandApplicationService;
     private final InventoryQueryApplicationService inventoryQueryService;
 
     public InventoryController(
-            InventoryManagementApplicationService inventoryManagementApplicationService,
+            InventoryCommandApplicationService inventoryCommandApplicationService,
             InventoryQueryApplicationService inventoryQueryService) {
-        this.inventoryManagementApplicationService = inventoryManagementApplicationService;
+        this.inventoryCommandApplicationService = inventoryCommandApplicationService;
         this.inventoryQueryService = inventoryQueryService;
     }
 
@@ -50,16 +47,16 @@ public class InventoryController {
     @HasPermission("inventory:stock:create")
     @PostMapping
     public InventoryStockResponse createInventory(@Valid @RequestBody CreateInventoryRequest request) {
-        InventoryStatus status = request.status() == null ? null : InventoryStatus.from(request.status());
-        return InventoryStockResponse.from(inventoryManagementApplicationService.createInventory(
-                SkuIdCodec.toDomain(request.skuId()), request.onHandQuantity(), status));
+        return InventoryStockResponse.from(inventoryCommandApplicationService.create(
+                InventoryInterfaceAssembler.toCreateCommand(request)));
     }
 
     @Operation(summary = "查询 SKU 可用库存")
     @HasPermission("inventory:stock:view")
     @GetMapping("/{skuId}")
     public InventoryStockResponse getInventory(@PathVariable @Positive Long skuId) {
-        return InventoryStockResponse.from(inventoryQueryService.getAvailableStock(SkuIdCodec.toDomain(skuId)));
+        return InventoryStockResponse.from(
+                inventoryQueryService.getAvailableStock(InventoryInterfaceAssembler.toAvailableStockQuery(skuId)));
     }
 
     @Operation(summary = "批量查询 SKU 可用库存")
@@ -67,12 +64,7 @@ public class InventoryController {
     @GetMapping
     public List<InventoryStockResponse> listInventories(@Valid @ModelAttribute InventoryBatchQueryRequest request) {
         return inventoryQueryService
-                .batchGetAvailableStock(
-                        request.getSkuIds() == null
-                                ? Set.of()
-                                : request.getSkuIds().stream()
-                                        .map(SkuIdCodec::toDomain)
-                                        .collect(Collectors.toSet()))
+                .batchGetAvailableStock(InventoryInterfaceAssembler.toBatchAvailableStockQuery(request))
                 .stream()
                 .map(InventoryStockResponse::from)
                 .toList();
@@ -82,9 +74,8 @@ public class InventoryController {
     @HasPermission("inventory:stock:view")
     @GetMapping("/page")
     public InventoryPageResponse page(@Valid @ModelAttribute InventoryPageRequest request) {
-        InventoryStatus status = request.getStatus() == null ? null : InventoryStatus.from(request.getStatus());
         return InventoryPageResponse.from(inventoryQueryService.page(
-                SkuIdCodec.toDomain(request.getSkuId()), status, request.getPageNo(), request.getPageSize()));
+                InventoryInterfaceAssembler.toPageQuery(request)));
     }
 
     @Operation(summary = "修改库存状态")
@@ -92,8 +83,8 @@ public class InventoryController {
     @PutMapping("/{skuId}/status")
     public InventoryStockResponse updateInventoryStatus(
             @PathVariable @Positive Long skuId, @Valid @RequestBody InventoryStatusUpdateRequest request) {
-        InventoryStatus status = request.status() == null ? null : InventoryStatus.from(request.status());
         return InventoryStockResponse.from(
-                inventoryManagementApplicationService.updateInventoryStatus(SkuIdCodec.toDomain(skuId), status));
+                inventoryCommandApplicationService.updateStatus(
+                        InventoryInterfaceAssembler.toStatusUpdateCommand(skuId, request)));
     }
 }

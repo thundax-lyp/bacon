@@ -6,7 +6,7 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.inventory.api.request.InventoryAvailableStockFacadeRequest;
 import com.github.thundax.bacon.inventory.api.request.InventoryDeductFacadeRequest;
-import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
+import com.github.thundax.bacon.inventory.application.command.InventoryCommandApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,8 @@ class InventoryLocalFacadeContextTest {
     @Test
     void commandFacadeShouldRequireUserId() {
         InventoryCommandFacadeLocalImpl facade =
-                new InventoryCommandFacadeLocalImpl(new InventoryApplicationService(null, null, null));
+                new InventoryCommandFacadeLocalImpl(
+                        new InventoryCommandApplicationService(null, null, null, null, null, null, null));
         BaconContextHolder.set(new BaconContext(1001L, null));
 
         assertThatThrownBy(() -> facade.deductReservedStock(new InventoryDeductFacadeRequest("ORD-1")))

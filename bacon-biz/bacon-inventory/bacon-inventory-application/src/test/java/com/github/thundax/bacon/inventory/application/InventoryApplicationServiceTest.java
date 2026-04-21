@@ -9,13 +9,16 @@ import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.inventory.application.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.application.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
-import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
-import com.github.thundax.bacon.inventory.application.command.InventoryDeductionApplicationService;
-import com.github.thundax.bacon.inventory.application.command.InventoryReleaseApplicationService;
-import com.github.thundax.bacon.inventory.application.command.InventoryReservationApplicationService;
+import com.github.thundax.bacon.inventory.application.command.InventoryCommandApplicationService;
+import com.github.thundax.bacon.inventory.application.command.InventoryDeductStockCommand;
+import com.github.thundax.bacon.inventory.application.command.InventoryReleaseStockCommand;
+import com.github.thundax.bacon.inventory.application.command.InventoryReservationItemCommand;
+import com.github.thundax.bacon.inventory.application.command.InventoryReserveStockCommand;
+import com.github.thundax.bacon.inventory.application.query.InventoryAuditLogQuery;
+import com.github.thundax.bacon.inventory.application.query.InventoryAvailableStockQuery;
+import com.github.thundax.bacon.inventory.application.query.InventoryLedgerQuery;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.application.result.InventoryReservationResult;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -55,20 +58,25 @@ class InventoryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryOperationLogSupport operationLogService =
                 new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
-        InventoryApplicationService service = new InventoryApplicationService(
-                new InventoryReservationApplicationService(
-                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR, ID_GENERATOR),
-                new InventoryReleaseApplicationService(repository, repository, operationLogService),
-                new InventoryDeductionApplicationService(repository, repository, operationLogService));
+        InventoryCommandApplicationService service = new InventoryCommandApplicationService(
+                repository,
+                repository,
+                operationLogService,
+                RESERVATION_NO_GENERATOR,
+                new com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor(),
+                new com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier(),
+                ID_GENERATOR);
         InventoryQueryApplicationService queryService =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         BaconContextHolder.runWithTenantId(1001L, () -> {
-            InventoryReservationResult first =
-                    service.reserveStock(OrderNo.of("ORDER-1"), List.of(new InventoryReservationItemDTO(101L, 10)));
-            InventoryReservationResult second =
-                    service.reserveStock(OrderNo.of("ORDER-1"), List.of(new InventoryReservationItemDTO(101L, 10)));
-            InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
+            InventoryReservationResult first = service.reserveStock(new InventoryReserveStockCommand(
+                    OrderNo.of("ORDER-1"),
+                    List.of(new InventoryReservationItemCommand(SkuId.of(101L), 10))));
+            InventoryReservationResult second = service.reserveStock(new InventoryReserveStockCommand(
+                    OrderNo.of("ORDER-1"),
+                    List.of(new InventoryReservationItemCommand(SkuId.of(101L), 10))));
+            InventoryStockDTO stock = queryService.getAvailableStock(new InventoryAvailableStockQuery(SkuId.of(101L)));
             InventoryReservation reservation =
                     repository.findByOrderNo(OrderNo.of("ORDER-1")).orElseThrow();
 
@@ -79,12 +87,11 @@ class InventoryApplicationServiceTest {
             assertNotNull(reservation.getItems().get(0).getId());
             assertEquals(10, stock.getReservedQuantity());
             assertEquals(90, stock.getAvailableQuantity());
-            assertEquals(
-                    1, queryService.listLedgersByOrderNo(OrderNo.of("ORDER-1")).size());
+            assertEquals(1, queryService.listLedgersByOrderNo(new InventoryLedgerQuery(OrderNo.of("ORDER-1"))).size());
             assertEquals(
                     InventoryLedgerType.RESERVE.value(),
                     queryService
-                            .listLedgersByOrderNo(OrderNo.of("ORDER-1"))
+                            .listLedgersByOrderNo(new InventoryLedgerQuery(OrderNo.of("ORDER-1")))
                             .get(0)
                             .getLedgerType());
         });
@@ -95,18 +102,22 @@ class InventoryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryOperationLogSupport operationLogService =
                 new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
-        InventoryApplicationService service = new InventoryApplicationService(
-                new InventoryReservationApplicationService(
-                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR, ID_GENERATOR),
-                new InventoryReleaseApplicationService(repository, repository, operationLogService),
-                new InventoryDeductionApplicationService(repository, repository, operationLogService));
+        InventoryCommandApplicationService service = new InventoryCommandApplicationService(
+                repository,
+                repository,
+                operationLogService,
+                RESERVATION_NO_GENERATOR,
+                new com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor(),
+                new com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier(),
+                ID_GENERATOR);
         InventoryQueryApplicationService queryService =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         BaconContextHolder.runWithTenantId(1001L, () -> {
-            InventoryReservationResult result =
-                    service.reserveStock(OrderNo.of("ORDER-2"), List.of(new InventoryReservationItemDTO(101L, 1000)));
-            InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
+            InventoryReservationResult result = service.reserveStock(new InventoryReserveStockCommand(
+                    OrderNo.of("ORDER-2"),
+                    List.of(new InventoryReservationItemCommand(SkuId.of(101L), 1000))));
+            InventoryStockDTO stock = queryService.getAvailableStock(new InventoryAvailableStockQuery(SkuId.of(101L)));
 
             assertEquals(InventoryReservationStatus.FAILED.value(), result.getReservationStatus());
             assertEquals("FAILED", result.getInventoryStatus());
@@ -116,7 +127,7 @@ class InventoryApplicationServiceTest {
             assertEquals(
                     InventoryAuditActionType.RESERVE_FAILED.value(),
                     queryService
-                            .listAuditLogsByOrderNo(OrderNo.of("ORDER-2"))
+                            .listAuditLogsByOrderNo(new InventoryAuditLogQuery(OrderNo.of("ORDER-2")))
                             .get(0)
                             .getActionType());
         });
@@ -127,32 +138,39 @@ class InventoryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryOperationLogSupport operationLogService =
                 new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
-        InventoryApplicationService service = new InventoryApplicationService(
-                new InventoryReservationApplicationService(
-                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR, ID_GENERATOR),
-                new InventoryReleaseApplicationService(repository, repository, operationLogService),
-                new InventoryDeductionApplicationService(repository, repository, operationLogService));
+        InventoryCommandApplicationService service = new InventoryCommandApplicationService(
+                repository,
+                repository,
+                operationLogService,
+                RESERVATION_NO_GENERATOR,
+                new com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor(),
+                new com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier(),
+                ID_GENERATOR);
         InventoryQueryApplicationService queryService =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         BaconContextHolder.runWithTenantId(1001L, () -> {
-            service.reserveStock(OrderNo.of("ORDER-3"), List.of(new InventoryReservationItemDTO(101L, 5)));
+            service.reserveStock(new InventoryReserveStockCommand(
+                    OrderNo.of("ORDER-3"),
+                    List.of(new InventoryReservationItemCommand(SkuId.of(101L), 5))));
             InventoryReservationResult firstRelease =
-                    service.releaseReservedStock(OrderNo.of("ORDER-3"), InventoryReleaseReason.USER_CANCELLED);
+                    service.releaseReservedStock(
+                            new InventoryReleaseStockCommand(OrderNo.of("ORDER-3"), InventoryReleaseReason.USER_CANCELLED));
             InventoryReservationResult secondRelease =
-                    service.releaseReservedStock(OrderNo.of("ORDER-3"), InventoryReleaseReason.USER_CANCELLED);
-            InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
+                    service.releaseReservedStock(
+                            new InventoryReleaseStockCommand(OrderNo.of("ORDER-3"), InventoryReleaseReason.USER_CANCELLED));
+            InventoryStockDTO stock = queryService.getAvailableStock(new InventoryAvailableStockQuery(SkuId.of(101L)));
 
             assertEquals(InventoryReservationStatus.RELEASED.value(), firstRelease.getReservationStatus());
             assertEquals(InventoryReservationStatus.RELEASED.value(), secondRelease.getReservationStatus());
             assertEquals(0, stock.getReservedQuantity());
             assertEquals(100, stock.getAvailableQuantity());
             assertEquals(
-                    2, queryService.listLedgersByOrderNo(OrderNo.of("ORDER-3")).size());
+                    2, queryService.listLedgersByOrderNo(new InventoryLedgerQuery(OrderNo.of("ORDER-3"))).size());
             assertEquals(
                     InventoryAuditActionType.RELEASE.value(),
                     queryService
-                            .listAuditLogsByOrderNo(OrderNo.of("ORDER-3"))
+                            .listAuditLogsByOrderNo(new InventoryAuditLogQuery(OrderNo.of("ORDER-3")))
                             .get(1)
                             .getActionType());
         });
@@ -163,19 +181,26 @@ class InventoryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryOperationLogSupport operationLogService =
                 new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
-        InventoryApplicationService service = new InventoryApplicationService(
-                new InventoryReservationApplicationService(
-                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR, ID_GENERATOR),
-                new InventoryReleaseApplicationService(repository, repository, operationLogService),
-                new InventoryDeductionApplicationService(repository, repository, operationLogService));
+        InventoryCommandApplicationService service = new InventoryCommandApplicationService(
+                repository,
+                repository,
+                operationLogService,
+                RESERVATION_NO_GENERATOR,
+                new com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor(),
+                new com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier(),
+                ID_GENERATOR);
         InventoryQueryApplicationService queryService =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         BaconContextHolder.runWithTenantId(1001L, () -> {
-            service.reserveStock(OrderNo.of("ORDER-4"), List.of(new InventoryReservationItemDTO(101L, 7)));
-            InventoryReservationResult firstDeduct = service.deductReservedStock(OrderNo.of("ORDER-4"));
-            InventoryReservationResult secondDeduct = service.deductReservedStock(OrderNo.of("ORDER-4"));
-            InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
+            service.reserveStock(new InventoryReserveStockCommand(
+                    OrderNo.of("ORDER-4"),
+                    List.of(new InventoryReservationItemCommand(SkuId.of(101L), 7))));
+            InventoryReservationResult firstDeduct =
+                    service.deductReservedStock(new InventoryDeductStockCommand(OrderNo.of("ORDER-4")));
+            InventoryReservationResult secondDeduct =
+                    service.deductReservedStock(new InventoryDeductStockCommand(OrderNo.of("ORDER-4")));
+            InventoryStockDTO stock = queryService.getAvailableStock(new InventoryAvailableStockQuery(SkuId.of(101L)));
 
             assertEquals(InventoryReservationStatus.DEDUCTED.value(), firstDeduct.getReservationStatus());
             assertEquals(InventoryReservationStatus.DEDUCTED.value(), secondDeduct.getReservationStatus());
@@ -183,11 +208,11 @@ class InventoryApplicationServiceTest {
             assertEquals(93, stock.getOnHandQuantity());
             assertEquals(93, stock.getAvailableQuantity());
             assertEquals(
-                    2, queryService.listLedgersByOrderNo(OrderNo.of("ORDER-4")).size());
+                    2, queryService.listLedgersByOrderNo(new InventoryLedgerQuery(OrderNo.of("ORDER-4"))).size());
             assertEquals(
                     InventoryLedgerType.DEDUCT.value(),
                     queryService
-                            .listLedgersByOrderNo(OrderNo.of("ORDER-4"))
+                            .listLedgersByOrderNo(new InventoryLedgerQuery(OrderNo.of("ORDER-4")))
                             .get(1)
                             .getLedgerType());
         });
@@ -198,17 +223,23 @@ class InventoryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryOperationLogSupport operationLogService =
                 new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
-        InventoryApplicationService service = new InventoryApplicationService(
-                new InventoryReservationApplicationService(
-                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR, ID_GENERATOR),
-                new InventoryReleaseApplicationService(repository, repository, operationLogService),
-                new InventoryDeductionApplicationService(repository, repository, operationLogService));
+        InventoryCommandApplicationService service = new InventoryCommandApplicationService(
+                repository,
+                repository,
+                operationLogService,
+                RESERVATION_NO_GENERATOR,
+                new com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor(),
+                new com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier(),
+                ID_GENERATOR);
 
         BaconContextHolder.runWithTenantId(
                 1001L,
                 () -> service.reserveStock(
-                        OrderNo.of("ORDER-5"),
-                        List.of(new InventoryReservationItemDTO(101L, 2), new InventoryReservationItemDTO(101L, 3))));
+                        new InventoryReserveStockCommand(
+                                OrderNo.of("ORDER-5"),
+                                List.of(
+                                        new InventoryReservationItemCommand(SkuId.of(101L), 2),
+                                        new InventoryReservationItemCommand(SkuId.of(101L), 3)))));
 
         assertEquals(1, repository.getBatchFindInventoriesCallCount());
         assertEquals(0, repository.getSingleFindInventoryCallCount());

@@ -6,18 +6,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
 import com.github.thundax.bacon.inventory.application.dto.InventoryStockDTO;
-import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
+import com.github.thundax.bacon.inventory.application.command.InventoryCommandApplicationService;
+import com.github.thundax.bacon.inventory.application.query.InventoryAvailableStockQuery;
+import com.github.thundax.bacon.inventory.application.query.InventoryBatchAvailableStockQuery;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import jakarta.servlet.ServletException;
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -30,7 +30,8 @@ class InventoryProviderControllerContractTest {
     @Test
     void shouldKeepRawProviderPayloadWithoutResponseEnvelope() throws Exception {
         InventoryProviderController controller = new InventoryProviderController(
-                new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
+                new StubInventoryQueryApplicationService(),
+                new InventoryCommandApplicationService(null, null, null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
@@ -48,7 +49,8 @@ class InventoryProviderControllerContractTest {
     @Test
     void shouldExposeRawExceptionWhenTenantContextMissing() {
         InventoryProviderController controller = new InventoryProviderController(
-                new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
+                new StubInventoryQueryApplicationService(),
+                new InventoryCommandApplicationService(null, null, null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
@@ -65,7 +67,8 @@ class InventoryProviderControllerContractTest {
     @Test
     void shouldExposeRawExceptionSemanticForProvider() {
         InventoryProviderController controller = new InventoryProviderController(
-                new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
+                new StubInventoryQueryApplicationService(),
+                new InventoryCommandApplicationService(null, null, null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
@@ -82,7 +85,8 @@ class InventoryProviderControllerContractTest {
     @Test
     void shouldRejectProviderCallWhenTokenMissing() throws Exception {
         InventoryProviderController controller = new InventoryProviderController(
-                new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
+                new StubInventoryQueryApplicationService(),
+                new InventoryCommandApplicationService(null, null, null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
@@ -95,7 +99,8 @@ class InventoryProviderControllerContractTest {
     @Test
     void shouldRejectProviderCallWhenTokenInvalid() throws Exception {
         InventoryProviderController controller = new InventoryProviderController(
-                new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
+                new StubInventoryQueryApplicationService(),
+                new InventoryCommandApplicationService(null, null, null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
@@ -123,7 +128,7 @@ class InventoryProviderControllerContractTest {
         }
 
         @Override
-        public List<InventoryStockDTO> batchGetAvailableStock(Set<SkuId> skuIds) {
+        public List<InventoryStockDTO> batchGetAvailableStock(InventoryBatchAvailableStockQuery query) {
             Long tenantIdValue = BaconContextHolder.currentTenantId();
             if (tenantIdValue == null) {
                 throw new IllegalArgumentException("tenantId must not be null");
@@ -136,7 +141,7 @@ class InventoryProviderControllerContractTest {
         }
 
         @Override
-        public InventoryStockDTO getAvailableStock(SkuId skuId) {
+        public InventoryStockDTO getAvailableStock(InventoryAvailableStockQuery query) {
             Long tenantIdValue = BaconContextHolder.currentTenantId();
             if (tenantIdValue == null) {
                 throw new IllegalArgumentException("tenantId must not be null");

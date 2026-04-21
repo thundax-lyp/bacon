@@ -7,8 +7,10 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
+import com.github.thundax.bacon.common.application.page.PageResult;
+import com.github.thundax.bacon.inventory.application.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
-import com.github.thundax.bacon.inventory.application.result.InventoryPageResult;
+import com.github.thundax.bacon.inventory.application.query.InventoryPageQuery;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
@@ -37,8 +39,9 @@ class InventoryQueryApplicationServiceTest {
         InventoryQueryApplicationService service =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        InventoryPageResult result = BaconContextHolder.callWithTenantId(
-                1001L, () -> service.page(null, InventoryStatus.ENABLED, 1, 2));
+        PageResult<InventoryStockDTO> result =
+                BaconContextHolder.callWithTenantId(1001L, () -> service.page(
+                        new InventoryPageQuery(null, InventoryStatus.ENABLED, 1, 2)));
 
         assertEquals(2, result.getRecords().size());
         assertEquals(3, result.getTotal());
@@ -52,8 +55,9 @@ class InventoryQueryApplicationServiceTest {
         InventoryQueryApplicationService service =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        InventoryPageResult result =
-                BaconContextHolder.callWithTenantId(1001L, () -> service.page(SkuId.of(104L), null, 0, 0));
+        PageResult<InventoryStockDTO> result =
+                BaconContextHolder.callWithTenantId(1001L, () -> service.page(
+                        new InventoryPageQuery(SkuId.of(104L), null, 0, 0)));
 
         assertEquals(1, result.getRecords().size());
         assertEquals(1, result.getTotal());

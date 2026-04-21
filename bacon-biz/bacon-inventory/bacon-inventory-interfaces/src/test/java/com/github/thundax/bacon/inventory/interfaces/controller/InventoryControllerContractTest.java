@@ -13,6 +13,7 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconCont
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
+import com.github.thundax.bacon.inventory.application.command.InventoryCommandApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
@@ -58,7 +59,8 @@ class InventoryControllerContractTest {
         repository = new StubInventoryRepository();
         InventoryQueryApplicationService inventoryQueryService =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
-        controller = new InventoryController(null, inventoryQueryService);
+        controller = new InventoryController(
+                new InventoryCommandApplicationService(null, null, null, null, null, null, null), inventoryQueryService);
 
         validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();

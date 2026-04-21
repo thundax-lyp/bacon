@@ -22,16 +22,40 @@
 
 ### P0 - 2026-04-17 跨域扫描新增（统一性优先）
 
-- [ ] `interfaces -> application` 合同统一为 Command/Query/VO
-  - 现状对比：`inventory/order` 相对稳定；`payment/storage/auth/upms` 仍有较多 primitive 参数方法
-  - 处理动作：分域消减长参数方法，优先改 `upms User/Tenant/Role/Post`、`auth OAuth2/Session/Password`、`storage StoredObject*`
-  - 验收点：application 公共方法不再新增多 primitive 入参，接口签名可预测
+- [ ] `upms-interfaces/application`：收口 User 合同为 Command/Query/VO
+  - 范围对象：`UserController`、`UserQueryController`、`UserProfileController`、`UserPasswordController` 对应的 application service 公共方法
+  - 处理动作：把多 primitive 入参改为 `User*Command` / `User*Query` / `User*VO`
+  - 验收点：`User*ApplicationService` 公共方法不再出现多 primitive 长参数
   - 重要度：9/10
 
-- [ ] 统一 DTO 装配职责，禁止 ApplicationService 内“就地拼装”
-  - 现状：`upms/order` 仍有 service 层直接 `new DTO` / 拼 response 数据
-  - 处理动作：继续下沉到 `application.assembler`，service 仅编排事务与流程
-  - 验收点：application service 代码审阅聚焦业务流程而非映射细节
+- [ ] `upms-interfaces/application`：收口 Tenant/Role/Post 合同为 Command/Query/VO
+  - 范围对象：`TenantApplicationService`、`RoleApplicationService`、`PostApplicationService` 及其 controller/provider 入口
+  - 处理动作：统一改为 `Tenant*Command|Query`、`Role*Command|Query`、`Post*Command|Query`
+  - 验收点：租户/角色/岗位相关 application 公共方法签名统一为对象参数
+  - 重要度：9/10
+
+- [ ] `auth-interfaces/application`：收口 OAuth2 合同为 Command/Query/VO
+  - 范围对象：`OAuth2Controller`、`OAuth2AuthorizationApplicationService`、`OAuth2ClientApplicationService`
+  - 处理动作：授权、客户端查询/更新入口统一为 `OAuth2*Command|Query`
+  - 验收点：OAuth2 application 公共方法不再暴露多 primitive 入参
+  - 重要度：9/10
+
+- [ ] `auth-interfaces/application`：收口 Session/Password 合同为 Command/Query/VO
+  - 范围对象：`AuthController`、`AuthProviderController`、`TokenApplicationService`、密码相关 application service
+  - 处理动作：会话校验、刷新、失效、密码修改/重置改为 `Session*Command|Query`、`Password*Command`
+  - 验收点：会话与密码链路 application 公共方法签名可预测且一致
+  - 重要度：9/10
+
+- [ ] `storage-interfaces/application`：收口 StoredObject 合同为 Command/Query/VO
+  - 范围对象：`StorageController`、`StorageProviderController`、`StoredObjectApplicationService`、`StoredObjectQueryApplicationService`
+  - 处理动作：对象创建、分页、状态变更、引用绑定/解绑入口统一为 `StoredObject*Command|Query`
+  - 验收点：storage application 公共方法不再新增多 primitive 入参
+  - 重要度：9/10
+
+- [ ] `payment-interfaces/application`：收口 Payment 查询/回调合同为 Command/Query/VO
+  - 范围对象：`PaymentQueryController`、`PaymentCallbackController`、`PaymentCreateApplicationService`、`PaymentCallbackApplicationService`、`PaymentAuditQueryApplicationService`
+  - 处理动作：支付创建、回调处理、查询与审计查询统一为 `Payment*Command|Query`
+  - 验收点：payment application 公共方法签名统一，不再按参数堆叠扩展
   - 重要度：8/10
 
 - [ ] 统一横切注解策略（`@SysLog/@HasPermission/@Operation`）
@@ -42,10 +66,22 @@
 
 ### P0 - 五域风格/手法/功能对齐（inventory/payment/order/storage/upms）
 
-- [ ] `inventory`：固化为“接口层校验基准域”
-  - 当前状态：`@Validated`、`@Valid`、`@HasPermission` 覆盖度高，可作为模板
-  - 处理动作：沉淀 inventory controller/request 模板并迁移到脚手架或示例代码
-  - 验收点：新接口默认复用同等约束粒度，不再回退到“裸参数”
+- [ ] `inventory-interfaces`：对齐 controller 校验注解门禁（`@Validated/@Valid/@HasPermission`）
+  - 范围对象：`InventoryReservationController`、`InventoryAuditLogController`、`InventoryAuditCompensationController` 及对应 `interfaces.request.*`
+  - 处理动作：新增 ArchUnit 规则，强制上述 controller 保持 `@Validated`（类/方法）与权限注解位置一致，请求对象参数使用 `@Valid`
+  - 验收点：inventory 入口不再出现“裸参数 + 无校验注解”回退
+  - 重要度：8/10
+
+- [ ] `upms/payment/order/storage/auth-interfaces`：补齐 controller 参数校验门禁
+  - 范围对象：各域 `interfaces.controller` 与 `interfaces.provider` 公共入口方法
+  - 处理动作：新增 ArchUnit 规则，限制 request 对象参数必须显式 `@Valid`，禁止 controller 公共方法出现未约束裸对象参数
+  - 验收点：跨域入口参数约束粒度与 inventory 对齐，由门禁统一阻断
+  - 重要度：8/10
+
+- [ ] `*-interfaces/request`：收敛请求模型放置与校验注解门禁
+  - 范围对象：`interfaces.request..` 包下请求模型
+  - 处理动作：新增 ArchUnit 规则，限制请求模型仅放在 `interfaces.request`，并对关键字段缺失 Bean Validation 注解的类进行阻断
+  - 验收点：请求模型职责清晰，校验不再依赖人工约定
   - 重要度：7/10
 
 - [ ] `payment`：收口 `/payment` 根路径下的查询/审计/回调分组语义

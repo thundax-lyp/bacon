@@ -10,4 +10,10 @@ public interface UserIdentityRepository {
     Optional<UserIdentity> findIdentity(UserIdentityType identityType, String identityValue);
 
     Optional<UserIdentity> findIdentityByUserId(UserId userId, UserIdentityType identityType);
+
+    UserIdentity insert(UserIdentity userIdentity);
+
+    UserIdentity update(UserIdentity userIdentity);
+
+    void deleteIdentityByUserIdAndType(UserId userId, UserIdentityType identityType);
 }

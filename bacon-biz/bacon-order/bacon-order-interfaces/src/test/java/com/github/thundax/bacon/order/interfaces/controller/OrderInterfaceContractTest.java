@@ -2,16 +2,13 @@ package com.github.thundax.bacon.order.interfaces.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -26,7 +23,6 @@ import com.github.thundax.bacon.order.application.command.OrderPaymentResultAppl
 import com.github.thundax.bacon.order.application.command.OrderTimeoutApplicationService;
 import com.github.thundax.bacon.order.application.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.application.dto.OrderSummaryDTO;
-import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
 import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
 import com.github.thundax.bacon.order.application.result.OrderOutboxDeadLetterReplayResult;
 import com.github.thundax.bacon.order.application.result.OrderPageResult;
@@ -219,13 +215,8 @@ class OrderInterfaceContractTest {
 
     @Test
     void commandProviderControllerShouldExposeWriteEndpoints() throws Exception {
-        OrderIdempotencyExecutor orderIdempotencyExecutor = mock(OrderIdempotencyExecutor.class);
-        doAnswer(invocation -> null)
-                .when(orderIdempotencyExecutor)
-                .execute(anyString(), anyString(), any(Runnable.class));
         OrderCommandProviderController controller = new OrderCommandProviderController(
-                new OrderPaymentResultApplicationService(null, null, orderIdempotencyExecutor, null),
-                new OrderTimeoutApplicationService(null, null, null, orderIdempotencyExecutor, null));
+                new StubOrderPaymentResultApplicationService(), new StubOrderTimeoutApplicationService());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
@@ -353,5 +344,30 @@ class OrderInterfaceContractTest {
             return new OrderOutboxDeadLetterReplayResult(
                     deadLetterId == null ? null : deadLetterId.value(), "SUCCESS", "ok");
         }
+    }
+
+    private static final class StubOrderPaymentResultApplicationService extends OrderPaymentResultApplicationService {
+
+        private StubOrderPaymentResultApplicationService() {
+            super(null, null, null, null);
+        }
+
+        @Override
+        public void markPaid(
+                OrderNo orderNo, PaymentNo paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {}
+
+        @Override
+        public void markPaymentFailed(
+                OrderNo orderNo, PaymentNo paymentNo, String reason, String channelStatus, Instant failedTime) {}
+    }
+
+    private static final class StubOrderTimeoutApplicationService extends OrderTimeoutApplicationService {
+
+        private StubOrderTimeoutApplicationService() {
+            super(null, null, null, null, null);
+        }
+
+        @Override
+        public void closeExpiredOrder(OrderNo orderNo, String reason) {}
     }
 }

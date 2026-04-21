@@ -27,4 +27,19 @@ public class UserIdentityRepositoryImpl implements UserIdentityRepository {
     public Optional<UserIdentity> findIdentityByUserId(UserId userId, UserIdentityType identityType) {
         return support.findIdentityByUserId(userId, identityType);
     }
+
+    @Override
+    public UserIdentity insert(UserIdentity userIdentity) {
+        return support.insert(userIdentity);
+    }
+
+    @Override
+    public UserIdentity update(UserIdentity userIdentity) {
+        return support.update(userIdentity);
+    }
+
+    @Override
+    public void deleteIdentityByUserIdAndType(UserId userId, UserIdentityType identityType) {
+        support.deleteIdentityByUserIdAndType(userId, identityType);
+    }
 }

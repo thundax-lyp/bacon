@@ -4,7 +4,7 @@
 
 1. `upms`
    - 再回收 `UserRepositoryImpl` 中残留业务
-   - 最后处理 facade `Request/Response` 规约
+   - 最后处理 `upms api.dto` 下沉
 2. `storage`
    - 先统一 `objectId -> storedObjectNo`
    - 再清理 `StoredObjectPageQueryDTO` 和 interfaces/application 合同
@@ -59,20 +59,10 @@
 
 ### P1 - `upms` 仓储职责回收
 
-- [ ] 把 `UserRepositoryImpl` 中的“账号/手机号身份替换流程”从 repository impl 提升到 application 层编排
-  - 目标类：`replaceAccountIdentity`、`replacePhoneIdentity` 相关流程
-  - 验收点：repository 只保留存取动作，不再主导业务步骤顺序
-  - 重要度：8/10
-
 - [ ] 把 `UserRepositoryImpl` 中的密码策略装配从 repository impl 提升到 application 或独立 domain service
   - 目标类：默认密码、密码过期时间、失败上限、needChangePassword 规则
   - 验收点：密码规则不再写死在 infra
   - 重要度：8/10
-
-- [ ] 把 `UserRepositoryImpl` 中角色绑定后的缓存清理从 repository impl 外提
-  - 目标：让 repository 返回结果，缓存失效由 application 编排
-  - 验收点：infra 不再混入明显横切业务动作
-  - 重要度：7/10
 
 ### P1 - 各模块 `api.dto` 残留治理清单
 
@@ -86,6 +76,16 @@
   - 当前对象：`UserLoginDTO`、`CurrentSessionDTO`、`OAuth2TokenDTO`、`OAuth2IntrospectionDTO`、`OAuth2UserinfoDTO` 等
   - 验收点：auth facade 仅保留跨域必要返回模型，避免 `api.dto` 扩散成应用内部模型
   - 重要度：7/10
+
+- [ ] `upms-application`：按领域拆分并下沉用户/租户/角色/部门/资源/岗位读模型
+  - 当前对象：`UserDTO`、`TenantDTO`、`RoleDTO`、`DepartmentDTO`、`DepartmentTreeDTO`、`ResourceDTO`、`PostDTO`
+  - 验收点：这些对象只在 upms 内部查询与装配链路流转
+  - 重要度：9/10
+
+- [ ] `upms-application`：收尾 `api.dto -> application.dto` 迁移残留
+  - 当前阻塞：`DepartmentAssembler`、`UserQueryApplicationService`、`TenantApplicationService` 等仍引用已下沉的 `api.dto`
+  - 验收点：相关模块联编不再因 `com.github.thundax.bacon.upms.api.dto` 缺失而失败
+  - 重要度：9/10
 
 ### P1 - Repository 命名统一治理清单
 

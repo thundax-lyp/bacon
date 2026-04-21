@@ -10,6 +10,7 @@ import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
@@ -22,18 +23,25 @@ import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
 import com.github.thundax.bacon.upms.application.dto.RoleDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
+import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
+import com.github.thundax.bacon.upms.domain.repository.PermissionCacheRepository;
+import com.github.thundax.bacon.upms.domain.repository.UserCredentialRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserIdentityRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRoleRepository;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,11 +49,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserProfileApplicationService {
 
     private static final String USER_AVATAR_OWNER_TYPE = "UPMS_USER_AVATAR";
+    private static final String DEFAULT_PASSWORD = "123456";
+    private static final UserCredentialType PASSWORD_CREDENTIAL_TYPE = UserCredentialType.PASSWORD;
+    private static final int PASSWORD_FAILED_LIMIT = 5;
+    private static final long PASSWORD_EXPIRE_DAYS = 90L;
     private static final String USER_IDENTITY_ID_BIZ_TAG = "user-identity-id";
     private static final String USER_CREDENTIAL_ID_BIZ_TAG = "user-credential-id";
 
     private final DepartmentRepository departmentRepository;
+    private final PermissionCacheRepository permissionCacheRepository;
     private final UserRepository userRepository;
+    private final UserCredentialRepository userCredentialRepository;
     private final UserIdentityRepository userIdentityRepository;
     private final UserRoleRepository userRoleRepository;
     private final SessionCommandFacade sessionCommandFacade;
@@ -53,19 +67,25 @@ public class UserProfileApplicationService {
     private final StoredObjectReadFacade storedObjectReadFacade;
     private final Ids ids;
     private final IdGenerator idGenerator;
+    private final PasswordEncoder passwordEncoder;
 
     public UserProfileApplicationService(
             DepartmentRepository departmentRepository,
+            PermissionCacheRepository permissionCacheRepository,
             UserRepository userRepository,
+            UserCredentialRepository userCredentialRepository,
             UserIdentityRepository userIdentityRepository,
             UserRoleRepository userRoleRepository,
             SessionCommandFacade sessionCommandFacade,
             StoredObjectCommandFacade storedObjectCommandFacade,
             StoredObjectReadFacade storedObjectReadFacade,
             Ids ids,
-            IdGenerator idGenerator) {
+            IdGenerator idGenerator,
+            PasswordEncoder passwordEncoder) {
         this.departmentRepository = departmentRepository;
+        this.permissionCacheRepository = permissionCacheRepository;
         this.userRepository = userRepository;
+        this.userCredentialRepository = userCredentialRepository;
         this.userIdentityRepository = userIdentityRepository;
         this.userRoleRepository = userRoleRepository;
         this.sessionCommandFacade = sessionCommandFacade;
@@ -73,6 +93,7 @@ public class UserProfileApplicationService {
         this.storedObjectReadFacade = storedObjectReadFacade;
         this.ids = ids;
         this.idGenerator = idGenerator;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -82,13 +103,10 @@ public class UserProfileApplicationService {
         ensureAccountUnique(account, null);
         String normalizedAccount = account.trim();
         String normalizedPhone = phone == null ? null : phone.trim();
-        User savedUser = userRepository.insert(
-                User.create(ids.userId(), name.trim(), null, departmentId),
-                normalizedAccount,
-                normalizedPhone,
-                UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
-                normalizedPhone == null ? null : UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
-                UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
+        User savedUser = userRepository.insert(User.create(ids.userId(), name.trim(), null, departmentId));
+        UserIdentity accountIdentity = replaceAccountIdentity(savedUser.getId(), normalizedAccount);
+        upsertPasswordCredential(savedUser, accountIdentity, true);
+        replacePhoneIdentity(savedUser.getId(), normalizedPhone);
         return toUserDto(savedUser);
     }
 
@@ -106,13 +124,10 @@ public class UserProfileApplicationService {
         } else {
             currentUser.assignDepartment(departmentId);
         }
-        User savedUser = userRepository.update(
-                currentUser,
-                normalizedAccount,
-                normalizedPhone,
-                UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
-                normalizedPhone == null ? null : UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
-                UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
+        User savedUser = userRepository.update(currentUser);
+        UserIdentity accountIdentity = replaceAccountIdentity(savedUser.getId(), normalizedAccount);
+        upsertPasswordCredential(savedUser, accountIdentity, false);
+        replacePhoneIdentity(savedUser.getId(), normalizedPhone);
         return toUserDto(savedUser);
     }
 
@@ -127,15 +142,7 @@ public class UserProfileApplicationService {
         } else {
             currentUser.disable();
         }
-        User savedUser = userRepository.update(
-                currentUser,
-                requireIdentityValue(currentUser.getId(), UserIdentityType.ACCOUNT),
-                resolveIdentityValue(currentUser.getId(), UserIdentityType.PHONE),
-                UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
-                resolveIdentityValue(currentUser.getId(), UserIdentityType.PHONE) == null
-                        ? null
-                        : UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
-                UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
+        User savedUser = userRepository.update(currentUser);
         if (UserStatus.DISABLED == savedUser.getStatus()) {
             sessionCommandFacade.invalidateUserSessions(
                     new SessionInvalidateUserFacadeRequest(
@@ -164,9 +171,11 @@ public class UserProfileApplicationService {
     public List<RoleDTO> updateRoleIds(UserId userId, List<RoleId> roleIds) {
         requireUser(userId);
         List<RoleId> domainRoleIds = roleIds == null ? List.of() : roleIds;
-        return userRoleRepository.updateRoleIds(userId, domainRoleIds).stream()
+        List<RoleDTO> roles = userRoleRepository.updateRoleIds(userId, domainRoleIds).stream()
                 .map(RoleAssembler::toDto)
                 .toList();
+        permissionCacheRepository.evictUserPermission(TenantId.of(BaconContextHolder.requireTenantId()), userId);
+        return roles;
     }
 
     @Transactional
@@ -189,6 +198,73 @@ public class UserProfileApplicationService {
                 resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT),
                 resolveIdentityValue(user.getId(), UserIdentityType.PHONE),
                 resolveAvatarUrl(user.getAvatarStoredObjectNo()));
+    }
+
+    private UserIdentity replaceAccountIdentity(UserId userId, String account) {
+        String normalizedAccount = requireIdentityValue(account, UserIdentityType.ACCOUNT);
+        UserIdentity currentIdentity =
+                userIdentityRepository.findIdentityByUserId(userId, UserIdentityType.ACCOUNT).orElse(null);
+        if (currentIdentity == null) {
+            return userIdentityRepository.insert(UserIdentity.create(
+                    UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
+                    userId,
+                    UserIdentityType.ACCOUNT,
+                    normalizedAccount));
+        }
+        currentIdentity.changeAccount(normalizedAccount);
+        return userIdentityRepository.update(currentIdentity);
+    }
+
+    private void replacePhoneIdentity(UserId userId, String phone) {
+        if (phone == null || phone.isBlank()) {
+            userIdentityRepository.deleteIdentityByUserIdAndType(userId, UserIdentityType.PHONE);
+            return;
+        }
+        String normalizedPhone = phone.trim();
+        UserIdentity currentIdentity =
+                userIdentityRepository.findIdentityByUserId(userId, UserIdentityType.PHONE).orElse(null);
+        if (currentIdentity == null) {
+            userIdentityRepository.insert(UserIdentity.create(
+                    UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
+                    userId,
+                    UserIdentityType.PHONE,
+                    normalizedPhone));
+            return;
+        }
+        currentIdentity.changePhone(normalizedPhone);
+        userIdentityRepository.update(currentIdentity);
+    }
+
+    private void upsertPasswordCredential(User user, UserIdentity accountIdentity, boolean newUser) {
+        UserCredential currentCredential = userCredentialRepository
+                .findCredentialByUserId(user.getId(), PASSWORD_CREDENTIAL_TYPE)
+                .orElse(null);
+        Instant passwordExpiresAt = Instant.now().plus(PASSWORD_EXPIRE_DAYS, ChronoUnit.DAYS);
+        String passwordHash = resolvePasswordHash(user, newUser);
+        if (currentCredential == null) {
+            userCredentialRepository.insert(UserCredential.createPassword(
+                    UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)),
+                    user.getId(),
+                    accountIdentity.getId(),
+                    passwordHash,
+                    newUser,
+                    PASSWORD_FAILED_LIMIT,
+                    passwordExpiresAt));
+            return;
+        }
+        currentCredential.bindIdentity(accountIdentity.getId());
+        currentCredential.replacePassword(passwordHash, false, passwordExpiresAt);
+        userCredentialRepository.update(currentCredential);
+    }
+
+    private String resolvePasswordHash(User user, boolean newUser) {
+        if (newUser) {
+            return passwordEncoder.encode(DEFAULT_PASSWORD);
+        }
+        return userCredentialRepository
+                .findCredentialByUserId(user.getId(), PASSWORD_CREDENTIAL_TYPE)
+                .map(UserCredential::getCredentialValue)
+                .orElseGet(() -> passwordEncoder.encode(DEFAULT_PASSWORD));
     }
 
     private User requireUser(UserId userId) {
@@ -244,5 +320,12 @@ public class UserProfileApplicationService {
         if (value == null || value.isBlank()) {
             throw new BadRequestException(fieldName + " must not be blank");
         }
+    }
+
+    private String requireIdentityValue(String identityValue, UserIdentityType identityType) {
+        if (identityValue == null || identityValue.isBlank()) {
+            throw new BadRequestException(identityType.value() + " identity must not be blank");
+        }
+        return identityValue.trim();
     }
 }

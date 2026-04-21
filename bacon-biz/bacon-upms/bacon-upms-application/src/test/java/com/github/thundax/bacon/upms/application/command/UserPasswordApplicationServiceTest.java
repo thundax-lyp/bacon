@@ -4,11 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
@@ -59,7 +62,7 @@ class UserPasswordApplicationServiceTest {
                 sessionCommandFacade,
                 passwordEncoder,
                 idGenerator);
-        when(idGenerator.nextId("user-credential-id")).thenReturn(10003L);
+        lenient().when(idGenerator.nextId("user-credential-id")).thenReturn(10003L);
     }
 
     @Test
@@ -96,6 +99,24 @@ class UserPasswordApplicationServiceTest {
     }
 
     @Test
+    void shouldThrowNotFoundWhenUserDoesNotExistDuringInitPassword() {
+        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.empty());
+
+        org.junit.jupiter.api.Assertions.assertThrows(
+                NotFoundException.class, () -> service.initPassword(UserId.of(101L)));
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenNewPasswordIsBlankDuringResetPassword() {
+        User user = User.reconstruct(UserId.of(101L), "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
+        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
+
+        org.junit.jupiter.api.Assertions.assertThrows(
+                BadRequestException.class,
+                () -> service.resetPassword(new UserPasswordResetCommand(UserId.of(101L), "   ")));
+    }
+
+    @Test
     void shouldValidateOldPasswordAgainstAccountIdentity() {
         User user = User.reconstruct(UserId.of(101L), "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
         UserCredential passwordCredential = UserCredential.createPassword(
@@ -123,5 +144,38 @@ class UserPasswordApplicationServiceTest {
                 passwordExpiresAtCaptor.capture(),
                 eq(com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId.of(10003L)));
         assertTrue(passwordExpiresAtCaptor.getValue().isAfter(Instant.now()));
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenOldPasswordIsInvalidDuringChangePassword() {
+        User user = User.reconstruct(UserId.of(101L), "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
+        UserCredential passwordCredential = UserCredential.createPassword(
+                com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId.of(301L),
+                UserId.of(101L),
+                com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId.of(201L),
+                "{noop}identity",
+                false,
+                5,
+                (Instant) null);
+        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
+        when(userCredentialRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
+                .thenReturn(Optional.of(passwordCredential));
+        when(passwordEncoder.matches("old-password", "{noop}identity")).thenReturn(false);
+
+        org.junit.jupiter.api.Assertions.assertThrows(
+                BadRequestException.class,
+                () -> service.changePassword(new UserPasswordChangeCommand(UserId.of(101L), "old-password", "new-password")));
+    }
+
+    @Test
+    void shouldThrowNotFoundWhenPasswordCredentialDoesNotExistDuringChangePassword() {
+        User user = User.reconstruct(UserId.of(101L), "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
+        when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
+        when(userCredentialRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
+                .thenReturn(Optional.empty());
+
+        org.junit.jupiter.api.Assertions.assertThrows(
+                NotFoundException.class,
+                () -> service.changePassword(new UserPasswordChangeCommand(UserId.of(101L), "old-password", "new-password")));
     }
 }

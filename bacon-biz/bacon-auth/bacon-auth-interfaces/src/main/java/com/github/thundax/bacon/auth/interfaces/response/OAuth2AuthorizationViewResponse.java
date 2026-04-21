@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.auth.interfaces.response;
 
-import com.github.thundax.bacon.auth.application.command.OAuth2AuthorizationApplicationService.AuthorizationView;
+import com.github.thundax.bacon.auth.application.command.OAuth2AuthorizationCommandApplicationService.AuthorizationView;
 
 /**
  * OAuth2 授权页响应对象。

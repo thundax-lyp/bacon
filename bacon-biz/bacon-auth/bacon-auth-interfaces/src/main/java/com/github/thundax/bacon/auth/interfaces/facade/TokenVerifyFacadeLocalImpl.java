@@ -5,8 +5,9 @@ import com.github.thundax.bacon.auth.api.request.SessionContextGetFacadeRequest;
 import com.github.thundax.bacon.auth.api.request.TokenVerifyFacadeRequest;
 import com.github.thundax.bacon.auth.api.response.CurrentSessionFacadeResponse;
 import com.github.thundax.bacon.auth.api.response.SessionValidationFacadeResponse;
-import com.github.thundax.bacon.auth.application.command.TokenApplicationService;
-import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
+import com.github.thundax.bacon.auth.application.query.SessionContextQuery;
+import com.github.thundax.bacon.auth.application.query.TokenQueryApplicationService;
+import com.github.thundax.bacon.auth.application.query.TokenVerifyQuery;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -14,20 +15,21 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
 public class TokenVerifyFacadeLocalImpl implements TokenVerifyFacade {
 
-    private final TokenApplicationService tokenApplicationService;
+    private final TokenQueryApplicationService tokenQueryApplicationService;
 
-    public TokenVerifyFacadeLocalImpl(TokenApplicationService tokenApplicationService) {
-        this.tokenApplicationService = tokenApplicationService;
+    public TokenVerifyFacadeLocalImpl(TokenQueryApplicationService tokenQueryApplicationService) {
+        this.tokenQueryApplicationService = tokenQueryApplicationService;
     }
 
     @Override
     public SessionValidationFacadeResponse verifyAccessToken(TokenVerifyFacadeRequest request) {
-        return SessionValidationFacadeResponse.from(tokenApplicationService.verifyAccessToken(request.getAccessToken()));
+        return SessionValidationFacadeResponse.from(
+                tokenQueryApplicationService.verifyAccessToken(new TokenVerifyQuery(request.getAccessToken())));
     }
 
     @Override
     public CurrentSessionFacadeResponse getSessionContext(SessionContextGetFacadeRequest request) {
-        CurrentSessionDTO session = tokenApplicationService.getSessionContext(request.getSessionId());
+        var session = tokenQueryApplicationService.getSessionContext(new SessionContextQuery(request.getSessionId()));
         return CurrentSessionFacadeResponse.from(
                 session.getSessionId(),
                 session.getTenantId(),

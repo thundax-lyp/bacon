@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.auth.application.command;
 
-import com.github.thundax.bacon.auth.application.codec.TokenCodec;
-import com.github.thundax.bacon.auth.application.dto.OAuth2IntrospectionDTO;
-import com.github.thundax.bacon.auth.application.dto.OAuth2TokenDTO;
-import com.github.thundax.bacon.auth.application.dto.OAuth2UserinfoDTO;
 import com.github.thundax.bacon.auth.application.assembler.OAuth2AuthorizationAssembler;
+import com.github.thundax.bacon.auth.application.codec.TokenCodec;
+import com.github.thundax.bacon.auth.application.dto.OAuth2TokenDTO;
+import com.github.thundax.bacon.auth.application.query.SessionCurrentQuery;
+import com.github.thundax.bacon.auth.application.query.SessionQueryApplicationService;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
@@ -27,89 +27,80 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class OAuth2AuthorizationApplicationService {
+public class OAuth2AuthorizationCommandApplicationService {
 
     private final OAuthClientRepository oAuthClientRepository;
     private final OAuthAuthorizationRepository oAuthAuthorizationRepository;
-    private final SessionApplicationService sessionApplicationService;
+    private final SessionQueryApplicationService sessionQueryApplicationService;
     private final TokenCodec tokenCodec;
     private final PasswordEncoder passwordEncoder;
 
-    public OAuth2AuthorizationApplicationService(
+    public OAuth2AuthorizationCommandApplicationService(
             OAuthClientRepository oAuthClientRepository,
             OAuthAuthorizationRepository oAuthAuthorizationRepository,
-            SessionApplicationService sessionApplicationService,
+            SessionQueryApplicationService sessionQueryApplicationService,
             TokenCodec tokenCodec,
             PasswordEncoder passwordEncoder) {
         this.oAuthClientRepository = oAuthClientRepository;
         this.oAuthAuthorizationRepository = oAuthAuthorizationRepository;
-        this.sessionApplicationService = sessionApplicationService;
+        this.sessionQueryApplicationService = sessionQueryApplicationService;
         this.tokenCodec = tokenCodec;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
-    public AuthorizationView authorize(
-            String accessToken,
-            String clientId,
-            String redirectUri,
-            String scope,
-            String state,
-            String codeChallenge,
-            String codeChallengeMethod) {
-        OAuthClient client = loadClient(clientId);
-        if (!client.getRedirectUris().contains(redirectUri)) {
+    public AuthorizationView authorize(OAuth2AuthorizeCommand command) {
+        OAuthClient client = loadClient(command.clientId());
+        if (!client.getRedirectUris().contains(command.redirectUri())) {
             throw new BadRequestException("Redirect uri invalid");
         }
-        Set<String> scopes = splitScopes(scope);
+        Set<String> scopes = splitScopes(command.scope());
         if (!client.getScopes().containsAll(scopes)) {
             throw new BadRequestException("Scope invalid");
         }
 
-        if (accessToken == null || accessToken.isBlank()) {
+        if (command.accessToken() == null || command.accessToken().isBlank()) {
             throw new UnauthorizedException("Login required before OAuth2 authorization");
         }
-        var currentSession = sessionApplicationService.currentSession(accessToken);
+        var currentSession = sessionQueryApplicationService.currentSession(new SessionCurrentQuery(command.accessToken()));
         Long tenantId = currentSession.getTenantId();
         Long userId = currentSession.getUserId();
 
-        // authorize 阶段只落授权请求，不直接发 code；真正的授权决定由后续 approve/reject 明确给出。
         String authorizationRequestId = UUID.randomUUID().toString();
         oAuthAuthorizationRepository.update(new OAuthAuthorizationRequest(
                 authorizationRequestId,
-                clientId,
-                redirectUri,
+                command.clientId(),
+                command.redirectUri(),
                 new ArrayList<>(scopes),
-                state,
-                codeChallenge,
-                codeChallengeMethod,
+                command.state(),
+                command.codeChallenge(),
+                command.codeChallengeMethod(),
                 tenantId,
                 userId,
                 Instant.now().plusSeconds(300)));
         return new AuthorizationView(
-                authorizationRequestId, client.getClientCodeValue(), client.getClientName(), scope, state);
+                authorizationRequestId, client.getClientCodeValue(), client.getClientName(), command.scope(), command.state());
     }
 
     @Transactional
-    public AuthorizationDecisionResult decide(String authorizationRequestId, String decision) {
+    public AuthorizationDecisionResult decide(OAuth2DecisionCommand command) {
         OAuthAuthorizationRequest authorizationRequest = oAuthAuthorizationRepository
-                .findById(authorizationRequestId)
+                .findById(command.authorizationRequestId())
                 .filter(request -> !request.isUsed())
                 .filter(request -> request.getExpireAt().isAfter(Instant.now()))
                 .orElseThrow(() -> new BadRequestException("Authorization request invalid"));
-        if (!"APPROVE".equalsIgnoreCase(decision) && !"REJECT".equalsIgnoreCase(decision)) {
+        if (!"APPROVE".equalsIgnoreCase(command.decision()) && !"REJECT".equalsIgnoreCase(command.decision())) {
             throw new BadRequestException("Decision invalid");
         }
         authorizationRequest.markUsed();
         oAuthAuthorizationRepository.update(authorizationRequest);
-        if ("REJECT".equalsIgnoreCase(decision)) {
+        if ("REJECT".equalsIgnoreCase(command.decision())) {
             return new AuthorizationDecisionResult(
                     authorizationRequest.getRedirectUri() + "?error=access_denied&state="
                             + authorizationRequest.getState(),
                     null);
         }
 
-        // 授权请求一旦 APPROVE 就立即标记已使用，避免同一个 request 被重复换出多个 authorization code。
         String authorizationCode = tokenCodec.randomToken();
         oAuthAuthorizationRepository.insertCode(authorizationCode, authorizationRequest);
         return new AuthorizationDecisionResult(
@@ -119,21 +110,13 @@ public class OAuth2AuthorizationApplicationService {
     }
 
     @Transactional
-    public OAuth2TokenDTO token(
-            String grantType,
-            String code,
-            String redirectUri,
-            String clientId,
-            String clientSecret,
-            String codeVerifier,
-            String refreshToken) {
-        OAuthClient client = validateClient(clientId, clientSecret);
-        if ("authorization_code".equals(grantType)) {
-            // authorization_code 交换时复用授权请求里固化的 tenant/user/scopes，避免由客户端自行提交这些敏感上下文。
+    public OAuth2TokenDTO token(OAuth2TokenCommand command) {
+        OAuthClient client = validateClient(command.clientId(), command.clientSecret());
+        if ("authorization_code".equals(command.grantType())) {
             OAuthAuthorizationRequest request = oAuthAuthorizationRepository
-                    .findByCode(code)
+                    .findByCode(command.code())
                     .orElseThrow(() -> new BadRequestException("Authorization code invalid"));
-            if (!request.getRedirectUri().equals(redirectUri)) {
+            if (!request.getRedirectUri().equals(command.redirectUri())) {
                 throw new BadRequestException("Redirect uri invalid");
             }
             return issueOAuthTokens(
@@ -142,12 +125,11 @@ public class OAuth2AuthorizationApplicationService {
                     request.getUserId() == null ? null : request.getUserId().value(),
                     request.getScopes());
         }
-        if ("refresh_token".equals(grantType)) {
+        if ("refresh_token".equals(command.grantType())) {
             OAuthRefreshToken currentRefreshToken = oAuthAuthorizationRepository
-                    .findByHash(tokenCodec.sha256(refreshToken))
+                    .findByHash(tokenCodec.sha256(command.refreshToken()))
                     .filter(token -> "ACTIVE".equals(token.getTokenStatus()))
                     .orElseThrow(() -> new BadRequestException("OAuth refresh token invalid"));
-            // refresh_token 换新采用轮转模式：旧 refresh token 标记 USED，再签发新的 access/refresh 对。
             currentRefreshToken.markUsed();
             oAuthAuthorizationRepository.update(currentRefreshToken);
             Optional<OAuthAccessToken> accessToken =
@@ -164,57 +146,27 @@ public class OAuth2AuthorizationApplicationService {
         throw new BadRequestException("Grant type unsupported");
     }
 
-    public OAuth2IntrospectionDTO introspect(String token, String clientId, String clientSecret) {
-        validateClient(clientId, clientSecret);
-        return oAuthAuthorizationRepository
-                .findAccessByHash(tokenCodec.sha256(token))
-                .filter(OAuthAccessToken::isActive)
-                .filter(accessToken -> accessToken.getExpireAt().isAfter(Instant.now()))
-                .map(accessToken -> OAuth2AuthorizationAssembler.toIntrospectionDto(
-                        true,
-                        accessToken.getClientIdValue(),
-                        String.join(" ", accessToken.getScopes()),
-                        String.valueOf(
-                                accessToken.getUserId() == null
-                                        ? null
-                                        : accessToken.getUserId().value()),
-                        accessToken.getTenantIdValue(),
-                        accessToken.getExpireAt().getEpochSecond()))
-                .orElse(OAuth2AuthorizationAssembler.toIntrospectionDto(false, clientId, "", "", null, 0L));
-    }
-
     @Transactional
-    public void revoke(String token, String clientId, String clientSecret) {
-        validateClient(clientId, clientSecret);
+    public void revoke(OAuth2RevokeCommand command) {
+        validateClient(command.clientId(), command.clientSecret());
         oAuthAuthorizationRepository
-                .findAccessByHash(tokenCodec.sha256(token))
+                .findAccessByHash(tokenCodec.sha256(command.token()))
                 .ifPresent(accessToken -> {
                     accessToken.revoke();
                     oAuthAuthorizationRepository.update(accessToken);
                 });
         oAuthAuthorizationRepository
-                .findByHash(tokenCodec.sha256(token))
+                .findByHash(tokenCodec.sha256(command.token()))
                 .ifPresent(refreshToken -> {
                     refreshToken.revoke();
                     oAuthAuthorizationRepository.update(refreshToken);
                 });
     }
 
-    public OAuth2UserinfoDTO userinfo(String accessToken) {
-        OAuthAccessToken token = oAuthAuthorizationRepository
-                .findAccessByHash(tokenCodec.sha256(accessToken))
-                .filter(OAuthAccessToken::isActive)
-                .orElseThrow(() -> new BadRequestException("OAuth access token invalid"));
-        Long userId = token.getUserId() == null ? null : token.getUserId().value();
-        String name = token.getScopes().contains("profile") ? "demo-user-" + userId : null;
-        return OAuth2AuthorizationAssembler.toUserinfoDto(String.valueOf(userId), token.getTenantIdValue(), name);
-    }
-
     private OAuth2TokenDTO issueOAuthTokens(OAuthClient client, Long tenantId, Long userId, Set<String> scopes) {
         Instant now = Instant.now();
         String accessTokenValue = tokenCodec.randomToken();
         String accessTokenId = tokenCodec.sha256(accessTokenValue);
-        // access token 和 refresh token 在仓储层都使用哈希作为主识别键，避免明文 token 被直接持久化。
         OAuthAccessToken accessToken = new OAuthAccessToken(
                 accessTokenId,
                 accessTokenId,

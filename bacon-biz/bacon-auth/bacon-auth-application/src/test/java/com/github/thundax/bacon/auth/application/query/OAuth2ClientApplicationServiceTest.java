@@ -9,14 +9,14 @@ import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-class OAuth2ClientApplicationServiceTest {
+class OAuthClientQueryApplicationServiceTest {
 
     @Test
     void shouldThrowNotFoundWhenClientDoesNotExist() {
         OAuthClientRepository repository = mock(OAuthClientRepository.class);
         when(repository.findByClientCode("missing-client")).thenReturn(Optional.empty());
-        OAuth2ClientApplicationService service = new OAuth2ClientApplicationService(repository);
+        OAuthClientQueryApplicationService service = new OAuthClientQueryApplicationService(repository);
 
-        assertThrows(NotFoundException.class, () -> service.getClientByClientId("missing-client"));
+        assertThrows(NotFoundException.class, () -> service.getClientByClientId(new OAuthClientQuery("missing-client")));
     }
 }

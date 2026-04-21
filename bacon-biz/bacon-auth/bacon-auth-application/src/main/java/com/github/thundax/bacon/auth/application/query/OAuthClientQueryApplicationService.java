@@ -8,18 +8,18 @@ import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
-public class OAuth2ClientApplicationService {
+public class OAuthClientQueryApplicationService {
 
     private final OAuthClientRepository oAuthClientRepository;
 
-    public OAuth2ClientApplicationService(OAuthClientRepository oAuthClientRepository) {
+    public OAuthClientQueryApplicationService(OAuthClientRepository oAuthClientRepository) {
         this.oAuthClientRepository = oAuthClientRepository;
     }
 
-    public OAuthClientDTO getClientByClientId(String clientId) {
+    public OAuthClientDTO getClientByClientId(OAuthClientQuery query) {
         OAuthClient client = oAuthClientRepository
-                .findByClientCode(clientId)
-                .orElseThrow(() -> new NotFoundException("OAuth client not found: " + clientId));
+                .findByClientCode(query.clientId())
+                .orElseThrow(() -> new NotFoundException("OAuth client not found: " + query.clientId()));
         return OAuth2ClientAssembler.toDto(client);
     }
 }

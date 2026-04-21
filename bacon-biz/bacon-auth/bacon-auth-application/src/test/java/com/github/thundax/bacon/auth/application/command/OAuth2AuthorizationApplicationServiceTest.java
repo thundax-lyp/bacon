@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.github.thundax.bacon.auth.application.query.SessionQueryApplicationService;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.model.enums.ClientStatus;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
@@ -16,7 +17,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-class OAuth2AuthorizationApplicationServiceTest {
+class OAuth2AuthorizationCommandApplicationServiceTest {
 
     @Test
     void shouldAcceptHashedClientSecretInStrictRepositoryMode() {
@@ -24,7 +25,7 @@ class OAuth2AuthorizationApplicationServiceTest {
         OAuthAuthorizationRepository authorizationRepository = mock(OAuthAuthorizationRepository.class);
         when(authorizationRepository.findByHash("hash-refresh"))
                 .thenReturn(Optional.empty());
-        OAuth2AuthorizationApplicationService service = new OAuth2AuthorizationApplicationService(
+        OAuth2AuthorizationCommandApplicationService service = new OAuth2AuthorizationCommandApplicationService(
                 oauthClientRepository(new OAuthClient(
                         1L,
                         "demo-client",
@@ -42,20 +43,21 @@ class OAuth2AuthorizationApplicationServiceTest {
                         Instant.now(),
                         Instant.now())),
                 authorizationRepository,
-                mock(SessionApplicationService.class),
+                mock(SessionQueryApplicationService.class),
                 tokenCodec("hash-refresh"),
                 passwordEncoder);
 
         BadRequestException exception = assertThrows(
                 BadRequestException.class,
-                () -> service.token("refresh_token", null, null, "demo-client", "demo-secret", null, "refresh"));
+                () -> service.token(new OAuth2TokenCommand(
+                        "refresh_token", null, null, "demo-client", "demo-secret", null, "refresh")));
         assertEquals("OAuth refresh token invalid", exception.getMessage());
     }
 
     @Test
     void shouldRejectInvalidClientSecret() {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        OAuth2AuthorizationApplicationService service = new OAuth2AuthorizationApplicationService(
+        OAuth2AuthorizationCommandApplicationService service = new OAuth2AuthorizationCommandApplicationService(
                 oauthClientRepository(new OAuthClient(
                         1L,
                         "demo-client",
@@ -73,13 +75,14 @@ class OAuth2AuthorizationApplicationServiceTest {
                         Instant.now(),
                         Instant.now())),
                 mock(OAuthAuthorizationRepository.class),
-                mock(SessionApplicationService.class),
+                mock(SessionQueryApplicationService.class),
                 mock(com.github.thundax.bacon.auth.application.codec.TokenCodec.class),
                 passwordEncoder);
 
         assertThrows(
                 BadRequestException.class,
-                () -> service.token("refresh_token", null, null, "demo-client", "wrong-secret", null, "refresh"));
+                () -> service.token(new OAuth2TokenCommand(
+                        "refresh_token", null, null, "demo-client", "wrong-secret", null, "refresh")));
     }
 
     private OAuthClientRepository oauthClientRepository(OAuthClient client) {

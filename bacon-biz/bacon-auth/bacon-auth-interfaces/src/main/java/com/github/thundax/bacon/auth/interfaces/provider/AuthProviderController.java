@@ -3,10 +3,16 @@ package com.github.thundax.bacon.auth.interfaces.provider;
 import com.github.thundax.bacon.auth.api.dto.OAuthClientDTO;
 import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
 import com.github.thundax.bacon.auth.api.response.CurrentSessionFacadeResponse;
-import com.github.thundax.bacon.auth.application.command.SessionApplicationService;
-import com.github.thundax.bacon.auth.application.command.TokenApplicationService;
+import com.github.thundax.bacon.auth.application.command.SessionCommandApplicationService;
+import com.github.thundax.bacon.auth.application.command.SessionInvalidateCommand;
+import com.github.thundax.bacon.auth.application.command.SessionInvalidateTenantCommand;
+import com.github.thundax.bacon.auth.application.command.SessionInvalidateUserCommand;
+import com.github.thundax.bacon.auth.application.query.OAuthClientQueryApplicationService;
+import com.github.thundax.bacon.auth.application.query.OAuthClientQuery;
+import com.github.thundax.bacon.auth.application.query.SessionContextQuery;
+import com.github.thundax.bacon.auth.application.query.TokenQueryApplicationService;
+import com.github.thundax.bacon.auth.application.query.TokenVerifyQuery;
 import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
-import com.github.thundax.bacon.auth.application.query.OAuth2ClientApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
@@ -25,31 +31,31 @@ import org.springframework.validation.annotation.Validated;
 @Tag(name = "Inner-Auth-Management", description = "Auth 域内部 Provider 接口")
 public class AuthProviderController {
 
-    private final TokenApplicationService tokenApplicationService;
-    private final SessionApplicationService sessionApplicationService;
-    private final OAuth2ClientApplicationService oAuth2ClientApplicationService;
+    private final TokenQueryApplicationService tokenQueryApplicationService;
+    private final SessionCommandApplicationService sessionCommandApplicationService;
+    private final OAuthClientQueryApplicationService oAuthClientQueryApplicationService;
 
     public AuthProviderController(
-            TokenApplicationService tokenApplicationService,
-            SessionApplicationService sessionApplicationService,
-            OAuth2ClientApplicationService oAuth2ClientApplicationService) {
-        this.tokenApplicationService = tokenApplicationService;
-        this.sessionApplicationService = sessionApplicationService;
-        this.oAuth2ClientApplicationService = oAuth2ClientApplicationService;
+            TokenQueryApplicationService tokenQueryApplicationService,
+            SessionCommandApplicationService sessionCommandApplicationService,
+            OAuthClientQueryApplicationService oAuthClientQueryApplicationService) {
+        this.tokenQueryApplicationService = tokenQueryApplicationService;
+        this.sessionCommandApplicationService = sessionCommandApplicationService;
+        this.oAuthClientQueryApplicationService = oAuthClientQueryApplicationService;
     }
 
     @Operation(summary = "校验访问令牌")
     @GetMapping("/tokens/verify")
     public SessionValidationDTO verify(
             @RequestParam("accessToken") @NotBlank(message = "accessToken must not be blank") String accessToken) {
-        return tokenApplicationService.verifyAccessToken(accessToken);
+        return tokenQueryApplicationService.verifyAccessToken(new TokenVerifyQuery(accessToken));
     }
 
     @Operation(summary = "获取会话上下文")
     @GetMapping("/sessions/{sessionId}")
     public CurrentSessionFacadeResponse currentSession(
             @PathVariable @NotBlank(message = "sessionId must not be blank") String sessionId) {
-        CurrentSessionDTO currentSession = tokenApplicationService.getSessionContext(sessionId);
+        CurrentSessionDTO currentSession = tokenQueryApplicationService.getSessionContext(new SessionContextQuery(sessionId));
         return CurrentSessionFacadeResponse.from(
                 currentSession.getSessionId(),
                 currentSession.getTenantId(),
@@ -68,7 +74,7 @@ public class AuthProviderController {
             @RequestParam("tenantId") @Positive(message = "tenantId must be greater than 0") Long tenantId,
             @RequestParam("userId") @Positive(message = "userId must be greater than 0") Long userId,
             @RequestParam("reason") @NotBlank(message = "reason must not be blank") String reason) {
-        sessionApplicationService.invalidateUserSessions(tenantId, userId, reason);
+        sessionCommandApplicationService.invalidateUserSessions(new SessionInvalidateUserCommand(tenantId, userId, reason));
     }
 
     @Operation(summary = "失效指定租户会话")
@@ -76,7 +82,7 @@ public class AuthProviderController {
     public void invalidateTenantSessions(
             @RequestParam("tenantId") @Positive(message = "tenantId must be greater than 0") Long tenantId,
             @RequestParam("reason") @NotBlank(message = "reason must not be blank") String reason) {
-        sessionApplicationService.invalidateTenantSessions(tenantId, reason);
+        sessionCommandApplicationService.invalidateTenantSessions(new SessionInvalidateTenantCommand(tenantId, reason));
     }
 
     @Operation(summary = "失效指定会话")
@@ -84,12 +90,12 @@ public class AuthProviderController {
     public void invalidateSession(
             @PathVariable @NotBlank(message = "sessionId must not be blank") String sessionId,
             @RequestParam("reason") @NotBlank(message = "reason must not be blank") String reason) {
-        sessionApplicationService.invalidateSession(sessionId, reason);
+        sessionCommandApplicationService.invalidateSession(new SessionInvalidateCommand(sessionId, reason));
     }
 
     @Operation(summary = "查询 OAuth 客户端")
     @GetMapping("/oauth-clients/{clientId}")
     public OAuthClientDTO getClient(@PathVariable @NotBlank(message = "clientId must not be blank") String clientId) {
-        return oAuth2ClientApplicationService.getClientByClientId(clientId);
+        return oAuthClientQueryApplicationService.getClientByClientId(new OAuthClientQuery(clientId));
     }
 }

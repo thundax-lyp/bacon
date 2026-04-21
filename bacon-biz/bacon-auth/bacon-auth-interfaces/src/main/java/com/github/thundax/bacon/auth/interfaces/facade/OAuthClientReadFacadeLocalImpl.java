@@ -3,7 +3,8 @@ package com.github.thundax.bacon.auth.interfaces.facade;
 import com.github.thundax.bacon.auth.api.facade.OAuthClientReadFacade;
 import com.github.thundax.bacon.auth.api.request.OAuthClientGetFacadeRequest;
 import com.github.thundax.bacon.auth.api.response.OAuthClientFacadeResponse;
-import com.github.thundax.bacon.auth.application.query.OAuth2ClientApplicationService;
+import com.github.thundax.bacon.auth.application.query.OAuthClientQueryApplicationService;
+import com.github.thundax.bacon.auth.application.query.OAuthClientQuery;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -11,14 +12,15 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
 public class OAuthClientReadFacadeLocalImpl implements OAuthClientReadFacade {
 
-    private final OAuth2ClientApplicationService oAuth2ClientApplicationService;
+    private final OAuthClientQueryApplicationService oAuth2ClientQueryApplicationService;
 
-    public OAuthClientReadFacadeLocalImpl(OAuth2ClientApplicationService oAuth2ClientApplicationService) {
-        this.oAuth2ClientApplicationService = oAuth2ClientApplicationService;
+    public OAuthClientReadFacadeLocalImpl(OAuthClientQueryApplicationService oAuth2ClientQueryApplicationService) {
+        this.oAuth2ClientQueryApplicationService = oAuth2ClientQueryApplicationService;
     }
 
     @Override
     public OAuthClientFacadeResponse getClientByClientId(OAuthClientGetFacadeRequest request) {
-        return OAuthClientFacadeResponse.from(oAuth2ClientApplicationService.getClientByClientId(request.getClientId()));
+        return OAuthClientFacadeResponse.from(
+                oAuth2ClientQueryApplicationService.getClientByClientId(new OAuthClientQuery(request.getClientId())));
     }
 }

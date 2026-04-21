@@ -1,11 +1,16 @@
 package com.github.thundax.bacon.auth.interfaces.controller;
 
 import com.github.thundax.bacon.auth.application.command.LoginApplicationService;
-import com.github.thundax.bacon.auth.application.command.PasswordApplicationService;
+import com.github.thundax.bacon.auth.application.command.PasswordChangeCommand;
+import com.github.thundax.bacon.auth.application.command.PasswordCommandApplicationService;
 import com.github.thundax.bacon.auth.application.command.PasswordLoginCommand;
-import com.github.thundax.bacon.auth.application.command.SessionApplicationService;
-import com.github.thundax.bacon.auth.application.command.TokenApplicationService;
+import com.github.thundax.bacon.auth.application.command.SessionLogoutCommand;
+import com.github.thundax.bacon.auth.application.command.TokenCommandApplicationService;
+import com.github.thundax.bacon.auth.application.command.TokenRefreshCommand;
+import com.github.thundax.bacon.auth.application.command.SessionCommandApplicationService;
 import com.github.thundax.bacon.auth.application.result.PasswordLoginChallengeResult;
+import com.github.thundax.bacon.auth.application.query.SessionCurrentQuery;
+import com.github.thundax.bacon.auth.application.query.SessionQueryApplicationService;
 import com.github.thundax.bacon.auth.interfaces.request.PasswordChangeRequest;
 import com.github.thundax.bacon.auth.interfaces.request.PasswordLoginRequest;
 import com.github.thundax.bacon.auth.interfaces.request.SmsLoginRequest;
@@ -38,19 +43,22 @@ import org.springframework.validation.annotation.Validated;
 public class AuthController {
 
     private final LoginApplicationService loginApplicationService;
-    private final TokenApplicationService tokenApplicationService;
-    private final SessionApplicationService sessionApplicationService;
-    private final PasswordApplicationService passwordApplicationService;
+    private final TokenCommandApplicationService tokenCommandApplicationService;
+    private final SessionCommandApplicationService sessionCommandApplicationService;
+    private final SessionQueryApplicationService sessionQueryApplicationService;
+    private final PasswordCommandApplicationService passwordCommandApplicationService;
 
     public AuthController(
             LoginApplicationService loginApplicationService,
-            TokenApplicationService tokenApplicationService,
-            SessionApplicationService sessionApplicationService,
-            PasswordApplicationService passwordApplicationService) {
+            TokenCommandApplicationService tokenCommandApplicationService,
+            SessionCommandApplicationService sessionCommandApplicationService,
+            SessionQueryApplicationService sessionQueryApplicationService,
+            PasswordCommandApplicationService passwordCommandApplicationService) {
         this.loginApplicationService = loginApplicationService;
-        this.tokenApplicationService = tokenApplicationService;
-        this.sessionApplicationService = sessionApplicationService;
-        this.passwordApplicationService = passwordApplicationService;
+        this.tokenCommandApplicationService = tokenCommandApplicationService;
+        this.sessionCommandApplicationService = sessionCommandApplicationService;
+        this.sessionQueryApplicationService = sessionQueryApplicationService;
+        this.passwordCommandApplicationService = passwordCommandApplicationService;
     }
 
     @Operation(summary = "获取账号密码登录挑战")
@@ -99,7 +107,8 @@ public class AuthController {
     @Operation(summary = "刷新访问令牌")
     @PostMapping("/tokens/refresh")
     public UserTokenRefreshResponse refresh(@Valid @RequestBody TokenRefreshRequest request) {
-        return UserTokenRefreshResponse.from(tokenApplicationService.refresh(request.getRefreshToken()));
+        return UserTokenRefreshResponse.from(
+                tokenCommandApplicationService.refresh(new TokenRefreshCommand(request.getRefreshToken())));
     }
 
     @Operation(summary = "退出登录")
@@ -107,7 +116,7 @@ public class AuthController {
     public void logout(
             @RequestHeader("Authorization") @NotBlank(message = "Authorization header must not be blank")
                     String authorization) {
-        sessionApplicationService.logout(BearerTokenUtils.extractToken(authorization));
+        sessionCommandApplicationService.logout(new SessionLogoutCommand(BearerTokenUtils.extractToken(authorization)));
     }
 
     @Operation(summary = "修改当前用户密码")
@@ -116,8 +125,8 @@ public class AuthController {
             @RequestHeader("Authorization") @NotBlank(message = "Authorization header must not be blank")
                     String authorization,
             @Valid @RequestBody PasswordChangeRequest request) {
-        passwordApplicationService.changePassword(
-                BearerTokenUtils.extractToken(authorization), request.getOldPassword(), request.getNewPassword());
+        passwordCommandApplicationService.changePassword(new PasswordChangeCommand(
+                BearerTokenUtils.extractToken(authorization), request.getOldPassword(), request.getNewPassword()));
     }
 
     @Operation(summary = "获取当前会话信息")
@@ -126,6 +135,6 @@ public class AuthController {
             @RequestHeader("Authorization") @NotBlank(message = "Authorization header must not be blank")
                     String authorization) {
         return CurrentSessionResponse.from(
-                sessionApplicationService.currentSession(BearerTokenUtils.extractToken(authorization)));
+                sessionQueryApplicationService.currentSession(new SessionCurrentQuery(BearerTokenUtils.extractToken(authorization))));
     }
 }

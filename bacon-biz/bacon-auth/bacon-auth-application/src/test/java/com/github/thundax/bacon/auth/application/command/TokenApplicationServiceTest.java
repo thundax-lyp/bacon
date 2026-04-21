@@ -8,11 +8,10 @@ import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-class TokenApplicationServiceTest {
+class TokenCommandApplicationServiceTest {
 
     @Test
     void shouldThrowBadRequestWhenRefreshTokenIsInvalid() {
@@ -21,21 +20,9 @@ class TokenApplicationServiceTest {
         AuthAuditApplicationService authAuditApplicationService = mock(AuthAuditApplicationService.class);
         when(tokenCodec.sha256("refresh-token")).thenReturn("hashed-refresh-token");
         when(authSessionRepository.findByHash("hashed-refresh-token")).thenReturn(Optional.empty());
-        TokenApplicationService service =
-                new TokenApplicationService(authSessionRepository, tokenCodec, authAuditApplicationService);
+        TokenCommandApplicationService service =
+                new TokenCommandApplicationService(authSessionRepository, tokenCodec, authAuditApplicationService);
 
-        assertThrows(BadRequestException.class, () -> service.refresh("refresh-token"));
-    }
-
-    @Test
-    void shouldThrowNotFoundWhenSessionContextDoesNotExist() {
-        AuthSessionRepository authSessionRepository = mock(AuthSessionRepository.class);
-        TokenCodec tokenCodec = mock(TokenCodec.class);
-        AuthAuditApplicationService authAuditApplicationService = mock(AuthAuditApplicationService.class);
-        when(authSessionRepository.findBySessionId("session-1")).thenReturn(Optional.empty());
-        TokenApplicationService service =
-                new TokenApplicationService(authSessionRepository, tokenCodec, authAuditApplicationService);
-
-        assertThrows(NotFoundException.class, () -> service.getSessionContext("session-1"));
+        assertThrows(BadRequestException.class, () -> service.refresh(new TokenRefreshCommand("refresh-token")));
     }
 }

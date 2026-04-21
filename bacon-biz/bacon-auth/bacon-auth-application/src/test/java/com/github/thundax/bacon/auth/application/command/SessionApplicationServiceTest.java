@@ -12,32 +12,30 @@ import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-class SessionApplicationServiceTest {
+class SessionCommandApplicationServiceTest {
 
     @Test
     void shouldThrowBadRequestWhenAccessTokenIsInvalid() {
         AuthSessionRepository authSessionRepository = mock(AuthSessionRepository.class);
-        TokenApplicationService tokenApplicationService = mock(TokenApplicationService.class);
         TokenCodec tokenCodec = mock(TokenCodec.class);
         AuthAuditApplicationService authAuditApplicationService = mock(AuthAuditApplicationService.class);
         when(tokenCodec.parseSessionId("bad-token")).thenReturn(Optional.empty());
-        SessionApplicationService service = new SessionApplicationService(
-                authSessionRepository, tokenApplicationService, tokenCodec, authAuditApplicationService);
+        SessionCommandApplicationService service = new SessionCommandApplicationService(
+                authSessionRepository, tokenCodec, authAuditApplicationService);
 
-        assertThrows(BadRequestException.class, () -> service.currentSession("bad-token"));
+        assertThrows(BadRequestException.class, () -> service.logout(new SessionLogoutCommand("bad-token")));
     }
 
     @Test
     void shouldThrowNotFoundWhenSessionDoesNotExistDuringLogout() {
         AuthSessionRepository authSessionRepository = mock(AuthSessionRepository.class);
-        TokenApplicationService tokenApplicationService = mock(TokenApplicationService.class);
         TokenCodec tokenCodec = mock(TokenCodec.class);
         AuthAuditApplicationService authAuditApplicationService = mock(AuthAuditApplicationService.class);
         when(tokenCodec.parseSessionId("token")).thenReturn(Optional.of("session-1"));
         when(authSessionRepository.findBySessionId("session-1")).thenReturn(Optional.empty());
-        SessionApplicationService service = new SessionApplicationService(
-                authSessionRepository, tokenApplicationService, tokenCodec, authAuditApplicationService);
+        SessionCommandApplicationService service = new SessionCommandApplicationService(
+                authSessionRepository, tokenCodec, authAuditApplicationService);
 
-        assertThrows(NotFoundException.class, () -> service.logout("token"));
+        assertThrows(NotFoundException.class, () -> service.logout(new SessionLogoutCommand("token")));
     }
 }

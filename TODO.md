@@ -2,36 +2,22 @@
 
 ### 当前主线顺序（按模块执行）
 
-1. `auth`
-   - 先收口 `interfaces -> application` 合同
-2. `upms`
+1. `upms`
    - 再回收 `UserRepositoryImpl` 中残留业务
-3. `storage`
+2. `storage`
    - 先统一 `objectId -> storedObjectNo`
    - 再清理 `StoredObjectPageQueryDTO` 和 interfaces/application 合同
-4. `order`
+3. `order`
    - 先收口 provider/interfaces/application 合同
    - 再补 provider / application / domain 关键回归测试
-5. `payment` / `inventory`
+4. `payment` / `inventory`
    - `payment` 先收口 controller 路由语义
    - 然后把 `inventory` 固化成接口层校验模板域
-6. 横切收尾
+5. 横切收尾
    - 最后统一横切注解策略、租户边界与剩余 ArchUnit 增量规则
    - 保持“先业务收口、后门禁加严”的节奏，避免治理反向阻塞主线
 
 ### P0 - 2026-04-17 跨域扫描新增（统一性优先）
-
-- [ ] `auth-interfaces/application`：收口 OAuth2 合同为 Command/Query/VO
-  - 范围对象：`OAuth2Controller`、`OAuth2AuthorizationApplicationService`、`OAuth2ClientApplicationService`
-  - 处理动作：授权、客户端查询/更新入口统一为 `OAuth2*Command|Query`
-  - 验收点：OAuth2 application 公共方法不再暴露多 primitive 入参
-  - 重要度：9/10
-
-- [ ] `auth-interfaces/application`：收口 Session/Password 合同为 Command/Query/VO
-  - 范围对象：`AuthController`、`AuthProviderController`、`TokenApplicationService`、密码相关 application service
-  - 处理动作：会话校验、刷新、失效、密码修改/重置改为 `Session*Command|Query`、`Password*Command`
-  - 验收点：会话与密码链路 application 公共方法签名可预测且一致
-  - 重要度：9/10
 
 - [ ] `storage-interfaces/application`：收口 StoredObject 合同为 Command/Query/VO
   - 范围对象：`StorageController`、`StorageProviderController`、`StoredObjectApplicationService`、`StoredObjectQueryApplicationService`
@@ -132,9 +118,8 @@
 
 ### 建议执行顺序（细化）
 
-1. 先走 `auth` 主线：收口 `interfaces -> application` 合同 -> 评审并收口 `auth-api dto`
-2. 再走 `upms` 主线：`UserRepositoryImpl` 业务外提
-3. 然后处理 `storage`：`objectId -> storedObjectNo` -> 删除 `StoredObjectPageQueryDTO` -> 收口 interfaces/application 合同
-4. 再处理 `order`：provider/interfaces/application 合同收口 -> assembler 收口 -> 用例补齐
-5. 然后处理 `payment` 与 `inventory` 的局部整形任务
-6. 最后处理横切：注解矩阵、租户边界、剩余 ArchUnit 门禁统一
+1. 先走 `upms` 主线：`UserRepositoryImpl` 业务外提
+2. 然后处理 `storage`：`objectId -> storedObjectNo` -> 删除 `StoredObjectPageQueryDTO` -> 收口 interfaces/application 合同
+3. 再处理 `order`：provider/interfaces/application 合同收口 -> assembler 收口 -> 用例补齐
+4. 然后处理 `payment` 与 `inventory` 的局部整形任务
+5. 最后处理横切：注解矩阵、租户边界、剩余 ArchUnit 门禁统一

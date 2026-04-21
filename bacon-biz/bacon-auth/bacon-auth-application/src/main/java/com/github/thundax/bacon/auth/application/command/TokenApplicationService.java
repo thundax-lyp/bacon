@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.auth.application.command;
 
-import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
-import com.github.thundax.bacon.auth.api.dto.UserTokenRefreshDTO;
 import com.github.thundax.bacon.auth.application.assembler.TokenAssembler;
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
+import com.github.thundax.bacon.auth.application.dto.UserTokenRefreshDTO;
+import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;

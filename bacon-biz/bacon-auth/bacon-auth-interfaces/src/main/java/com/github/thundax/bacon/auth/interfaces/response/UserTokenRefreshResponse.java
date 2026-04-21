@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.auth.interfaces.response;
 
-import com.github.thundax.bacon.auth.api.dto.UserTokenRefreshDTO;
+import com.github.thundax.bacon.auth.application.dto.UserTokenRefreshDTO;
 
 /**
  * 用户令牌刷新响应对象。

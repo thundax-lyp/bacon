@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.auth.application.assembler;
 
-import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
-import com.github.thundax.bacon.auth.api.dto.UserTokenRefreshDTO;
 import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
+import com.github.thundax.bacon.auth.application.dto.UserTokenRefreshDTO;
+import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
 import java.time.Instant;
 
 public final class TokenAssembler {

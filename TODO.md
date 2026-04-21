@@ -4,7 +4,6 @@
 
 1. `auth`
    - 先收口 `interfaces -> application` 合同
-   - 再评审 `auth-api` 中哪些 DTO 真正属于稳定跨域契约
 2. `upms`
    - 再回收 `UserRepositoryImpl` 中残留业务
 3. `storage`
@@ -91,11 +90,6 @@
   - 当前状态：`StoredObjectPageQueryDTO` 仍滞留在 `application.dto`，且仓内已无实际调用，属于待清理旧模型
   - 处理动作：删除未使用的 `StoredObjectPageQueryDTO`，如仍需保留分页查询契约，则改为 `application.query.StoredObjectPageQuery`
   - 验收点：`rg -n "StoredObjectPageQueryDTO" bacon-biz` 结果为空；查询对象命名与 inventory/order 新规一致
-  - 重要度：7/10
-
-- [ ] `auth-api`：盘点 `api.dto` 是否属于稳定跨域契约，非契约模型下沉到 application
-  - 当前对象：`UserLoginDTO`、`CurrentSessionDTO`、`OAuth2TokenDTO`、`OAuth2IntrospectionDTO`、`OAuth2UserinfoDTO` 等
-  - 验收点：auth facade 仅保留跨域必要返回模型，避免 `api.dto` 扩散成应用内部模型
   - 重要度：7/10
 
 ### P2 - 测试覆盖对齐

@@ -57,6 +57,7 @@
 - `LAYER_PERSISTENCE_ASSEMBLER_PUBLIC_METHODS`：`*PersistenceAssembler` 公开方法只允许 `toDomain(...)`、`toDataObject(...)`
 - `LAYER_APPLICATION_INFRA_NO_ILLEGAL_ARGUMENT`：`application` 与 `infra.repository.impl/support` 禁止把 `IllegalArgumentException` 作为业务异常出口
 - `LAYER_APPLICATION_ASSEMBLER_EXCLUSIVE_MAPPING`：`application.command/query/audit/support` 禁止直接构造业务 `*DTO/*Response`；`Domain <-> DTO/Result` 装配固定收敛到 `application.assembler`
+- `LAYER_ASSEMBLER_CALL_BOUNDARY`：`interfaces.*InterfaceAssembler` 只能被 `interfaces` 调用，`application.*Assembler` 只能被 `application` 调用，`infra.*PersistenceAssembler` 只能被 `infra` 调用
 - `LAYER_ANNOTATION_PLACEMENT_WHITELIST`：`@RestController` 仅允许在 `interfaces.controller/provider`，`@FeignClient` 仅允许在 `infra.facade.remote`，`@Mapper` 仅允许在 `infra.persistence.mapper`，`@TableName/@TableField` 仅允许在 `infra.persistence.dataobject`
 
 ### Naming & Placement
@@ -75,6 +76,8 @@
 - `NAME_MAPPER`：`Mapper` 命名 `{业务对象}Mapper`，目录 `infra/persistence/mapper/`
 - `NAME_DO`：`DO` 命名 `{业务对象}DO`，目录 `infra/persistence/dataobject/`
 - `NAME_PERSISTENCE_ASSEMBLER`：`PersistenceAssembler` 命名 `{业务对象}PersistenceAssembler`，目录 `infra/persistence/assembler/`
+- `NAME_INTERFACE_ASSEMBLER`：`InterfaceAssembler` 命名 `{业务对象}InterfaceAssembler`，目录 `interfaces/assembler/`
+- `NAME_APPLICATION_ASSEMBLER`：`Assembler` 命名 `{业务对象}Assembler`，目录 `application/assembler/`
 - `NAME_CODEC`：`Codec` 命名 `{业务对象}Codec`，目录 `application/codec/`
 - `NAME_FACADE`：`Facade` 命名 `{业务对象}{动作}Facade`，目录 `api/facade/`
 - `NAME_FACADE_REQUEST`：`FacadeRequest` 命名 `{业务对象}{动作}FacadeRequest`，目录 `api/request/`

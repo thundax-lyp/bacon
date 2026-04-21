@@ -157,6 +157,24 @@ public abstract class AbstractLayerArchitectureTest {
     }
 
     @Test
+    void shouldEnforceInterfaceAssemblerCallBoundary() {
+        LayerArchitectureRuleSupport.interfacesAssemblersShouldOnlyBeCalledByInterfaces(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    void shouldEnforceApplicationAssemblerCallBoundary() {
+        LayerArchitectureRuleSupport.applicationAssemblersShouldOnlyBeCalledByApplication(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    void shouldEnforcePersistenceAssemblerCallBoundary() {
+        LayerArchitectureRuleSupport.persistenceAssemblersShouldOnlyBeCalledByInfra(basePackage())
+                .check(classes());
+    }
+
+    @Test
     void shouldKeepApplicationAndInfraRepositoryAwayFromIllegalArgumentException() {
         LayerArchitectureRuleSupport.applicationAndInfraRepositoryShouldNotUseIllegalArgumentException(basePackage())
                 .check(classes());

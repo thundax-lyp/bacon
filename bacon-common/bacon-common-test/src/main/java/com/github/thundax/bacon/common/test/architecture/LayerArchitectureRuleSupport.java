@@ -379,6 +379,30 @@ public final class LayerArchitectureRuleSupport {
                                 + "must map DTO/Response in application.assembler");
     }
 
+    public static ArchRule interfacesAssemblersShouldOnlyBeCalledByInterfaces(String basePackage) {
+        return noClassesOutsidePackageShouldCallClassesInPackage(
+                basePackage + ".interfaces..",
+                basePackage + ".interfaces.assembler..",
+                "interfaces.*InterfaceAssembler",
+                "RULE NAME_INTERFACE_ASSEMBLER_CALL_BOUNDARY: interfaces.*InterfaceAssembler 只能被 interfaces 调用");
+    }
+
+    public static ArchRule applicationAssemblersShouldOnlyBeCalledByApplication(String basePackage) {
+        return noClassesOutsidePackageShouldCallClassesInPackage(
+                basePackage + ".application..",
+                basePackage + ".application.assembler..",
+                "application.*Assembler",
+                "RULE NAME_APPLICATION_ASSEMBLER_CALL_BOUNDARY: application.*Assembler 只能被 application 调用");
+    }
+
+    public static ArchRule persistenceAssemblersShouldOnlyBeCalledByInfra(String basePackage) {
+        return noClassesOutsidePackageShouldCallClassesInPackage(
+                basePackage + ".infra..",
+                basePackage + ".infra.persistence.assembler..",
+                "infra.*PersistenceAssembler",
+                "RULE NAME_PERSISTENCE_ASSEMBLER_CALL_BOUNDARY: infra.*PersistenceAssembler 只能被 infra 调用");
+    }
+
     public static ArchRule applicationAndInfraRepositoryShouldNotUseIllegalArgumentException(String basePackage) {
         return ArchRuleDefinition.noClasses()
                 .that()
@@ -484,6 +508,31 @@ public final class LayerArchitectureRuleSupport {
                             if (targetOwner.getPackageName().startsWith(basePackage + ".domain.model.entity.")
                                     && methodName.equals(methodCall.getName())) {
                                 events.add(SimpleConditionEvent.violated(item, methodCall.getDescription()));
+                            }
+                        }
+                    }
+                })
+                .because(because);
+    }
+
+    private static ArchRule noClassesOutsidePackageShouldCallClassesInPackage(
+            String allowedCallerPackage, String calleePackage, String subject, String because) {
+        return ArchRuleDefinition.noClasses()
+                .that()
+                .resideOutsideOfPackage(allowedCallerPackage)
+                .should(new ArchCondition<>("call " + subject) {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        for (JavaMethodCall methodCall : item.getMethodCallsFromSelf()) {
+                            String targetPackage = methodCall.getTargetOwner().getPackageName();
+                            if (targetPackage.startsWith(calleePackage)) {
+                                events.add(SimpleConditionEvent.violated(item, methodCall.getDescription()));
+                            }
+                        }
+                        for (JavaConstructorCall constructorCall : item.getConstructorCallsFromSelf()) {
+                            String targetPackage = constructorCall.getTargetOwner().getPackageName();
+                            if (targetPackage.startsWith(calleePackage)) {
+                                events.add(SimpleConditionEvent.violated(item, constructorCall.getDescription()));
                             }
                         }
                     }

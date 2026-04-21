@@ -1,11 +1,13 @@
 package com.github.thundax.bacon.upms.application.command;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -104,6 +106,27 @@ class DepartmentCommandApplicationServiceTest {
         org.assertj.core.api.Assertions.assertThat(updated.getParentId()).isEqualTo(parentId);
         org.assertj.core.api.Assertions.assertThat(updated.getLeaderUserId()).isEqualTo(leaderUserId);
         org.assertj.core.api.Assertions.assertThat(updated.getSort()).isEqualTo(2);
+    }
+
+    @Test
+    void shouldRejectNullSortWhenUpdatingDepartmentSort() {
+        DepartmentId departmentId = DepartmentId.of(101L);
+        assertThatThrownBy(() -> service.updateSort(new DepartmentSortUpdateCommand(departmentId, null)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("sort must not be null");
+    }
+
+    @Test
+    void shouldDeleteDepartmentWhenNoChildrenOrUsersExist() {
+        DepartmentId departmentId = DepartmentId.of(101L);
+        when(departmentRepository.findById(departmentId))
+                .thenReturn(Optional.of(department(departmentId, "OPS", "Operations", null, null, 1)));
+        when(departmentRepository.existsChild(departmentId)).thenReturn(false);
+        when(departmentRepository.existsUser(departmentId)).thenReturn(false);
+
+        service.delete(departmentId);
+
+        verify(departmentRepository).delete(departmentId);
     }
 
     private static Department department(

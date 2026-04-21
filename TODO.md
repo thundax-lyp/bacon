@@ -126,12 +126,6 @@
   - 验收点：controller/provider 不再直接暴露 `domain entity`、`DO`、`FacadeResponse`、跨域 `DTO`
   - 重要度：9/10
 
-- [ ] 增加 ArchUnit 规则：`interfaces` 依赖收敛为白名单
-  - 现状：当前重点禁止依赖 `infra` 和他域 `application/infra`，但对 `domain.repository`、外域散包、历史遗留协议模型仍缺少白名单约束
-  - 处理动作：限制 `interfaces` 只允许依赖本域 `application`、本域 `domain.model`、本域 `interfaces`、外域 `api.facade` 与 `bacon-common`
-  - 验收点：接口层依赖面可预测，不再顺手引用 repository、mapper、外域内部对象
-  - 重要度：9/10
-
 - [ ] 增加 ArchUnit 规则：`application` 跨域调用只允许依赖外域 `api.facade`
   - 现状：当前已禁止依赖外域 `infra`，但对外域 `api.dto`、其他散包的使用边界还不够明确
   - 处理动作：限制 `application` 对外域依赖只允许落在 `api.facade`；如需跨域模型转换，固定收敛到指定 assembler/adapter 包

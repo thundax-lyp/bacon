@@ -131,6 +131,31 @@ public final class LayerArchitectureRuleSupport {
                 "interfaces 不得直接依赖其他业务域的 infra");
     }
 
+    public static ArchRule interfacesShouldOnlyDependOnWhitelistedPackages(String basePackage) {
+        String sourceDomain = extractDomainSegment(basePackage);
+        return ArchRuleDefinition.noClasses()
+                .that()
+                .resideInAPackage(basePackage + ".interfaces..")
+                .should(new ArchCondition<>("depend on non-whitelisted business packages") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        for (Dependency dependency : item.getDirectDependenciesFromSelf()) {
+                            String targetPackage = dependency.getTargetClass().getPackageName();
+                            if (!targetPackage.startsWith(ROOT_PACKAGE + ".")) {
+                                continue;
+                            }
+                            if (isWhitelistedInterfacesDependency(basePackage, sourceDomain, item, targetPackage)) {
+                                continue;
+                            }
+                            events.add(SimpleConditionEvent.violated(item, dependency.getDescription()));
+                        }
+                    }
+                })
+                .because(
+                        "RULE LAYER_INTERFACES_DEPENDENCY_WHITELIST: interfaces must depend only on "
+                                + "whitelisted packages");
+    }
+
     public static ArchRule controllerAndProviderShouldNotDependOnOtherDomainApplication(String basePackage) {
         return ArchRuleDefinition.noClasses()
                 .that()
@@ -390,6 +415,34 @@ public final class LayerArchitectureRuleSupport {
         }
         return packageName.startsWith(basePackage + ".api.dto.")
                 && (simpleName.endsWith("QueryDTO") || simpleName.endsWith("PageQueryDTO"));
+    }
+
+    private static boolean isWhitelistedInterfacesDependency(
+            String basePackage, String sourceDomain, JavaClass sourceClass, String targetPackage) {
+        if (targetPackage.startsWith("com.github.thundax.bacon.common.")) {
+            return true;
+        }
+        if (targetPackage.startsWith(basePackage + ".interfaces.")) {
+            return true;
+        }
+        if (targetPackage.startsWith(basePackage + ".application.")) {
+            return true;
+        }
+        if (targetPackage.startsWith(basePackage + ".domain.model.")) {
+            return true;
+        }
+        if (targetPackage.startsWith(basePackage + ".api.facade.")) {
+            return true;
+        }
+        if (sourceClass.getPackageName().startsWith(basePackage + ".interfaces.facade.")
+                && targetPackage.startsWith(basePackage + ".api.")) {
+            return true;
+        }
+        String targetDomain = extractDomainSegment(targetPackage);
+        return !sourceDomain.isEmpty()
+                && !targetDomain.isEmpty()
+                && !targetDomain.equals(sourceDomain)
+                && targetPackage.startsWith(ROOT_PACKAGE + "." + targetDomain + ".api.facade.");
     }
 
     private static boolean isOtherDomainBusinessModulePackage(String sourceDomain, String targetPackage) {

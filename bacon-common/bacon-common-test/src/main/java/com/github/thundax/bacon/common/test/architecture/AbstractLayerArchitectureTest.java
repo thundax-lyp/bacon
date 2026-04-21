@@ -44,6 +44,12 @@ public abstract class AbstractLayerArchitectureTest {
     }
 
     @Test
+    void shouldEnforceLayerInterfacesDependencyWhitelist() {
+        LayerArchitectureRuleSupport.interfacesShouldOnlyDependOnWhitelistedPackages(basePackage())
+                .check(classes());
+    }
+
+    @Test
     void shouldEnforceLayerFacadeSignatureModel() {
         NamingAndPlacementRuleSupport.facadeMethodShouldUseFacadeRequestAndResponse(basePackage())
                 .check(classes());

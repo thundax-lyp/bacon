@@ -67,6 +67,7 @@
 - `NAME_REPOSITORY_METHOD_PREFIX`：`Repository` 方法名前缀必须命中白名单：`find / list / page / count / exists / claim / release / renew / mark / pause / resume / recover / delete / insert / update`；未命中白名单的方法一律视为不合规
 - `NAME_REPOSITORY_IMPL_NO_CROSS_IMPL_DEP`：`RepositoryImpl` 不得直接依赖其他 `RepositoryImpl`；跨仓储协作只能依赖 `domain.repository`
 - `NAME_REPOSITORY_IMPL_NO_CROSS_SUPPORT_DEP`：`RepositoryImpl` 只允许直接依赖与自身同聚合的 `PersistenceSupport`，不得直接依赖其他聚合的 `PersistenceSupport`
+- `NAME_REPOSITORY_IMPL_SINGLE_DOMAIN_REPOSITORY`：`RepositoryImpl` 必须且仅实现一个本域 `domain.repository.*Repository`；禁止实现外域 `Repository`，禁止零实现或一类多仓储实现
 - `NAME_MAPPER`：`Mapper` 命名 `{业务对象}Mapper`，目录 `infra/persistence/mapper/`
 - `NAME_DO`：`DO` 命名 `{业务对象}DO`，目录 `infra/persistence/dataobject/`
 - `NAME_PERSISTENCE_ASSEMBLER`：`PersistenceAssembler` 命名 `{业务对象}PersistenceAssembler`，目录 `infra/persistence/assembler/`

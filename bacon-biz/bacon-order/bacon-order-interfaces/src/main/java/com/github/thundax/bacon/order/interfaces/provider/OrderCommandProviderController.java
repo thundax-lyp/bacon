@@ -1,11 +1,11 @@
 package com.github.thundax.bacon.order.interfaces.provider;
 
-import com.github.thundax.bacon.order.api.request.OrderMarkPaidFacadeRequest;
-import com.github.thundax.bacon.order.api.request.OrderMarkPaymentFailedFacadeRequest;
-import com.github.thundax.bacon.order.api.request.OrderCloseExpiredFacadeRequest;
 import com.github.thundax.bacon.order.application.command.OrderPaymentResultApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderTimeoutApplicationService;
 import com.github.thundax.bacon.order.interfaces.assembler.OrderInterfaceAssembler;
+import com.github.thundax.bacon.order.interfaces.request.OrderCloseExpiredRequest;
+import com.github.thundax.bacon.order.interfaces.request.OrderMarkPaidRequest;
+import com.github.thundax.bacon.order.interfaces.request.OrderMarkPaymentFailedRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -33,20 +33,20 @@ public class OrderCommandProviderController {
 
     @Operation(summary = "标记订单支付成功")
     @PostMapping("/mark-paid")
-    public void markPaid(@Valid @RequestBody OrderMarkPaidFacadeRequest request) {
+    public void markPaid(@Valid @RequestBody OrderMarkPaidRequest request) {
         orderPaymentResultApplicationService.markPaid(OrderInterfaceAssembler.toMarkPaidCommand(request));
     }
 
     @Operation(summary = "标记订单支付失败")
     @PostMapping("/mark-payment-failed")
-    public void markPaymentFailed(@Valid @RequestBody OrderMarkPaymentFailedFacadeRequest request) {
+    public void markPaymentFailed(@Valid @RequestBody OrderMarkPaymentFailedRequest request) {
         orderPaymentResultApplicationService.markPaymentFailed(
                 OrderInterfaceAssembler.toMarkPaymentFailedCommand(request));
     }
 
     @Operation(summary = "关闭过期订单")
     @PostMapping("/close-expired")
-    public void closeExpired(@Valid @RequestBody OrderCloseExpiredFacadeRequest request) {
+    public void closeExpired(@Valid @RequestBody OrderCloseExpiredRequest request) {
         orderTimeoutApplicationService.closeExpiredOrder(OrderInterfaceAssembler.toCloseExpiredCommand(request));
     }
 }

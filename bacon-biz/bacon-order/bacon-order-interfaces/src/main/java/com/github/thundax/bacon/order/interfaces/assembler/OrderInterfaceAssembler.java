@@ -30,6 +30,9 @@ import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.interfaces.request.CancelOrderRequest;
 import com.github.thundax.bacon.order.interfaces.request.CreateOrderItemRequest;
 import com.github.thundax.bacon.order.interfaces.request.CreateOrderRequest;
+import com.github.thundax.bacon.order.interfaces.request.OrderCloseExpiredRequest;
+import com.github.thundax.bacon.order.interfaces.request.OrderMarkPaidRequest;
+import com.github.thundax.bacon.order.interfaces.request.OrderMarkPaymentFailedRequest;
 import com.github.thundax.bacon.order.interfaces.request.OrderPageRequest;
 import com.github.thundax.bacon.order.interfaces.response.OrderDetailResponse;
 import com.github.thundax.bacon.order.interfaces.response.OrderItemResponse;
@@ -113,6 +116,18 @@ public final class OrderInterfaceAssembler {
                 request.getPaidTime());
     }
 
+    public static OrderMarkPaidCommand toMarkPaidCommand(OrderMarkPaidRequest request) {
+        if (request == null) {
+            return null;
+        }
+        return new OrderMarkPaidCommand(
+                OrderNoCodec.toDomain(request.orderNo()),
+                PaymentNoCodec.toDomain(request.paymentNo()),
+                request.channelCode(),
+                request.paidAmount(),
+                request.paidTime());
+    }
+
     public static OrderMarkPaymentFailedCommand toMarkPaymentFailedCommand(OrderMarkPaymentFailedFacadeRequest request) {
         if (request == null) {
             return null;
@@ -125,11 +140,30 @@ public final class OrderInterfaceAssembler {
                 request.getFailedTime());
     }
 
+    public static OrderMarkPaymentFailedCommand toMarkPaymentFailedCommand(OrderMarkPaymentFailedRequest request) {
+        if (request == null) {
+            return null;
+        }
+        return new OrderMarkPaymentFailedCommand(
+                OrderNoCodec.toDomain(request.orderNo()),
+                PaymentNoCodec.toDomain(request.paymentNo()),
+                request.reason(),
+                request.channelStatus(),
+                request.failedTime());
+    }
+
     public static OrderCloseExpiredCommand toCloseExpiredCommand(OrderCloseExpiredFacadeRequest request) {
         if (request == null) {
             return null;
         }
         return new OrderCloseExpiredCommand(OrderNoCodec.toDomain(request.getOrderNo()), request.getReason());
+    }
+
+    public static OrderCloseExpiredCommand toCloseExpiredCommand(OrderCloseExpiredRequest request) {
+        if (request == null) {
+            return null;
+        }
+        return new OrderCloseExpiredCommand(OrderNoCodec.toDomain(request.orderNo()), request.reason());
     }
 
     public static OrderDetailFacadeResponse toDetailFacadeResponse(OrderDetailDTO dto) {

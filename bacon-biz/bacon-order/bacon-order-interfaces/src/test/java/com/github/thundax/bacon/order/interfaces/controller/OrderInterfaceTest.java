@@ -145,13 +145,13 @@ class OrderInterfaceTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/order")
+                mockMvc.perform(get("/providers/order")
                         .param("pageNo", "1")
                         .param("pageSize", "20")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.records[0].orderNo").value("ORD-1"))
-                .andExpect(jsonPath("$.records[0].id").doesNotExist())
+                .andExpect(jsonPath("$.records[0].id").value(1L))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
@@ -168,7 +168,7 @@ class OrderInterfaceTest {
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderNo").value("ORD-1"))
-                .andExpect(jsonPath("$.id").doesNotExist());
+                .andExpect(jsonPath("$.id").value(1L));
     }
 
     @Test

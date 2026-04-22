@@ -80,17 +80,17 @@ public class LoginApplicationService {
     }
 
     @Transactional
-    public UserLoginDTO loginBySms(String phone, String smsCaptcha) {
+    public UserLoginDTO loginBySms(SmsLoginCommand command) {
         return createLoginSession(1001L, 2002L, 3002L, "PHONE", "SMS", null);
     }
 
     @Transactional
-    public UserLoginDTO loginByWecom(String code) {
+    public UserLoginDTO loginByWecom(WecomLoginCommand command) {
         return createLoginSession(1001L, 2003L, 3003L, "WECOM", "WECOM", null);
     }
 
     @Transactional
-    public UserLoginDTO loginByGithub(String code) {
+    public UserLoginDTO loginByGithub(GithubLoginCommand command) {
         return createLoginSession(1001L, 2004L, 3004L, "GITHUB", "GITHUB", null);
     }
 

@@ -87,22 +87,19 @@ public class AuthController {
     @Operation(summary = "短信登录")
     @PostMapping("/logins/sms")
     public UserLoginResponse smsLogin(@Valid @RequestBody SmsLoginRequest request) {
-        AuthInterfaceAssembler.SmsLoginInput input = AuthInterfaceAssembler.toSmsLoginInput(request);
-        return UserLoginResponse.from(loginApplicationService.loginBySms(input.phone(), input.smsCaptcha()));
+        return UserLoginResponse.from(loginApplicationService.loginBySms(AuthInterfaceAssembler.toSmsLoginCommand(request)));
     }
 
     @Operation(summary = "企微登录")
     @PostMapping("/logins/wecom")
     public UserLoginResponse wecomLogin(@Valid @RequestBody WecomLoginRequest request) {
-        AuthInterfaceAssembler.WecomLoginInput input = AuthInterfaceAssembler.toWecomLoginInput(request);
-        return UserLoginResponse.from(loginApplicationService.loginByWecom(input.code()));
+        return UserLoginResponse.from(loginApplicationService.loginByWecom(AuthInterfaceAssembler.toWecomLoginCommand(request)));
     }
 
     @Operation(summary = "GitHub 登录回调")
     @GetMapping("/logins/github-callback")
     public UserLoginResponse githubLogin(@RequestParam("code") @NotBlank(message = "code must not be blank") String code) {
-        AuthInterfaceAssembler.GithubLoginInput input = AuthInterfaceAssembler.toGithubLoginInput(code);
-        return UserLoginResponse.from(loginApplicationService.loginByGithub(input.code()));
+        return UserLoginResponse.from(loginApplicationService.loginByGithub(AuthInterfaceAssembler.toGithubLoginCommand(code)));
     }
 
     @Operation(summary = "刷新访问令牌")

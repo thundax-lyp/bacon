@@ -6,11 +6,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.github.thundax.bacon.auth.application.command.GithubLoginCommand;
 import com.github.thundax.bacon.auth.application.command.LoginApplicationService;
 import com.github.thundax.bacon.auth.application.command.PasswordCommandApplicationService;
 import com.github.thundax.bacon.auth.application.command.PasswordLoginCommand;
+import com.github.thundax.bacon.auth.application.command.SmsLoginCommand;
 import com.github.thundax.bacon.auth.application.command.SessionCommandApplicationService;
 import com.github.thundax.bacon.auth.application.command.TokenCommandApplicationService;
+import com.github.thundax.bacon.auth.application.command.WecomLoginCommand;
 import com.github.thundax.bacon.auth.application.dto.UserLoginDTO;
 import com.github.thundax.bacon.auth.application.query.SessionQueryApplicationService;
 import com.github.thundax.bacon.auth.interfaces.request.PasswordLoginRequest;
@@ -50,9 +53,9 @@ class AuthControllerTest {
     }
 
     @Test
-    void shouldDelegateSmsLoginWithAssembledInput() {
+    void shouldDelegateSmsLoginWithAssembledCommand() {
         LoginApplicationService loginApplicationService = mock(LoginApplicationService.class);
-        when(loginApplicationService.loginBySms("13800000000", "123456")).thenReturn(loginResult());
+        when(loginApplicationService.loginBySms(any())).thenReturn(loginResult());
 
         AuthController controller = new AuthController(
                 loginApplicationService,
@@ -63,14 +66,18 @@ class AuthControllerTest {
 
         UserLoginResponse response = controller.smsLogin(new SmsLoginRequest("13800000000", "123456"));
 
-        verify(loginApplicationService).loginBySms("13800000000", "123456");
+        ArgumentCaptor<SmsLoginCommand> commandCaptor = ArgumentCaptor.forClass(SmsLoginCommand.class);
+        verify(loginApplicationService).loginBySms(commandCaptor.capture());
+        SmsLoginCommand command = commandCaptor.getValue();
+        assertEquals("13800000000", command.getPhone());
+        assertEquals("123456", command.getSmsCaptcha());
         assertEquals("access-token", response.accessToken());
     }
 
     @Test
-    void shouldDelegateWecomLoginWithAssembledInput() {
+    void shouldDelegateWecomLoginWithAssembledCommand() {
         LoginApplicationService loginApplicationService = mock(LoginApplicationService.class);
-        when(loginApplicationService.loginByWecom("wecom-code")).thenReturn(loginResult());
+        when(loginApplicationService.loginByWecom(any())).thenReturn(loginResult());
 
         AuthController controller = new AuthController(
                 loginApplicationService,
@@ -81,14 +88,17 @@ class AuthControllerTest {
 
         UserLoginResponse response = controller.wecomLogin(new WecomLoginRequest("wecom-code"));
 
-        verify(loginApplicationService).loginByWecom("wecom-code");
+        ArgumentCaptor<WecomLoginCommand> commandCaptor = ArgumentCaptor.forClass(WecomLoginCommand.class);
+        verify(loginApplicationService).loginByWecom(commandCaptor.capture());
+        WecomLoginCommand command = commandCaptor.getValue();
+        assertEquals("wecom-code", command.getCode());
         assertEquals("access-token", response.accessToken());
     }
 
     @Test
-    void shouldDelegateGithubLoginWithAssembledInput() {
+    void shouldDelegateGithubLoginWithAssembledCommand() {
         LoginApplicationService loginApplicationService = mock(LoginApplicationService.class);
-        when(loginApplicationService.loginByGithub("github-code")).thenReturn(loginResult());
+        when(loginApplicationService.loginByGithub(any())).thenReturn(loginResult());
 
         AuthController controller = new AuthController(
                 loginApplicationService,
@@ -99,7 +109,10 @@ class AuthControllerTest {
 
         UserLoginResponse response = controller.githubLogin("github-code");
 
-        verify(loginApplicationService).loginByGithub("github-code");
+        ArgumentCaptor<GithubLoginCommand> commandCaptor = ArgumentCaptor.forClass(GithubLoginCommand.class);
+        verify(loginApplicationService).loginByGithub(commandCaptor.capture());
+        GithubLoginCommand command = commandCaptor.getValue();
+        assertEquals("github-code", command.getCode());
         assertEquals("access-token", response.accessToken());
     }
 

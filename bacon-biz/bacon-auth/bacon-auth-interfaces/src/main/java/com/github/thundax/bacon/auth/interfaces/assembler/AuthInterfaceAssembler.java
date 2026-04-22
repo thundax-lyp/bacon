@@ -1,6 +1,9 @@
 package com.github.thundax.bacon.auth.interfaces.assembler;
 
+import com.github.thundax.bacon.auth.application.command.GithubLoginCommand;
 import com.github.thundax.bacon.auth.application.command.PasswordLoginCommand;
+import com.github.thundax.bacon.auth.application.command.SmsLoginCommand;
+import com.github.thundax.bacon.auth.application.command.WecomLoginCommand;
 import com.github.thundax.bacon.auth.interfaces.request.PasswordLoginRequest;
 import com.github.thundax.bacon.auth.interfaces.request.SmsLoginRequest;
 import com.github.thundax.bacon.auth.interfaces.request.WecomLoginRequest;
@@ -19,21 +22,15 @@ public final class AuthInterfaceAssembler {
                 request.getCaptchaCode());
     }
 
-    public static SmsLoginInput toSmsLoginInput(SmsLoginRequest request) {
-        return new SmsLoginInput(request.getPhone(), request.getSmsCaptcha());
+    public static SmsLoginCommand toSmsLoginCommand(SmsLoginRequest request) {
+        return new SmsLoginCommand(request.getPhone(), request.getSmsCaptcha());
     }
 
-    public static WecomLoginInput toWecomLoginInput(WecomLoginRequest request) {
-        return new WecomLoginInput(request.getCode());
+    public static WecomLoginCommand toWecomLoginCommand(WecomLoginRequest request) {
+        return new WecomLoginCommand(request.getCode());
     }
 
-    public static GithubLoginInput toGithubLoginInput(String code) {
-        return new GithubLoginInput(code);
+    public static GithubLoginCommand toGithubLoginCommand(String code) {
+        return new GithubLoginCommand(code);
     }
-
-    public record SmsLoginInput(String phone, String smsCaptcha) {}
-
-    public record WecomLoginInput(String code) {}
-
-    public record GithubLoginInput(String code) {}
 }

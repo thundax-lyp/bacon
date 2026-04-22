@@ -47,7 +47,7 @@ public class UserProfileController {
     @PostMapping
     public UserResponse createUser(@Valid @RequestBody UserCreateRequest request) {
         return UserInterfaceAssembler.toResponse(
-                userProfileApplicationService.createUser(UserInterfaceAssembler.toCreateCommand(request)));
+                userProfileApplicationService.create(UserInterfaceAssembler.toCreateCommand(request)));
     }
 
     @Operation(summary = "修改用户基本信息")
@@ -58,7 +58,7 @@ public class UserProfileController {
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
             @Valid @RequestBody UserUpdateRequest request) {
         return UserInterfaceAssembler.toResponse(
-                userProfileApplicationService.updateUser(UserInterfaceAssembler.toUpdateCommand(userId, request)));
+                userProfileApplicationService.update(UserInterfaceAssembler.toUpdateCommand(userId, request)));
     }
 
     @Operation(summary = "启用或停用用户")
@@ -69,7 +69,7 @@ public class UserProfileController {
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId,
             @Valid @RequestBody UserStatusUpdateRequest request) {
         return UserInterfaceAssembler.toResponse(
-                userProfileApplicationService.updateUserStatus(
+                userProfileApplicationService.updateStatus(
                         UserInterfaceAssembler.toStatusUpdateCommand(userId, request)));
     }
 

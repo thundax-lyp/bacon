@@ -145,7 +145,7 @@ class UserProfileApplicationServiceTest {
                 .thenReturn(Optional.of(passwordCredential), Optional.of(passwordCredential));
         when(userCredentialRepository.update(passwordCredential)).thenAnswer(invocation -> invocation.getArgument(0));
 
-        service.updateUser(new UserUpdateCommand(
+        service.update(new UserUpdateCommand(
                 UserId.of(101L), "alice-new", "Alice Zhang", "13900000001", DEPARTMENT_ID));
 
         verify(userRepository).update(currentUser);

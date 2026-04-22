@@ -23,12 +23,6 @@
 
 ### P0 - 五域风格/手法/功能对齐（inventory/payment/order/storage/upms）
 
-- [ ] `bacon-upms-application/src/main/java/com/github/thundax/bacon/upms/application/command/UserProfileApplicationService.java`：收口 user profile 命名冗余
-  - 范围对象：`createUser`、`updateUser`、`updateUserStatus`
-  - 处理动作：按 bounded context 内部命名约定分别收口为 `create`、`update`、`updateStatus`，并同步修正 controller / facade / tests 调用点
-  - 验收点：用户资料 command service 不再重复 `User` 上下文词
-  - 重要度：8/10
-
 - [ ] `bacon-upms-application/src/main/java/com/github/thundax/bacon/upms/application/query/UserQueryApplicationService.java`：收口 user query 命名冗余
   - 范围对象：`getUserById`、`getTenantByTenantId`
   - 处理动作：按 query service 命名约定分别收口为 `getById`、`getTenantById` 或等价上下文内简名，并同步修正 controller / facade / tests 调用点

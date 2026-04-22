@@ -101,7 +101,7 @@ public class UserProfileApplicationService {
     }
 
     @Transactional
-    public UserDTO createUser(UserCreateCommand command) {
+    public UserDTO create(UserCreateCommand command) {
         validateRequired(command.account(), "account");
         validateRequired(command.name(), "name");
         ensureAccountUnique(command.account(), null);
@@ -115,7 +115,7 @@ public class UserProfileApplicationService {
     }
 
     @Transactional
-    public UserDTO updateUser(UserUpdateCommand command) {
+    public UserDTO update(UserUpdateCommand command) {
         User currentUser = requireUser(command.userId());
         validateRequired(command.account(), "account");
         validateRequired(command.name(), "name");
@@ -136,7 +136,7 @@ public class UserProfileApplicationService {
     }
 
     @Transactional
-    public UserDTO updateUserStatus(UserStatusUpdateCommand command) {
+    public UserDTO updateStatus(UserStatusUpdateCommand command) {
         User currentUser = requireUser(command.userId());
         if (command.status() == null) {
             throw new BadRequestException("status must not be null");
@@ -188,7 +188,7 @@ public class UserProfileApplicationService {
             return List.of();
         }
         return commands.stream()
-                .map(command -> createUser(new UserCreateCommand(
+                .map(command -> create(new UserCreateCommand(
                         command.account(),
                         command.name(),
                         command.phone(),

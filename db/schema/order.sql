@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS `bacon_order_item` (
     `order_id` bigint NOT NULL,
     `sku_id` bigint NOT NULL,
     `sku_name` varchar(128) NOT NULL,
+    `image_url` varchar(512) DEFAULT NULL,
     `quantity` int NOT NULL,
     `sale_price` decimal(18,2) NOT NULL,
     `line_amount` decimal(18,2) NOT NULL,
@@ -44,6 +45,7 @@ CREATE TABLE IF NOT EXISTS `bacon_order_payment_snapshot` (
     `payment_no` varchar(64) NOT NULL,
     `channel_code` varchar(32) NOT NULL,
     `pay_status` varchar(16) NOT NULL,
+    `currency_code` varchar(16) NOT NULL,
     `paid_amount` decimal(18,2) DEFAULT NULL,
     `paid_time` datetime(3) DEFAULT NULL,
     `failure_reason` varchar(255) DEFAULT NULL,
@@ -57,14 +59,14 @@ CREATE TABLE IF NOT EXISTS `bacon_order_payment_snapshot` (
 CREATE TABLE IF NOT EXISTS `bacon_order_inventory_snapshot` (
     `id` bigint NOT NULL AUTO_INCREMENT,
     `tenant_id` bigint NOT NULL,
-    `order_id` bigint NOT NULL,
+    `order_no` varchar(64) NOT NULL,
     `reservation_no` varchar(64) NOT NULL,
     `inventory_status` varchar(16) NOT NULL,
-    `warehouse_id` bigint DEFAULT NULL,
+    `warehouse_code` varchar(64) DEFAULT NULL,
     `failure_reason` varchar(255) DEFAULT NULL,
     `updated_at` datetime(3) NOT NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_order_id` (`order_id`),
+    UNIQUE KEY `uk_tenant_order_no` (`tenant_id`, `order_no`),
     UNIQUE KEY `uk_reservation_no` (`reservation_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -76,7 +78,7 @@ CREATE TABLE IF NOT EXISTS `bacon_order_audit_log` (
     `before_status` varchar(32) DEFAULT NULL,
     `after_status` varchar(32) DEFAULT NULL,
     `operator_type` varchar(32) DEFAULT NULL,
-    `operator_id` bigint DEFAULT NULL,
+    `operator_id` varchar(64) DEFAULT NULL,
     `occurred_at` datetime(3) NOT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_tenant_occurred` (`tenant_id`, `occurred_at`),
@@ -133,10 +135,8 @@ CREATE TABLE IF NOT EXISTS `bacon_order_dead_letter` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_order_idempotency_record` (
-    `id` bigint NOT NULL AUTO_INCREMENT,
     `tenant_id` bigint NOT NULL,
     `order_no` varchar(64) NOT NULL,
-    `payment_no` varchar(64) NOT NULL DEFAULT '',
     `event_type` varchar(64) NOT NULL,
     `status` varchar(16) NOT NULL,
     `attempt_count` int NOT NULL DEFAULT 1,
@@ -146,8 +146,7 @@ CREATE TABLE IF NOT EXISTS `bacon_order_idempotency_record` (
     `claimed_at` datetime(3) DEFAULT NULL,
     `created_at` datetime(3) NOT NULL,
     `updated_at` datetime(3) NOT NULL,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_tenant_order_payment_event` (`tenant_id`, `order_no`, `payment_no`, `event_type`),
+    PRIMARY KEY (`tenant_id`, `order_no`, `event_type`),
     KEY `idx_status_updated` (`status`, `updated_at`),
     KEY `idx_status_lease` (`status`, `lease_until`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

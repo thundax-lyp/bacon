@@ -8,7 +8,7 @@ INSERT INTO `bacon_auth_oauth_client` (
     `grant_types`, `scopes`, `redirect_uris`,
     `access_token_ttl_seconds`, `refresh_token_ttl_seconds`,
     `enabled`, `contact`, `remark`,
-    `created_by`, `created_at`, `updated_by`, `updated_at`
+    `created_at`, `updated_at`
 ) VALUES
 (
     3000001, 'bacon-admin-web', '$2y$10$m.vDS3byljJ66FDH4l5EcOti3RW3YulgO53WkNmHnS9x/YXfvh.Pi', 'Bacon Admin Web', 'CONFIDENTIAL',
@@ -17,7 +17,7 @@ INSERT INTO `bacon_auth_oauth_client` (
     JSON_ARRAY('http://127.0.0.1:5173/login/oauth2/code/bacon'),
     7200, 2592000,
     1, 'platform-admin@bacon.local', 'Seeded admin console OAuth2 client',
-    '2000001', '2026-03-21 09:00:00.000', '2000001', '2026-03-21 09:00:00.000'
+    '2026-03-21 09:00:00.000', '2026-03-21 09:00:00.000'
 ),
 (
     3000002, 'demo-client', '$2y$10$NBPVngvyuzW/sX/.q8Q.KeQzz3ygG4edUCujU4w4U46YIxvLdu8YK', 'Demo OAuth Client', 'CONFIDENTIAL',
@@ -26,7 +26,7 @@ INSERT INTO `bacon_auth_oauth_client` (
     JSON_ARRAY('http://127.0.0.1:3000/callback', 'http://127.0.0.1:8080/api/swagger-ui/oauth2-redirect.html'),
     1800, 2592000,
     1, 'dev@bacon.local', 'Seeded test-aligned OAuth2 client',
-    '2000001', '2026-03-21 09:00:30.000', '2000001', '2026-03-21 09:00:30.000'
+    '2026-03-21 09:00:30.000', '2026-03-21 09:00:30.000'
 )
 ON DUPLICATE KEY UPDATE
     `client_secret_hash` = VALUES(`client_secret_hash`),
@@ -40,7 +40,6 @@ ON DUPLICATE KEY UPDATE
     `enabled` = VALUES(`enabled`),
     `contact` = VALUES(`contact`),
     `remark` = VALUES(`remark`),
-    `updated_by` = VALUES(`updated_by`),
     `updated_at` = VALUES(`updated_at`);
 
 INSERT INTO `bacon_auth_session` (
@@ -48,7 +47,7 @@ INSERT INTO `bacon_auth_session` (
     `identity_type`, `login_type`, `session_status`,
     `issued_at`, `last_access_time`, `expire_at`, `logout_at`, `invalidate_reason`
 ) VALUES (
-    3000051, '8f5b16cf-94d2-4e8a-9d8d-bf41f9f10051', 'T1000001', '2000001', 'I2100001',
+    3000051, '8f5b16cf-94d2-4e8a-9d8d-bf41f9f10051', '1000001', '2000001', '2100001',
     'ACCOUNT', 'PASSWORD', 'ACTIVE',
     '2026-03-21 09:05:00.000', '2026-03-21 09:15:00.000', '2026-03-21 09:35:00.000', NULL, NULL
 ) ON DUPLICATE KEY UPDATE
@@ -80,7 +79,7 @@ INSERT INTO `bacon_auth_refresh_token_session` (
 INSERT INTO `bacon_auth_oauth_consent` (
     `id`, `client_id`, `tenant_id`, `user_id`, `granted_scopes`, `granted_at`
 ) VALUES (
-    3000101, 'bacon-admin-web', 'T1000001', '2000001',
+    3000101, 'bacon-admin-web', '1000001', '2000001',
     JSON_ARRAY('openid', 'profile', 'tenant.read', 'user.read'),
     '2026-03-21 09:10:00.000'
 ) ON DUPLICATE KEY UPDATE
@@ -92,7 +91,7 @@ INSERT INTO `bacon_auth_oauth_authorization_code` (
     `redirect_uri`, `scopes`, `code_challenge`, `code_challenge_method`,
     `issued_at`, `expire_at`, `used`
 ) VALUES (
-    3000151, '4b9df6d6d82e4e6e8b4f5d3b9cb40151', 'bacon-admin-web', 'T1000001', '2000001',
+    3000151, '4b9df6d6d82e4e6e8b4f5d3b9cb40151', 'bacon-admin-web', '1000001', '2000001',
     'http://127.0.0.1:5173/login/oauth2/code/bacon',
     JSON_ARRAY('openid', 'profile', 'tenant.read', 'user.read'),
     'pkce-challenge-sample-3000151', 'S256',
@@ -113,7 +112,7 @@ INSERT INTO `bacon_auth_oauth_access_token` (
     `id`, `token_id`, `token_hash`, `client_id`, `tenant_id`, `user_id`,
     `scopes`, `issued_at`, `expire_at`, `token_status`
 ) VALUES (
-    3000152, 'q7Y0Y8nY7-6w2s-McK2n2N4XG0nA1N3cQ5hV5k3f8M', 'q7Y0Y8nY7-6w2s-McK2n2N4XG0nA1N3cQ5hV5k3f8M', 'bacon-admin-web', 'T1000001', '2000001',
+    3000152, 'q7Y0Y8nY7-6w2s-McK2n2N4XG0nA1N3cQ5hV5k3f8M', 'q7Y0Y8nY7-6w2s-McK2n2N4XG0nA1N3cQ5hV5k3f8M', 'bacon-admin-web', '1000001', '2000001',
     JSON_ARRAY('openid', 'profile', 'tenant.read', 'user.read'),
     '2026-03-21 09:11:10.000', '2026-03-21 09:41:10.000', 'ACTIVE'
 ) ON DUPLICATE KEY UPDATE
@@ -130,7 +129,7 @@ INSERT INTO `bacon_auth_oauth_refresh_token` (
     `id`, `token_id`, `token_hash`, `access_token_id`, `client_id`, `tenant_id`, `user_id`,
     `issued_at`, `expire_at`, `token_status`
 ) VALUES (
-    3000153, 'J2nA6vD4uM9pQ1kZ8rB5cT3wX7yN0fL2hS4gP6mR1q', 'J2nA6vD4uM9pQ1kZ8rB5cT3wX7yN0fL2hS4gP6mR1q', 'q7Y0Y8nY7-6w2s-McK2n2N4XG0nA1N3cQ5hV5k3f8M', 'bacon-admin-web', 'T1000001', '2000001',
+    3000153, 'J2nA6vD4uM9pQ1kZ8rB5cT3wX7yN0fL2hS4gP6mR1q', 'J2nA6vD4uM9pQ1kZ8rB5cT3wX7yN0fL2hS4gP6mR1q', 'q7Y0Y8nY7-6w2s-McK2n2N4XG0nA1N3cQ5hV5k3f8M', 'bacon-admin-web', '1000001', '2000001',
     '2026-03-21 09:11:10.000', '2026-04-20 09:11:10.000', 'ACTIVE'
 ) ON DUPLICATE KEY UPDATE
     `token_hash` = VALUES(`token_hash`),
@@ -147,7 +146,7 @@ INSERT INTO `bacon_auth_audit_log` (
     `session_id`, `client_id`, `action_type`, `result_status`,
     `failure_reason`, `request_ip`, `user_agent`, `occurred_at`
 ) VALUES (
-    3000201, 'T1000001', '2000001', 'I2100001', 'ACCOUNT',
+    3000201, '1000001', '2000001', '2100001', 'ACCOUNT',
     NULL, 'bacon-admin-web', 'SEED_INIT', 'SUCCESS',
     NULL, '127.0.0.1', 'db-seed', '2026-03-21 09:15:00.000'
 ) ON DUPLICATE KEY UPDATE

@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS `bacon_upms_tenant` (
-    `tenant_id` varchar(64) NOT NULL,
+    `tenant_id` bigint NOT NULL,
     `code` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
     `status` varchar(16) NOT NULL,
@@ -9,11 +9,11 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_tenant` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
-    `id` varchar(64) NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
+    `id` bigint NOT NULL,
+    `tenant_id` bigint NOT NULL,
     `name` varchar(128) NOT NULL,
     `avatar_object_id` varchar(64) DEFAULT NULL,
-    `department_id` varchar(64) DEFAULT NULL,
+    `department_id` bigint DEFAULT NULL,
     `status` varchar(16) NOT NULL,
     `deleted` tinyint(1) NOT NULL,
     PRIMARY KEY (`id`),
@@ -22,9 +22,9 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_user_identity` (
-    `id` varchar(64) NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
-    `user_id` varchar(64) NOT NULL,
+    `id` bigint NOT NULL,
+    `tenant_id` bigint NOT NULL,
+    `user_id` bigint NOT NULL,
     `identity_type` varchar(16) NOT NULL,
     `identity_value` varchar(255) NOT NULL,
     `status` varchar(16) NOT NULL,
@@ -34,10 +34,10 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_identity` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_user_credential` (
-    `id` varchar(64) NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
-    `user_id` varchar(64) NOT NULL,
-    `identity_id` varchar(64) DEFAULT NULL,
+    `id` bigint NOT NULL,
+    `tenant_id` bigint NOT NULL,
+    `user_id` bigint NOT NULL,
+    `identity_id` bigint DEFAULT NULL,
     `credential_type` varchar(32) NOT NULL,
     `factor_level` varchar(16) NOT NULL,
     `credential_value` varchar(1024) NOT NULL,
@@ -56,92 +56,79 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_credential` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_department` (
-    `id` varchar(64) NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
+    `id` bigint NOT NULL,
+    `tenant_id` bigint NOT NULL,
     `code` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
-    `parent_id` varchar(64) DEFAULT NULL,
-    `leader_user_id` varchar(64) DEFAULT NULL,
+    `parent_id` bigint DEFAULT NULL,
+    `leader_user_id` bigint DEFAULT NULL,
+    `sort` int NOT NULL,
     `status` varchar(16) NOT NULL,
-    `deleted` tinyint(1) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_tenant_code` (`tenant_id`, `code`),
     KEY `idx_tenant_parent_status` (`tenant_id`, `parent_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_post` (
-    `id` varchar(64) NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
+    `id` bigint NOT NULL,
+    `tenant_id` bigint NOT NULL,
     `code` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
-    `department_id` varchar(64) DEFAULT NULL,
-    `sort` int NOT NULL,
+    `department_id` bigint DEFAULT NULL,
     `status` varchar(16) NOT NULL,
-    `deleted` tinyint(1) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_role` (
-    `id` varchar(64) NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
+    `id` bigint NOT NULL,
+    `tenant_id` bigint NOT NULL,
     `code` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
     `role_type` varchar(32) NOT NULL,
     `data_scope_type` varchar(32) NOT NULL,
     `status` varchar(16) NOT NULL,
-    `built_in` tinyint(1) NOT NULL,
-    `deleted` tinyint(1) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_code` (`code`),
     KEY `idx_tenant_role_type_status` (`tenant_id`, `role_type`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_menu` (
-    `id` varchar(64) NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
+    `id` bigint NOT NULL,
+    `tenant_id` bigint NOT NULL,
     `menu_type` varchar(16) NOT NULL,
     `name` varchar(128) NOT NULL,
-    `parent_id` varchar(64) DEFAULT NULL,
+    `parent_id` bigint DEFAULT NULL,
     `route_path` varchar(255) DEFAULT NULL,
     `component_name` varchar(255) DEFAULT NULL,
     `icon` varchar(128) DEFAULT NULL,
     `sort` int NOT NULL,
-    `visible` tinyint(1) NOT NULL,
-    `status` varchar(16) NOT NULL,
     `permission_code` varchar(128) NOT NULL,
-    `built_in` tinyint(1) NOT NULL,
-    `deleted` tinyint(1) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_permission_code` (`permission_code`),
-    KEY `idx_tenant_parent_status_visible` (`tenant_id`, `parent_id`, `status`, `visible`)
+    KEY `idx_tenant_parent_sort` (`tenant_id`, `parent_id`, `sort`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_resource` (
-    `id` varchar(64) NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
+    `id` bigint NOT NULL,
+    `tenant_id` bigint NOT NULL,
     `code` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
     `resource_type` varchar(16) NOT NULL,
-    `module` varchar(64) NOT NULL,
     `path` varchar(255) NOT NULL,
     `method` varchar(16) NOT NULL,
     `status` varchar(16) NOT NULL,
-    `permission_code` varchar(128) NOT NULL,
-    `built_in` tinyint(1) NOT NULL,
-    `deleted` tinyint(1) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_code` (`code`),
     UNIQUE KEY `uk_path_method` (`path`, `method`),
-    UNIQUE KEY `uk_permission_code` (`permission_code`),
     KEY `idx_tenant_resource_type_status` (`tenant_id`, `resource_type`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_user_role_rel` (
     `id` bigint NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
-    `user_id` varchar(64) NOT NULL,
-    `role_id` varchar(64) NOT NULL,
+    `tenant_id` bigint NOT NULL,
+    `user_id` bigint NOT NULL,
+    `role_id` bigint NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_role` (`tenant_id`, `user_id`, `role_id`),
     KEY `idx_tenant_user` (`tenant_id`, `user_id`),
@@ -150,9 +137,9 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_role_rel` (
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_user_post_rel` (
     `id` bigint NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
-    `user_id` varchar(64) NOT NULL,
-    `post_id` varchar(64) NOT NULL,
+    `tenant_id` bigint NOT NULL,
+    `user_id` bigint NOT NULL,
+    `post_id` bigint NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_post` (`tenant_id`, `user_id`, `post_id`),
     KEY `idx_tenant_user` (`tenant_id`, `user_id`),
@@ -161,9 +148,9 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_post_rel` (
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_role_menu_rel` (
     `id` bigint NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
-    `role_id` varchar(64) NOT NULL,
-    `menu_id` varchar(64) NOT NULL,
+    `tenant_id` bigint NOT NULL,
+    `role_id` bigint NOT NULL,
+    `menu_id` bigint NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role_menu` (`tenant_id`, `role_id`, `menu_id`),
     KEY `idx_tenant_role` (`tenant_id`, `role_id`),
@@ -172,9 +159,9 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_role_menu_rel` (
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_role_resource_rel` (
     `id` bigint NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
-    `role_id` varchar(64) NOT NULL,
-    `resource_id` varchar(64) NOT NULL,
+    `tenant_id` bigint NOT NULL,
+    `role_id` bigint NOT NULL,
+    `resource_id` bigint NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role_resource` (`tenant_id`, `role_id`, `resource_id`),
     KEY `idx_tenant_role` (`tenant_id`, `role_id`),
@@ -183,8 +170,8 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_role_resource_rel` (
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_data_permission_rule` (
     `id` bigint NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
-    `role_id` varchar(64) NOT NULL,
+    `tenant_id` bigint NOT NULL,
+    `role_id` bigint NOT NULL,
     `data_scope_type` varchar(32) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role` (`tenant_id`, `role_id`),
@@ -193,9 +180,9 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_data_permission_rule` (
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_role_data_scope_rel` (
     `id` bigint NOT NULL,
-    `tenant_id` varchar(64) NOT NULL,
-    `role_id` varchar(64) NOT NULL,
-    `department_id` varchar(64) NOT NULL,
+    `tenant_id` bigint NOT NULL,
+    `role_id` bigint NOT NULL,
+    `department_id` bigint NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role_department` (`tenant_id`, `role_id`, `department_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -220,7 +207,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_audit_log` (
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_sys_log` (
     `id` bigint NOT NULL,
-    `tenant_id` varchar(64) DEFAULT NULL,
+    `tenant_id` bigint DEFAULT NULL,
     `trace_id` varchar(64) NOT NULL,
     `request_id` varchar(64) NOT NULL,
     `module` varchar(64) NOT NULL,

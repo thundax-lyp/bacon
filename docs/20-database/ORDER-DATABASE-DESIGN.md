@@ -105,10 +105,10 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `varchar(64)` | N | 雪花主键，由应用侧发号写入 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键，全局唯一 |
-| `user_id` | `varchar(64)` | N | 下单用户标识 |
+| `user_id` | `bigint` | N | 下单用户标识 |
 | `order_status` | `varchar(32)` | N | 订单状态，取值见 `order_status` |
 | `pay_status` | `varchar(16)` | N | 支付状态，取值见 `pay_status` |
 | `inventory_status` | `varchar(16)` | N | 库存状态，取值见 `inventory_status` |
@@ -146,7 +146,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
 | `sku_id` | `bigint` | N | SKU 主键 |
 | `sku_name` | `varchar(128)` | N | SKU 名称快照 |
@@ -174,8 +174,8 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `order_id` | `varchar(64)` | N | 订单主键，关联 `bacon_order_order.id` |
+| `tenant_id` | `bigint` | N | 租户业务键 |
+| `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
 | `payment_no` | `varchar(64)` | N | 支付单号，全局唯一 |
 | `channel_code` | `varchar(32)` | N | 渠道编码 |
 | `pay_status` | `varchar(16)` | N | 支付状态，取值见 `pay_status` |
@@ -234,7 +234,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键 |
 | `action_type` | `varchar(64)` | N | 操作类型，取值见 `action_type` |
 | `before_status` | `varchar(32)` | Y | 变更前订单状态，取值见 `order_status` |
@@ -264,7 +264,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
 | `event_code` | `varchar(64)` | N | 事件业务标识 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键 |
 | `event_type` | `varchar(64)` | N | 事件类型 |
 | `business_key` | `varchar(128)` | N | 幂等业务键 |
@@ -304,7 +304,7 @@
 | `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
 | `outbox_id` | `bigint` | N | outbox 主键 |
 | `event_code` | `varchar(64)` | N | 事件业务标识 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键 |
 | `event_type` | `varchar(64)` | N | 事件类型 |
 | `business_key` | `varchar(128)` | N | 幂等业务键 |

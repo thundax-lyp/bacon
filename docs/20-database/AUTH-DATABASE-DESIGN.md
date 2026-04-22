@@ -185,14 +185,12 @@
 | `grant_types` | `json` | N | 授权方式集合，保存字符串数组 |
 | `scopes` | `json` | N | 客户端允许申请的范围集合，保存字符串数组 |
 | `redirect_uris` | `json` | N | 回调地址集合，保存字符串数组 |
-| `access_token_ttl_seconds` | `int` | N | 访问令牌 TTL，单位秒 |
-| `refresh_token_ttl_seconds` | `int` | N | 刷新令牌 TTL，单位秒 |
+| `access_token_ttl_seconds` | `bigint` | N | 访问令牌 TTL，单位秒 |
+| `refresh_token_ttl_seconds` | `bigint` | N | 刷新令牌 TTL，单位秒 |
 | `enabled` | `tinyint(1)` | N | 是否启用 |
 | `contact` | `varchar(128)` | Y | 联系人 |
 | `remark` | `varchar(255)` | Y | 备注 |
-| `created_by` | `varchar(64)` | Y | 创建人用户主键，承载 `UserId` 文本值 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `varchar(64)` | Y | 更新人用户主键，承载 `UserId` 文本值 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：

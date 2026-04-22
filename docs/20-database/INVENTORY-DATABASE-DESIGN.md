@@ -215,7 +215,6 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `event_code` | `varchar(64)` | N | 事件业务标识 |
 | `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | Y | 订单号 |
 | `reservation_no` | `varchar(64)` | Y | 预占单号 |
@@ -245,6 +244,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
+| `event_code` | `varchar(64)` | N | 事件业务标识 |
 | `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | Y | 订单号 |
 | `reservation_no` | `varchar(64)` | Y | 预占单号 |

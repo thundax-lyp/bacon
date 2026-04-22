@@ -1,51 +1,49 @@
 -- Default administrator account:
---   tenant_id: T1000001
+--   tenant_id: 1000001
 --   account: admin
 --   password: Admin@123456
 
 INSERT INTO `bacon_upms_tenant` (
     `tenant_id`, `code`, `name`, `status`
 ) VALUES (
-    'T1000001', 'BACON', 'Bacon 默认租户', 'ACTIVE'
+    1000001, 'BACON', 'Bacon 默认租户', 'ACTIVE'
 ) ON DUPLICATE KEY UPDATE
     `name` = VALUES(`name`),
     `status` = VALUES(`status`);
 
 INSERT INTO `bacon_upms_department` (
     `id`, `tenant_id`, `code`, `name`, `parent_id`, `leader_user_id`,
-    `status`, `deleted`
+    `sort`, `status`
 ) VALUES
     (
-        'D1100001', 'T1000001', 'BACON_ROOT', 'Bacon 总部', NULL, '2000001',
-        'ENABLED', 0
+        1100001, 1000001, 'BACON_ROOT', 'Bacon 总部', NULL, 2000001,
+        1, 'ENABLED'
     ),
     (
-        'D1100002', 'T1000001', 'BACON_IT', '平台研发部', 'D1100001', '2000001',
-        'ENABLED', 0
+        1100002, 1000001, 'BACON_IT', '平台研发部', 1100001, 2000001,
+        2, 'ENABLED'
     )
 ON DUPLICATE KEY UPDATE
     `name` = VALUES(`name`),
     `parent_id` = VALUES(`parent_id`),
     `leader_user_id` = VALUES(`leader_user_id`),
-    `status` = VALUES(`status`),
-    `deleted` = VALUES(`deleted`);
+    `sort` = VALUES(`sort`),
+    `status` = VALUES(`status`);
 
 INSERT INTO `bacon_upms_post` (
-    `id`, `tenant_id`, `code`, `name`, `department_id`, `sort`, `status`, `deleted`
+    `id`, `tenant_id`, `code`, `name`, `department_id`, `status`
 ) VALUES (
-    'P1200001', 'T1000001', 'PLATFORM_ADMIN', '平台管理员', 'D1100002', 1, 'ENABLED', 0
+    1200001, 1000001, 'PLATFORM_ADMIN', '平台管理员', 1100002, 'ENABLED'
 ) ON DUPLICATE KEY UPDATE
     `name` = VALUES(`name`),
     `department_id` = VALUES(`department_id`),
-    `sort` = VALUES(`sort`),
-    `status` = VALUES(`status`),
-    `deleted` = VALUES(`deleted`);
+    `status` = VALUES(`status`);
 
 INSERT INTO `bacon_upms_user` (
     `id`, `tenant_id`, `name`, `avatar_object_id`, `department_id`,
     `status`, `deleted`
 ) VALUES (
-    '2000001', 'T1000001', '系统管理员', NULL, 'D1100002',
+    2000001, 1000001, '系统管理员', NULL, 1100002,
     'ENABLED', 0
 ) ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`),
@@ -59,10 +57,10 @@ INSERT INTO `bacon_upms_user_identity` (
     `id`, `tenant_id`, `user_id`, `identity_type`, `identity_value`, `status`
 ) VALUES
     (
-        'I2100001', 'T1000001', '2000001', 'ACCOUNT', 'admin', 'ACTIVE'
+        2100001, 1000001, 2000001, 'ACCOUNT', 'admin', 'ACTIVE'
     ),
     (
-        'I2100002', 'T1000001', '2000001', 'PHONE', '13800000000', 'ACTIVE'
+        2100002, 1000001, 2000001, 'PHONE', '13800000000', 'ACTIVE'
     )
 ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`),
@@ -75,7 +73,7 @@ INSERT INTO `bacon_upms_user_credential` (
     `credential_value`, `status`, `need_change_password`, `failed_count`, `failed_limit`,
     `lock_reason`, `locked_until`, `expires_at`, `last_verified_at`
 ) VALUES (
-    'C2200001', 'T1000001', '2000001', 'I2100001', 'PASSWORD', 'PRIMARY',
+    2200001, 1000001, 2000001, 2100001, 'PASSWORD', 'PRIMARY',
     '$2y$10$yjKSvevJS2WNdyBKKD1EBut7GNXMGCNNJfWpMtS5DILA9.sdEeASG', 'ACTIVE', 0, 0, 5,
     NULL, NULL, '2026-06-19 09:04:00.000', NULL
 ) ON DUPLICATE KEY UPDATE
@@ -94,52 +92,49 @@ INSERT INTO `bacon_upms_user_credential` (
 
 INSERT INTO `bacon_upms_role` (
     `id`, `tenant_id`, `code`, `name`, `role_type`, `data_scope_type`,
-    `status`, `built_in`, `deleted`
+    `status`
 ) VALUES (
-    1300001, 'T1000001', 'SUPER_ADMIN', '超级管理员', 'SYSTEM_ROLE', 'ALL',
-    'ENABLED', 1, 0
+    1300001, 1000001, 'SUPER_ADMIN', '超级管理员', 'SYSTEM_ROLE', 'ALL',
+    'ENABLED'
 ) ON DUPLICATE KEY UPDATE
     `name` = VALUES(`name`),
     `role_type` = VALUES(`role_type`),
     `data_scope_type` = VALUES(`data_scope_type`),
-    `status` = VALUES(`status`),
-    `built_in` = VALUES(`built_in`),
-    `deleted` = VALUES(`deleted`);
+    `status` = VALUES(`status`);
 
 INSERT INTO `bacon_upms_menu` (
     `id`, `tenant_id`, `menu_type`, `name`, `parent_id`,
-    `route_path`, `component_name`, `icon`, `sort`, `visible`, `status`,
-    `permission_code`, `built_in`, `deleted`
+    `route_path`, `component_name`, `icon`, `sort`, `permission_code`
 ) VALUES
     (
-        'M1400001', 'T1000001', 'DIRECTORY', '系统管理', NULL,
-        '/system', 'Layout', 'setting', 10, 1, 'ENABLED',
-        'upms:system:view', 1, 0
+        1400001, 1000001, 'DIRECTORY', '系统管理', NULL,
+        '/system', 'Layout', 'setting', 10,
+        'upms:system:view'
     ),
     (
-        'M1400002', 'T1000001', 'MENU', '用户管理', 'M1400001',
-        '/system/users', 'system/user/index', 'user', 11, 1, 'ENABLED',
-        'upms:user:view', 1, 0
+        1400002, 1000001, 'MENU', '用户管理', 1400001,
+        '/system/users', 'system/user/index', 'user', 11,
+        'upms:user:view'
     ),
     (
-        'M1400003', 'T1000001', 'MENU', '角色管理', 'M1400001',
-        '/system/roles', 'system/role/index', 'safety-certificate', 12, 1, 'ENABLED',
-        'upms:role:view', 1, 0
+        1400003, 1000001, 'MENU', '角色管理', 1400001,
+        '/system/roles', 'system/role/index', 'safety-certificate', 12,
+        'upms:role:view'
     ),
     (
-        'M1400004', 'T1000001', 'MENU', '租户管理', 'M1400001',
-        '/system/tenants', 'system/tenant/index', 'office-building', 13, 1, 'ENABLED',
-        'upms:tenant:view', 1, 0
+        1400004, 1000001, 'MENU', '租户管理', 1400001,
+        '/system/tenants', 'system/tenant/index', 'office-building', 13,
+        'upms:tenant:view'
     ),
     (
-        'M1400005', 'T1000001', 'BUTTON', '用户新增', 'M1400002',
-        NULL, NULL, NULL, 1, 0, 'ENABLED',
-        'upms:user:create', 1, 0
+        1400005, 1000001, 'BUTTON', '用户新增', 1400002,
+        NULL, NULL, NULL, 1,
+        'upms:user:create'
     ),
     (
-        'M1400006', 'T1000001', 'BUTTON', '用户停用', 'M1400002',
-        NULL, NULL, NULL, 2, 0, 'ENABLED',
-        'upms:user:disable', 1, 0
+        1400006, 1000001, 'BUTTON', '用户停用', 1400002,
+        NULL, NULL, NULL, 2,
+        'upms:user:disable'
     )
 ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`),
@@ -150,75 +145,68 @@ ON DUPLICATE KEY UPDATE
     `component_name` = VALUES(`component_name`),
     `icon` = VALUES(`icon`),
     `sort` = VALUES(`sort`),
-    `visible` = VALUES(`visible`),
-    `status` = VALUES(`status`),
-    `built_in` = VALUES(`built_in`),
-    `deleted` = VALUES(`deleted`);
+    `permission_code` = VALUES(`permission_code`);
 
 INSERT INTO `bacon_upms_resource` (
-    `id`, `tenant_id`, `code`, `name`, `resource_type`, `module`,
-    `path`, `method`, `status`, `permission_code`, `built_in`, `deleted`
+    `id`, `tenant_id`, `code`, `name`, `resource_type`,
+    `path`, `method`, `status`
 ) VALUES
     (
-        'R1500001', 'T1000001', 'UPMS_USER_LIST', '查询用户列表', 'API', 'upms',
-        '/upms/users', 'GET', 'ENABLED', 'upms:user:list', 1, 0
+        1500001, 1000001, 'UPMS_USER_LIST', '查询用户列表', 'API',
+        '/upms/users', 'GET', 'ENABLED'
     ),
     (
-        'R1500002', 'T1000001', 'UPMS_USER_CREATE', '创建用户', 'API', 'upms',
-        '/upms/users', 'POST', 'ENABLED', 'upms:user:create', 1, 0
+        1500002, 1000001, 'UPMS_USER_CREATE', '创建用户', 'API',
+        '/upms/users', 'POST', 'ENABLED'
     ),
     (
-        'R1500003', 'T1000001', 'UPMS_ROLE_LIST', '查询角色列表', 'API', 'upms',
-        '/upms/roles', 'GET', 'ENABLED', 'upms:role:list', 1, 0
+        1500003, 1000001, 'UPMS_ROLE_LIST', '查询角色列表', 'API',
+        '/upms/roles', 'GET', 'ENABLED'
     ),
     (
-        'R1500004', 'T1000001', 'AUTH_SESSION_INVALIDATE', '失效会话', 'API', 'auth',
-        '/auth/sessions/invalidate', 'POST', 'ENABLED', 'auth:session:invalidate', 1, 0
+        1500004, 1000001, 'AUTH_SESSION_INVALIDATE', '失效会话', 'API',
+        '/auth/sessions/invalidate', 'POST', 'ENABLED'
     )
 ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`),
     `name` = VALUES(`name`),
     `resource_type` = VALUES(`resource_type`),
-    `module` = VALUES(`module`),
     `path` = VALUES(`path`),
     `method` = VALUES(`method`),
-    `status` = VALUES(`status`),
-    `permission_code` = VALUES(`permission_code`),
-    `built_in` = VALUES(`built_in`),
-    `deleted` = VALUES(`deleted`);
+    `status` = VALUES(`status`);
 
 INSERT INTO `bacon_upms_user_role_rel` (`id`, `tenant_id`, `user_id`, `role_id`) VALUES
-    (1600001, 'T1000001', '2000001', 1300001)
+    (1600001, 1000001, 2000001, 1300001)
 ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`);
 
 INSERT INTO `bacon_upms_user_post_rel` (`id`, `tenant_id`, `user_id`, `post_id`) VALUES
-    (1600101, 'T1000001', '2000001', 'P1200001')
+    (1600101, 1000001, 2000001, 1200001)
 ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`);
 
 INSERT INTO `bacon_upms_role_menu_rel` (`id`, `tenant_id`, `role_id`, `menu_id`) VALUES
-    (1700001, 'T1000001', 1300001, 'M1400001'),
-    (1700002, 'T1000001', 1300001, 'M1400002'),
-    (1700003, 'T1000001', 1300001, 'M1400003'),
-    (1700004, 'T1000001', 1300001, 'M1400004'),
-    (1700005, 'T1000001', 1300001, 'M1400005'),
-    (1700006, 'T1000001', 1300001, 'M1400006')
+    (1700001, 1000001, 1300001, 1400001),
+    (1700002, 1000001, 1300001, 1400002),
+    (1700003, 1000001, 1300001, 1400003),
+    (1700004, 1000001, 1300001, 1400004),
+    (1700005, 1000001, 1300001, 1400005),
+    (1700006, 1000001, 1300001, 1400006)
 ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`);
 
 INSERT INTO `bacon_upms_role_resource_rel` (`id`, `tenant_id`, `role_id`, `resource_id`) VALUES
-    (1800001, 'T1000001', 1300001, 'R1500001'),
-    (1800002, 'T1000001', 1300001, 'R1500002'),
-    (1800003, 'T1000001', 1300001, 'R1500003'),
-    (1800004, 'T1000001', 1300001, 'R1500004')
+    (1800001, 1000001, 1300001, 1500001),
+    (1800002, 1000001, 1300001, 1500002),
+    (1800003, 1000001, 1300001, 1500003),
+    (1800004, 1000001, 1300001, 1500004)
 ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`);
 
 INSERT INTO `bacon_upms_data_permission_rule` (
     `id`, `tenant_id`, `role_id`, `data_scope_type`
 ) VALUES (
-    1900001, 'T1000001', 1300001, 'ALL'
+    1900001, 1000001, 1300001, 'ALL'
 ) ON DUPLICATE KEY UPDATE
     `data_scope_type` = VALUES(`data_scope_type`);
 
@@ -254,7 +242,7 @@ INSERT INTO `bacon_upms_sys_log` (
     `client_ip`, `request_uri`, `http_method`, `cost_ms`, `error_message`,
     `occurred_at`
 ) VALUES (
-    1960001, 'T1000001', 'trace-upms-seed-0001', 'req-upms-seed-0001', 'upms', 'Seed default admin data',
+    1960001, 1000001, 'trace-upms-seed-0001', 'req-upms-seed-0001', 'upms', 'Seed default admin data',
     'CREATE', 'SUCCESS', '2000001', '系统管理员',
     '127.0.0.1', '/internal/db/seed/upms', 'POST', 15, NULL,
     '2026-03-21 09:09:30.000'

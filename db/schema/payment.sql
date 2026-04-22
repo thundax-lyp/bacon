@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `bacon_payment_audit_log` (
     `before_status` varchar(16) DEFAULT NULL,
     `after_status` varchar(16) DEFAULT NULL,
     `operator_type` varchar(32) DEFAULT NULL,
-    `operator_id` bigint DEFAULT NULL,
+    `operator_id` varchar(64) DEFAULT NULL,
     `occurred_at` datetime(3) NOT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_tenant_occurred` (`tenant_id`, `occurred_at`),

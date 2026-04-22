@@ -55,8 +55,9 @@
 
 | Column | Type | Null | Description |
 | --- | --- | --- | --- |
-| `id` | `varchar(64)` | N | 存储对象业务主键，对应 `StoredObjectId.value` |
-| `tenant_id` | `varchar(64)` | Y | 租户业务键，对应 `TenantId.value` |
+| `id` | `bigint` | N | 存储对象业务主键，对应 `StoredObjectId.value` |
+| `stored_object_no` | `varchar(64)` | N | 存储对象外部编号，全局唯一 |
+| `tenant_id` | `bigint` | Y | 租户业务键，对应 `TenantId.value` |
 | `storage_type` | `varchar(32)` | N | 底层存储类型，对应 `StorageType` |
 | `bucket_name` | `varchar(128)` | Y | 存储桶或本地逻辑目录 |
 | `object_key` | `varchar(512)` | N | 底层对象键，全局唯一 |
@@ -66,14 +67,11 @@
 | `access_endpoint` | `varchar(1024)` | N | 当前访问端点 |
 | `object_status` | `varchar(32)` | N | 对应 `StoredObjectStatus` |
 | `reference_status` | `varchar(32)` | N | 对应 `StoredObjectReferenceStatus` |
-| `created_by` | `varchar(64)` | Y | 创建人 |
-| `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `varchar(64)` | Y | 更新人 |
-| `updated_at` | `datetime(3)` | N | 更新时间 |
 
 约束和索引：
 
 - `PRIMARY KEY (id)`
+- `UNIQUE KEY uk_stored_object_no (stored_object_no)`
 - `UNIQUE KEY uk_object_key (object_key)`
 - `KEY idx_tenant_status (tenant_id, object_status, reference_status)`
 
@@ -87,7 +85,7 @@
 
 | Column | Type | Null | Description |
 | --- | --- | --- | --- |
-| `object_id` | `varchar(64)` | N | 存储对象业务主键 |
+| `object_id` | `bigint` | N | 存储对象业务主键 |
 | `owner_type` | `varchar(64)` | N | 引用方类型 |
 | `owner_id` | `varchar(64)` | N | 引用方业务主键 |
 
@@ -107,8 +105,8 @@
 | Column | Type | Null | Description |
 | --- | --- | --- | --- |
 | `id` | `bigint` | N | 运行态主键 |
-| `tenant_id` | `varchar(64)` | Y | 所属租户业务键 |
-| `object_id` | `varchar(64)` | Y | 存储对象业务主键 |
+| `tenant_id` | `bigint` | Y | 所属租户业务键 |
+| `object_id` | `bigint` | Y | 存储对象业务主键 |
 | `owner_type` | `varchar(64)` | Y | 引用方类型 |
 | `owner_id` | `varchar(64)` | Y | 引用方业务主键 |
 | `action_type` | `varchar(64)` | N | 审计动作类型 |
@@ -136,8 +134,8 @@
 | Column | Type | Null | Description |
 | --- | --- | --- | --- |
 | `id` | `bigint` | N | 运行态主键 |
-| `tenant_id` | `varchar(64)` | Y | 所属租户业务键 |
-| `object_id` | `varchar(64)` | Y | 存储对象业务主键 |
+| `tenant_id` | `bigint` | Y | 所属租户业务键 |
+| `object_id` | `bigint` | Y | 存储对象业务主键 |
 | `owner_type` | `varchar(64)` | Y | 引用方类型 |
 | `owner_id` | `varchar(64)` | Y | 引用方业务主键 |
 | `action_type` | `varchar(64)` | N | 审计动作类型 |
@@ -170,7 +168,7 @@
 | --- | --- | --- | --- |
 | `id` | `bigint` | N | 运行态主键 |
 | `upload_id` | `varchar(64)` | N | 分段上传会话业务键 |
-| `tenant_id` | `varchar(64)` | Y | 所属租户业务键 |
+| `tenant_id` | `bigint` | Y | 所属租户业务键 |
 | `owner_type` | `varchar(64)` | N | 引用方类型 |
 | `owner_id` | `varchar(64)` | N | 引用方业务主键 |
 | `category` | `varchar(64)` | Y | 对象分类 |

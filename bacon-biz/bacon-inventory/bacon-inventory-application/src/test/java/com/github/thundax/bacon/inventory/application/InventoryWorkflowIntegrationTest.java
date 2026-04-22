@@ -12,12 +12,14 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.test.logging.ExpectedLogCapture;
 import com.github.thundax.bacon.inventory.application.result.InventoryReservationResult;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditOutboxRetrier;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
 import com.github.thundax.bacon.inventory.application.command.InventoryCommandApplicationService;
 import com.github.thundax.bacon.inventory.application.command.InventoryReservationItemCommand;
 import com.github.thundax.bacon.inventory.application.command.InventoryReserveStockCommand;
+import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -83,7 +85,7 @@ class InventoryWorkflowIntegrationTest {
 
         CountDownLatch start = new CountDownLatch(1);
         ExecutorService pool = Executors.newFixedThreadPool(2);
-        try {
+        try (ExpectedLogCapture logs = ExpectedLogCapture.capture(InventoryWriteRetrier.class)) {
             Supplier<InventoryReservationResult> firstTask = BaconContextHolder.callWithTenantId(
                     1001L,
                     () -> AsyncTaskWrapper.wrap((Supplier<InventoryReservationResult>) () -> {
@@ -124,6 +126,7 @@ class InventoryWorkflowIntegrationTest {
                     1001L,
                     () -> assertNotNull(
                             repository.findByOrderNo(OrderNo.of("ORDER-C2")).orElse(null)));
+            assertTrue(logs.contains("Inventory write conflict retry"));
         } finally {
             pool.shutdownNow();
         }
@@ -163,7 +166,11 @@ class InventoryWorkflowIntegrationTest {
                         now,
                         now)));
 
-        retryService.retryAuditOutbox();
+        try (ExpectedLogCapture logs = ExpectedLogCapture.capture(InventoryAuditOutboxRetrier.class)) {
+            retryService.retryAuditOutbox();
+            assertTrue(logs.contains("ALERT inventory audit retry exhausted"));
+            assertTrue(logs.contains("ORDER-DEAD"));
+        }
 
         assertEquals(1, repository.deadLetterCount());
         assertTrue(repository

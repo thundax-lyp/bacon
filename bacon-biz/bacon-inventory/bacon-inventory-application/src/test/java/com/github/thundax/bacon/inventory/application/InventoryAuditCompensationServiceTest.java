@@ -7,6 +7,7 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
+import com.github.thundax.bacon.common.test.logging.ExpectedLogCapture;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditCompensationApplicationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.codec.OutboxIdCodec;
@@ -149,9 +150,15 @@ class InventoryAuditCompensationApplicationServiceTest {
                         "MAX_RETRIES_EXCEEDED",
                         Instant.parse("2026-03-26T00:01:00Z"))));
 
-        InventoryAuditReplayResult result = BaconContextHolder.callWithTenantId(
-                3001L,
-                () -> service.replayDeadLetter(DeadLetterId.of(1004L), "MANUAL-REPLAY-1004", OperatorId.of("9001")));
+        InventoryAuditReplayResult result;
+        try (ExpectedLogCapture logs = ExpectedLogCapture.capture(InventoryAuditCompensationApplicationService.class)) {
+            result = BaconContextHolder.callWithTenantId(
+                    3001L,
+                    () -> service.replayDeadLetter(
+                            DeadLetterId.of(1004L), "MANUAL-REPLAY-1004", OperatorId.of("9001")));
+            assertTrue(logs.contains("ALERT inventory audit replay tx failed"));
+            assertTrue(logs.contains("MANUAL-REPLAY-1004"));
+        }
 
         assertEquals(InventoryAuditReplayStatus.FAILED.value(), result.getReplayStatus());
         assertTrue(result.getMessage().startsWith("tx-failed:"));

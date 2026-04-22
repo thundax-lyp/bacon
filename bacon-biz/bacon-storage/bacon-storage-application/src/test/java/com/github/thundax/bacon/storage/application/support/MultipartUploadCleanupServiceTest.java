@@ -9,6 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.github.thundax.bacon.common.test.logging.ExpectedLogCapture;
 import com.github.thundax.bacon.storage.application.config.StorageMultipartCleanupProperties;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
@@ -174,7 +175,12 @@ class MultipartUploadCleanupServiceTest {
                 .when(storedObjectStorageRepository)
                 .delete(session);
 
-        int cleanedCount = service.cleanupExpiredSessions();
+        int cleanedCount;
+        try (ExpectedLogCapture logs = ExpectedLogCapture.capture(MultipartUploadCleanupService.class)) {
+            cleanedCount = service.cleanupExpiredSessions();
+            assertTrue(logs.contains("Multipart upload expired cleanup failed"));
+            assertTrue(logs.contains("upload-failed"));
+        }
 
         assertEquals(0, cleanedCount);
         assertEquals(

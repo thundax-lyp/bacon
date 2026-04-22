@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.storage.application.support;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.test.logging.ExpectedLogCapture;
 import com.github.thundax.bacon.storage.application.config.StorageDeletionRetryProperties;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
@@ -89,7 +91,12 @@ class StoredObjectDeletionRetryServiceTest {
                 .when(storedObjectStorageRepository)
                 .delete(storedObject);
 
-        int completed = service.retryDeletingObjects();
+        int completed;
+        try (ExpectedLogCapture logs = ExpectedLogCapture.capture(StoredObjectDeletionRetryService.class)) {
+            completed = service.retryDeletingObjects();
+            assertTrue(logs.contains("Stored object deletion retry failed"));
+            assertTrue(logs.contains("attachment/b.bin"));
+        }
 
         assertEquals(0, completed);
         verify(storedObjectDeletionTransactionService, never()).markDeleted(StoredObjectId.of(101L));

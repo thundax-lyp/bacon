@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.storage.application.support;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.test.logging.ExpectedLogCapture;
 import com.github.thundax.bacon.storage.application.config.StorageAuditRetryProperties;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditOutbox;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
@@ -94,7 +96,11 @@ class StorageAuditOutboxRetryServiceTest {
                 .when(storageAuditLogRepository)
                 .insert(any());
 
-        service.retryOutbox();
+        try (ExpectedLogCapture logs = ExpectedLogCapture.capture(StorageAuditOutboxRetryService.class)) {
+            service.retryOutbox();
+            assertTrue(logs.contains("Storage audit retry failed"));
+            assertTrue(logs.contains("outboxId=101"));
+        }
 
         verify(storageAuditOutboxRepository)
                 .updateForRetry(eq(101L), eq(1), any(), eq("retry-fail"), eq(StorageAuditOutboxStatus.RETRYING), any());
@@ -117,7 +123,11 @@ class StorageAuditOutboxRetryServiceTest {
                 .when(storageAuditLogRepository)
                 .insert(any());
 
-        service.retryOutbox();
+        try (ExpectedLogCapture logs = ExpectedLogCapture.capture(StorageAuditOutboxRetryService.class)) {
+            service.retryOutbox();
+            assertTrue(logs.contains("ALERT storage audit retry exhausted"));
+            assertTrue(logs.contains("outboxId=102"));
+        }
 
         verify(storageAuditOutboxRepository).markDead(eq(102L), eq(3), eq("retry-fail"), any());
         assertEquals(

@@ -2,10 +2,12 @@ package com.github.thundax.bacon.payment.application.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.test.logging.ExpectedLogCapture;
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
 import com.github.thundax.bacon.order.api.request.OrderCloseExpiredFacadeRequest;
 import com.github.thundax.bacon.order.api.request.OrderMarkPaidFacadeRequest;
@@ -224,14 +226,19 @@ class PaymentApplicationServiceTest {
         PaymentCreateApplicationService service = new PaymentCreateApplicationService(
                 repository, paymentOperationLogSupport(repository), () -> "PAY-20005", idGenerator());
 
-        PaymentCreateResult result = assertDoesNotThrow(() -> service.createPayment(
-                new PaymentCreateCommand(
-                        "ORD-10005",
-                        2005L,
-                        BigDecimal.ONE,
-                        "MOCK",
-                        "audit-fail",
-                        Instant.now().plusSeconds(1800))));
+        PaymentCreateResult result;
+        try (ExpectedLogCapture logs = ExpectedLogCapture.capture(PaymentOperationLogSupport.class)) {
+            result = assertDoesNotThrow(() -> service.createPayment(
+                    new PaymentCreateCommand(
+                            "ORD-10005",
+                            2005L,
+                            BigDecimal.ONE,
+                            "MOCK",
+                            "audit-fail",
+                            Instant.now().plusSeconds(1800))));
+            assertTrue(logs.contains("ALERT payment audit write failed"));
+            assertTrue(logs.contains("PAY-20005"));
+        }
 
         assertEquals("PAY-20005", result.getPaymentNo());
         assertEquals(
@@ -258,8 +265,12 @@ class PaymentApplicationServiceTest {
         PaymentCallbackApplicationService callbackService = new PaymentCallbackApplicationService(
                 repository, repository, paymentOperationLogSupport(repository), orderCommandFacade, idGenerator());
 
-        assertDoesNotThrow(() -> callbackService.callbackPaid(new PaymentCallbackPaidCommand(
-                "MOCK", "PAY-20006", "TXN-20006", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}")));
+        try (ExpectedLogCapture logs = ExpectedLogCapture.capture(PaymentOperationLogSupport.class)) {
+            assertDoesNotThrow(() -> callbackService.callbackPaid(new PaymentCallbackPaidCommand(
+                    "MOCK", "PAY-20006", "TXN-20006", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}")));
+            assertTrue(logs.contains("ALERT payment audit write failed"));
+            assertTrue(logs.contains("PAY-20006"));
+        }
 
         PaymentOrder paymentOrder = repository.findByPaymentNo("PAY-20006").orElseThrow();
         assertEquals(PaymentStatus.PAID, paymentOrder.getPaymentStatus());

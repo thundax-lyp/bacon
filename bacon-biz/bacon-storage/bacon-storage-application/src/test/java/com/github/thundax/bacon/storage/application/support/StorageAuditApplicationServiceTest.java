@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.storage.application.support;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.test.logging.ExpectedLogCapture;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditLogRepository;
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditOutboxRepository;
@@ -78,14 +80,18 @@ class StorageAuditApplicationServiceTest {
                 .when(storageAuditLogRepository)
                 .insert(any());
 
-        service.record(
-                TenantId.of(1L),
-                StoredObjectId.of(100L),
-                "GENERIC_ATTACHMENT",
-                "owner-1",
-                StorageAuditActionType.UPLOAD,
-                null,
-                "ACTIVE");
+        try (ExpectedLogCapture logs = ExpectedLogCapture.capture(StorageAuditApplicationService.class)) {
+            service.record(
+                    TenantId.of(1L),
+                    StoredObjectId.of(100L),
+                    "GENERIC_ATTACHMENT",
+                    "owner-1",
+                    StorageAuditActionType.UPLOAD,
+                    null,
+                    "ACTIVE");
+            assertTrue(logs.contains("ALERT storage audit log write failed"));
+            assertTrue(logs.contains("objectId=100"));
+        }
 
         verify(storageAuditOutboxRepository).insert(any());
         assertEquals(
@@ -113,14 +119,18 @@ class StorageAuditApplicationServiceTest {
                 .when(storageAuditOutboxRepository)
                 .insert(any());
 
-        service.record(
-                TenantId.of(1L),
-                StoredObjectId.of(100L),
-                "GENERIC_ATTACHMENT",
-                "owner-1",
-                StorageAuditActionType.UPLOAD,
-                null,
-                "ACTIVE");
+        try (ExpectedLogCapture logs = ExpectedLogCapture.capture(StorageAuditApplicationService.class)) {
+            service.record(
+                    TenantId.of(1L),
+                    StoredObjectId.of(100L),
+                    "GENERIC_ATTACHMENT",
+                    "owner-1",
+                    StorageAuditActionType.UPLOAD,
+                    null,
+                    "ACTIVE");
+            assertTrue(logs.contains("ALERT storage audit log write failed"));
+            assertTrue(logs.contains("ALERT storage audit outbox persist failed"));
+        }
 
         assertEquals(
                 1.0d,

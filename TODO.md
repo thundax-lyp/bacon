@@ -16,19 +16,10 @@
    - 固化为接口层校验模板域
 5. `upms` / `auth`
    - 补齐 `controller/provider` 参数校验门禁
-   - 统一横切注解策略（`@SysLog/@HasPermission/@Operation`）
 6. 横切收尾
    - 统一租户边界（`requireTenantId` 落点、平台级/租户级边界）
    - 增加剩余 ArchUnit 规则并逐步加严
    - 保持“先业务收口、后门禁加严”的节奏，避免治理反向阻塞主线
-
-### P0 - 2026-04-17 跨域扫描新增（统一性优先）
-
-- [ ] 统一横切注解策略（`@SysLog/@HasPermission/@Operation`）
-  - 现状对比：`upms` 注解密度远高于其他域；`auth` 基本无权限与审计注解
-  - 处理动作：定义“后台管理接口必备注解矩阵”，区分 BFF/回调/provider 的最小集合
-  - 验收点：各域注解策略可解释、可检查，不再出现风格割裂
-  - 重要度：7/10
 
 ### P0 - 五域风格/手法/功能对齐（inventory/payment/order/storage/upms）
 

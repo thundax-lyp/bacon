@@ -23,7 +23,7 @@
 
 ### P0 - 五域风格/手法/功能对齐（inventory/payment/order/storage/upms）
 
-- [ ] `bacon-auth-interfaces/src/main/java/com/github/thundax/bacon/auth/interfaces/controller/AuthController.java`：补齐 auth 接口层 assembler 收口
+- [x] `bacon-auth-interfaces/src/main/java/com/github/thundax/bacon/auth/interfaces/controller/AuthController.java`：补齐 auth 接口层 assembler 收口
   - 范围对象：`passwordLogin`、`smsLogin`、`wecomLogin`、`githubLogin`
   - 处理动作：新增 `auth.interfaces.assembler`，把 `PasswordLoginRequest` / `SmsLoginRequest` / `WecomLoginRequest` 与 URL 参数转换统一下沉到 assembler，controller 只保留校验、委派、响应返回
   - 验收点：`AuthController` 不再直接 `new PasswordLoginCommand(...)`，不再在 controller 中拼装登录入参

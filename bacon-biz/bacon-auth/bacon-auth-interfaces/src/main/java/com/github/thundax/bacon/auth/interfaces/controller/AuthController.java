@@ -3,14 +3,14 @@ package com.github.thundax.bacon.auth.interfaces.controller;
 import com.github.thundax.bacon.auth.application.command.LoginApplicationService;
 import com.github.thundax.bacon.auth.application.command.PasswordChangeCommand;
 import com.github.thundax.bacon.auth.application.command.PasswordCommandApplicationService;
-import com.github.thundax.bacon.auth.application.command.PasswordLoginCommand;
+import com.github.thundax.bacon.auth.application.command.SessionCommandApplicationService;
 import com.github.thundax.bacon.auth.application.command.SessionLogoutCommand;
 import com.github.thundax.bacon.auth.application.command.TokenCommandApplicationService;
 import com.github.thundax.bacon.auth.application.command.TokenRefreshCommand;
-import com.github.thundax.bacon.auth.application.command.SessionCommandApplicationService;
-import com.github.thundax.bacon.auth.application.result.PasswordLoginChallengeResult;
 import com.github.thundax.bacon.auth.application.query.SessionCurrentQuery;
 import com.github.thundax.bacon.auth.application.query.SessionQueryApplicationService;
+import com.github.thundax.bacon.auth.application.result.PasswordLoginChallengeResult;
+import com.github.thundax.bacon.auth.interfaces.assembler.AuthInterfaceAssembler;
 import com.github.thundax.bacon.auth.interfaces.request.PasswordChangeRequest;
 import com.github.thundax.bacon.auth.interfaces.request.PasswordLoginRequest;
 import com.github.thundax.bacon.auth.interfaces.request.SmsLoginRequest;
@@ -80,31 +80,29 @@ public class AuthController {
     @Operation(summary = "账号密码登录")
     @PostMapping("/logins/password")
     public UserLoginResponse passwordLogin(@Valid @RequestBody PasswordLoginRequest request) {
-        return UserLoginResponse.from(loginApplicationService.loginByPassword(new PasswordLoginCommand(
-                Long.parseLong(request.getTenantCode().trim()),
-                request.getAccount(),
-                request.getPassword(),
-                request.getRsaKeyId(),
-                request.getCaptchaKey(),
-                request.getCaptchaCode())));
+        return UserLoginResponse.from(
+                loginApplicationService.loginByPassword(AuthInterfaceAssembler.toPasswordLoginCommand(request)));
     }
 
     @Operation(summary = "短信登录")
     @PostMapping("/logins/sms")
     public UserLoginResponse smsLogin(@Valid @RequestBody SmsLoginRequest request) {
-        return UserLoginResponse.from(loginApplicationService.loginBySms(request.getPhone(), request.getSmsCaptcha()));
+        AuthInterfaceAssembler.SmsLoginInput input = AuthInterfaceAssembler.toSmsLoginInput(request);
+        return UserLoginResponse.from(loginApplicationService.loginBySms(input.phone(), input.smsCaptcha()));
     }
 
     @Operation(summary = "企微登录")
     @PostMapping("/logins/wecom")
     public UserLoginResponse wecomLogin(@Valid @RequestBody WecomLoginRequest request) {
-        return UserLoginResponse.from(loginApplicationService.loginByWecom(request.getCode()));
+        AuthInterfaceAssembler.WecomLoginInput input = AuthInterfaceAssembler.toWecomLoginInput(request);
+        return UserLoginResponse.from(loginApplicationService.loginByWecom(input.code()));
     }
 
     @Operation(summary = "GitHub 登录回调")
     @GetMapping("/logins/github-callback")
     public UserLoginResponse githubLogin(@RequestParam("code") @NotBlank(message = "code must not be blank") String code) {
-        return UserLoginResponse.from(loginApplicationService.loginByGithub(code));
+        AuthInterfaceAssembler.GithubLoginInput input = AuthInterfaceAssembler.toGithubLoginInput(code);
+        return UserLoginResponse.from(loginApplicationService.loginByGithub(input.code()));
     }
 
     @Operation(summary = "刷新访问令牌")

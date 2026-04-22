@@ -59,6 +59,7 @@
 | --- | --- | --- | --- | --- |
 | `ANNO_COMMON_CLASS_BASE_REQUIRED` | `interfaces.controller` + `interfaces.provider` 入口类 | 必须同时声明 `@RestController @RequestMapping @Validated @Tag` | ArchUnit（`rg` 兜底） | `[ANNO_COMMON_CLASS_BASE_REQUIRED] <class> violates class base annotations required: <missingAnnotations>` |
 | `ANNO_COMMON_METHOD_MAPPING_REQUIRED` | 上述入口类中的 HTTP 方法 | 必须且仅能有一个 HTTP 映射注解（`@Get/@Post/@Put/@Delete/@PatchMapping`） | ArchUnit | `[ANNO_COMMON_METHOD_MAPPING_REQUIRED] <class#method> violates method mapping required: <foundMappings>` |
+| `ANNO_COMMON_REQUEST_PARAM_VALID_REQUIRED` | 上述入口类中 HTTP 方法的 `interfaces.request.*Request` 参数 | 必须显式声明 `@Valid`，触发 Bean Validation | ArchUnit | `[ANNO_COMMON_REQUEST_PARAM_VALID_REQUIRED] <class#method> violates request parameter Valid required: <parameterType>` |
 | `ANNO_BFF_CLASS_WRAPPED_REQUIRED` | `BFF_SELECTOR` | 必须声明 `@WrappedApiController` | ArchUnit | `[ANNO_BFF_CLASS_WRAPPED_REQUIRED] <class> violates WrappedApiController required: <foundAnnotations>` |
 | `ANNO_BFF_METHOD_OPERATION_REQUIRED` | `BFF_SELECTOR` 中 HTTP 方法 | 必须声明 `@Operation` | ArchUnit | `[ANNO_BFF_METHOD_OPERATION_REQUIRED] <class#method> violates Operation required: <foundAnnotations>` |
 | `ANNO_BFF_PERMISSION_REQUIRED` | `BFF_SELECTOR` 中 HTTP 方法，排除标注 `@ApiAnnotationException(bucket in {AUTH_PUBLIC,OAUTH2_PROTOCOL,CALLBACK_ENDPOINT})` 的类/方法 | 必须声明 `@HasPermission` | ArchUnit | `[ANNO_BFF_PERMISSION_REQUIRED] <class#method> violates HasPermission required: <foundAnnotations>` |
@@ -78,9 +79,9 @@
 
 | Interface Type | Required | Forbidden |
 | --- | --- | --- |
-| BFF | `@RestController @RequestMapping @Validated @Tag @WrappedApiController`；方法级 `@Operation` + HTTP Mapping；管理接口 `@HasPermission` | 无 |
-| Callback | `@RestController @RequestMapping @Validated @Tag`；方法级 `@Operation` + HTTP Mapping | `@HasPermission @SysLog` |
-| Provider | `@RestController @RequestMapping(/providers/**) @Validated @Tag`；方法级 `@Operation` + HTTP Mapping | `@HasPermission` |
+| BFF | `@RestController @RequestMapping @Validated @Tag @WrappedApiController`；方法级 `@Operation` + HTTP Mapping；管理接口 `@HasPermission`；`interfaces.request.*Request` 参数声明 `@Valid` | 无 |
+| Callback | `@RestController @RequestMapping @Validated @Tag`；方法级 `@Operation` + HTTP Mapping；`interfaces.request.*Request` 参数声明 `@Valid` | `@HasPermission @SysLog` |
+| Provider | `@RestController @RequestMapping(/providers/**) @Validated @Tag`；方法级 `@Operation` + HTTP Mapping；`interfaces.request.*Request` 参数声明 `@Valid` | `@HasPermission` |
 | Facade | 无 | 端点注解、安全审计注解 |
 
 ## 8. CI Gate

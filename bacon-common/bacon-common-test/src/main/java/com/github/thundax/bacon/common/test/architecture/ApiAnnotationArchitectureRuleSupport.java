@@ -11,6 +11,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 
@@ -26,6 +27,7 @@ public final class ApiAnnotationArchitectureRuleSupport {
     private static final String PUT_MAPPING_ANNOTATION = "org.springframework.web.bind.annotation.PutMapping";
     private static final String DELETE_MAPPING_ANNOTATION = "org.springframework.web.bind.annotation.DeleteMapping";
     private static final String PATCH_MAPPING_ANNOTATION = "org.springframework.web.bind.annotation.PatchMapping";
+    private static final String VALID_ANNOTATION = "jakarta.validation.Valid";
     private static final String VALIDATED_ANNOTATION = "org.springframework.validation.annotation.Validated";
     private static final String TAG_ANNOTATION = "io.swagger.v3.oas.annotations.tags.Tag";
     private static final String OPERATION_ANNOTATION = "io.swagger.v3.oas.annotations.Operation";
@@ -116,6 +118,44 @@ public final class ApiAnnotationArchitectureRuleSupport {
                 })
                 .allowEmptyShould(true)
                 .because("RULE ANNO_COMMON_METHOD_MAPPING_REQUIRED");
+    }
+
+    public static ArchRule commonRequestParamValidRequired(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAnyPackage(
+                        basePackage + ".interfaces.controller..",
+                        basePackage + ".interfaces.provider..")
+                .and()
+                .haveSimpleNameEndingWith("Controller")
+                .should(new ArchCondition<>("declare @Valid on request object endpoint parameters") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        for (JavaMethod method : declaredPublicMethods(item)) {
+                            if (mappingAnnotationCount(method) == 0) {
+                                continue;
+                            }
+                            List<JavaClass> parameterTypes = method.getRawParameterTypes();
+                            Annotation[][] parameterAnnotations = method.reflect().getParameterAnnotations();
+                            for (int i = 0; i < parameterTypes.size(); i++) {
+                                JavaClass parameterType = parameterTypes.get(i);
+                                if (!isInterfacesRequestType(basePackage, parameterType)) {
+                                    continue;
+                                }
+                                if (!hasParameterAnnotation(parameterAnnotations[i], VALID_ANNOTATION)) {
+                                    events.add(SimpleConditionEvent.violated(
+                                            method,
+                                            "[ANNO_COMMON_REQUEST_PARAM_VALID_REQUIRED] "
+                                                    + formatMethod(item, method)
+                                                    + " violates request parameter Valid required: "
+                                                    + parameterType.getFullName()));
+                                }
+                            }
+                        }
+                    }
+                })
+                .allowEmptyShould(true)
+                .because("RULE ANNO_COMMON_REQUEST_PARAM_VALID_REQUIRED");
     }
 
     public static ArchRule bffWrappedApiControllerRequired(String basePackage) {
@@ -611,6 +651,20 @@ public final class ApiAnnotationArchitectureRuleSupport {
             }
         }
         return false;
+    }
+
+    private static boolean hasParameterAnnotation(Annotation[] annotations, String annotationName) {
+        for (Annotation annotation : annotations) {
+            if (annotationName.equals(annotation.annotationType().getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isInterfacesRequestType(String basePackage, JavaClass parameterType) {
+        return parameterType.getPackageName().startsWith(basePackage + ".interfaces.request")
+                && parameterType.getSimpleName().endsWith("Request");
     }
 
     private static String shortName(String fullName) {

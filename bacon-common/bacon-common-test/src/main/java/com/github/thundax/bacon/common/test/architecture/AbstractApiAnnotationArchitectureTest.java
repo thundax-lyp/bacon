@@ -34,6 +34,12 @@ public abstract class AbstractApiAnnotationArchitectureTest {
     }
 
     @Test
+    void shouldEnforceAnnoCommonRequestParamValidRequired() {
+        ApiAnnotationArchitectureRuleSupport.commonRequestParamValidRequired(basePackage())
+                .check(classes());
+    }
+
+    @Test
     void shouldEnforceAnnoBffClassWrappedRequired() {
         ApiAnnotationArchitectureRuleSupport.bffWrappedApiControllerRequired(basePackage())
                 .check(classes());

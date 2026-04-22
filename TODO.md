@@ -5,23 +5,14 @@
 1. `payment`
    - 收口 `/payment` 根路径下查询/审计/回调分组语义
    - 同步 OpenAPI tag 与 controller 命名
-2. `inventory`
-   - 对齐 controller 校验注解门禁（`@Validated/@Valid/@HasPermission`）
-   - 固化为接口层校验模板域
-3. `*-interfaces/request`
+2. `*-interfaces/request`
    - 收敛请求模型放置与校验注解门禁
-4. 横切收尾
+3. 横切收尾
    - 统一租户边界（`requireTenantId` 落点、平台级/租户级边界）
    - 增加剩余 ArchUnit 规则并逐步加严
    - 保持“先接口收口、后门禁加严”的节奏，避免治理反向阻塞主线
 
 ### P0 - 五域风格/手法/功能对齐（inventory/payment/order/storage/upms）
-
-- [ ] `inventory-interfaces`：对齐 controller 校验注解门禁（`@Validated/@Valid/@HasPermission`）
-  - 范围对象：`InventoryReservationController`、`InventoryAuditLogController`、`InventoryAuditCompensationController` 及对应 `interfaces.request.*`
-  - 处理动作：新增首个 ArchUnit 规则，强制上述 controller 保持 `@Validated`（类/方法）与权限注解位置一致，请求对象参数使用 `@Valid`
-  - 验收点：inventory 入口不再出现“裸参数 + 无校验注解”回退，并可作为其他域推广模板
-  - 重要度：8/10
 
 - [ ] `*-interfaces/request`：收敛请求模型放置与校验注解门禁
   - 范围对象：`interfaces.request..` 包下请求模型
@@ -64,7 +55,6 @@
 ### 建议执行顺序（细化）
 
 1. `payment`：收口 `/payment` 路由语义 -> 对齐 OpenAPI tag 与 controller 命名
-2. `inventory`：补齐 `@Validated/@Valid/@HasPermission` 门禁并固化模板
-3. `*-interfaces/request`：统一请求模型放置与字段校验门禁
-4. 横切边界：租户边界清单 -> 明确 `upms` 平台级 / 租户级能力边界
-5. 横切治理：目录反向命名门禁 -> `@SysLog` 策略评估
+2. `*-interfaces/request`：统一请求模型放置与字段校验门禁
+3. 横切边界：租户边界清单 -> 明确 `upms` 平台级 / 租户级能力边界
+4. 横切治理：目录反向命名门禁 -> `@SysLog` 策略评估

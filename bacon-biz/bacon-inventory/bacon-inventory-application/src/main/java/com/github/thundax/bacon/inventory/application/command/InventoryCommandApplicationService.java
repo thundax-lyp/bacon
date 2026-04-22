@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +59,7 @@ public class InventoryCommandApplicationService {
     private final InventoryWriteRetrier inventoryWriteRetrier;
     private final IdGenerator idGenerator;
 
+    @Autowired
     public InventoryCommandApplicationService(
             InventoryStockRepository inventoryStockRepository,
             InventoryReservationRepository inventoryReservationRepository,

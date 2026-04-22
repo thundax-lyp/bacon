@@ -1,18 +1,19 @@
 package com.github.thundax.bacon.auth.interfaces.provider;
 
-import com.github.thundax.bacon.auth.api.dto.OAuthClientDTO;
-import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
-import com.github.thundax.bacon.auth.api.response.CurrentSessionFacadeResponse;
 import com.github.thundax.bacon.auth.application.command.SessionCommandApplicationService;
 import com.github.thundax.bacon.auth.application.command.SessionInvalidateCommand;
 import com.github.thundax.bacon.auth.application.command.SessionInvalidateTenantCommand;
 import com.github.thundax.bacon.auth.application.command.SessionInvalidateUserCommand;
+import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.application.query.OAuthClientQueryApplicationService;
 import com.github.thundax.bacon.auth.application.query.OAuthClientQuery;
 import com.github.thundax.bacon.auth.application.query.SessionContextQuery;
 import com.github.thundax.bacon.auth.application.query.TokenQueryApplicationService;
 import com.github.thundax.bacon.auth.application.query.TokenVerifyQuery;
-import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
+import com.github.thundax.bacon.auth.interfaces.assembler.AuthInterfaceAssembler;
+import com.github.thundax.bacon.auth.interfaces.response.CurrentSessionResponse;
+import com.github.thundax.bacon.auth.interfaces.response.OAuthClientResponse;
+import com.github.thundax.bacon.auth.interfaces.response.SessionValidationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
@@ -46,26 +47,18 @@ public class AuthProviderController {
 
     @Operation(summary = "校验访问令牌")
     @GetMapping("/tokens/verify")
-    public SessionValidationDTO verify(
+    public SessionValidationResponse verify(
             @RequestParam("accessToken") @NotBlank(message = "accessToken must not be blank") String accessToken) {
-        return tokenQueryApplicationService.verifyAccessToken(new TokenVerifyQuery(accessToken));
+        return AuthInterfaceAssembler.toSessionValidationResponse(
+                tokenQueryApplicationService.verifyAccessToken(new TokenVerifyQuery(accessToken)));
     }
 
     @Operation(summary = "获取会话上下文")
     @GetMapping("/sessions/{sessionId}")
-    public CurrentSessionFacadeResponse currentSession(
+    public CurrentSessionResponse currentSession(
             @PathVariable @NotBlank(message = "sessionId must not be blank") String sessionId) {
         CurrentSessionDTO currentSession = tokenQueryApplicationService.getSessionContext(new SessionContextQuery(sessionId));
-        return CurrentSessionFacadeResponse.from(
-                currentSession.getSessionId(),
-                currentSession.getTenantId(),
-                currentSession.getUserId(),
-                currentSession.getIdentityType(),
-                currentSession.getLoginType(),
-                currentSession.getSessionStatus(),
-                currentSession.getIssuedAt(),
-                currentSession.getLastAccessTime(),
-                currentSession.getExpireAt());
+        return AuthInterfaceAssembler.toCurrentSessionResponse(currentSession);
     }
 
     @Operation(summary = "失效指定用户会话")
@@ -95,7 +88,8 @@ public class AuthProviderController {
 
     @Operation(summary = "查询 OAuth 客户端")
     @GetMapping("/oauth-clients/{clientId}")
-    public OAuthClientDTO getClient(@PathVariable @NotBlank(message = "clientId must not be blank") String clientId) {
-        return oAuthClientQueryApplicationService.getClientByClientId(new OAuthClientQuery(clientId));
+    public OAuthClientResponse getClient(@PathVariable @NotBlank(message = "clientId must not be blank") String clientId) {
+        return AuthInterfaceAssembler.toOAuthClientResponse(
+                oAuthClientQueryApplicationService.getClientByClientId(new OAuthClientQuery(clientId)));
     }
 }

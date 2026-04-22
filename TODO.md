@@ -23,18 +23,6 @@
 
 ### P0 - 五域风格/手法/功能对齐（inventory/payment/order/storage/upms）
 
-- [ ] `bacon-order-application/src/main/java/com/github/thundax/bacon/order/application/query/OrderPageQuery.java`：对齐分页查询基类
-  - 范围对象：`OrderPageQuery`
-  - 处理动作：按统一分页约定改为复用 `common.application.page.PageQuery`，收口页码归一化入口
-  - 验收点：order 分页查询合同与 `inventory` / `storage` / `upms` 保持一致，不再单独携带分页归一化职责
-  - 重要度：8/10
-
-- [ ] `bacon-order-application/src/main/java/com/github/thundax/bacon/order/application/query/OrderQueryApplicationService.java`：移除 order 查询层重复分页归一化
-  - 范围对象：`page(OrderPageQuery query)`
-  - 处理动作：在 `OrderPageQuery` 完成统一后，删除 service 内部 `PageParamNormalizer` 手工归一化，直接使用标准分页契约
-  - 验收点：`OrderQueryApplicationService` 不再重复处理 `pageNo/pageSize` 归一化
-  - 重要度：7/10
-
 - [ ] `bacon-upms-application/src/main/java/com/github/thundax/bacon/upms/application/audit/SysLogQueryApplicationService.java`：收口 syslog 查询合同
   - 范围对象：`page(String, String, String, String, Integer, Integer)`、`getLogById(SysLogId)`
   - 处理动作：新增 `SysLogPageQuery`，将分页查询改为 `page(XxxPageQuery)`；同时按上下文内命名约定收口查询方法名

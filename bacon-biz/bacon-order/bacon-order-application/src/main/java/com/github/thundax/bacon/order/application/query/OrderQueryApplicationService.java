@@ -2,7 +2,6 @@ package com.github.thundax.bacon.order.application.query;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.order.application.assembler.OrderDetailAssembler;
 import com.github.thundax.bacon.order.application.assembler.OrderSummaryAssembler;
 import com.github.thundax.bacon.order.application.dto.OrderDetailDTO;
@@ -57,30 +56,28 @@ public class OrderQueryApplicationService {
     }
 
     public OrderPageResult page(OrderPageQuery query) {
-        int normalizedPageNo = PageParamNormalizer.normalizePageNo(query.pageNo());
-        int normalizedPageSize = PageParamNormalizer.normalizePageSize(query.pageSize());
         long total = orderRepository.count(
-                query.userId(),
-                query.orderNo(),
-                query.orderStatus(),
-                query.payStatus(),
-                query.inventoryStatus(),
-                query.createdAtFrom(),
-                query.createdAtTo());
+                query.getUserId(),
+                query.getOrderNo(),
+                query.getOrderStatus(),
+                query.getPayStatus(),
+                query.getInventoryStatus(),
+                query.getCreatedAtFrom(),
+                query.getCreatedAtTo());
         List<Order> page = total <= 0
                 ? List.of()
                 : orderRepository.page(
-                        query.userId(),
-                        query.orderNo(),
-                        query.orderStatus(),
-                        query.payStatus(),
-                        query.inventoryStatus(),
-                        query.createdAtFrom(),
-                        query.createdAtTo(),
-                        normalizedPageNo,
-                        normalizedPageSize);
+                        query.getUserId(),
+                        query.getOrderNo(),
+                        query.getOrderStatus(),
+                        query.getPayStatus(),
+                        query.getInventoryStatus(),
+                        query.getCreatedAtFrom(),
+                        query.getCreatedAtTo(),
+                        query.getPageNo(),
+                        query.getPageSize());
         List<OrderSummaryDTO> records = page.stream().map(orderSummaryAssembler::toDto).toList();
-        return new OrderPageResult(records, total, normalizedPageNo, normalizedPageSize);
+        return new OrderPageResult(records, total, query.getPageNo(), query.getPageSize());
     }
 
     private OrderDetailDTO toDetail(Order order) {

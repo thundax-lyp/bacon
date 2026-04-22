@@ -23,6 +23,48 @@
 
 ### P0 - 五域风格/手法/功能对齐（inventory/payment/order/storage/upms）
 
+- [ ] `bacon-auth-interfaces/src/main/java/com/github/thundax/bacon/auth/interfaces/controller/AuthController.java`：补齐 auth 接口层 assembler 收口
+  - 范围对象：`passwordLogin`、`smsLogin`、`wecomLogin`、`githubLogin`
+  - 处理动作：新增 `auth.interfaces.assembler`，把 `PasswordLoginRequest` / `SmsLoginRequest` / `WecomLoginRequest` 与 URL 参数转换统一下沉到 assembler，controller 只保留校验、委派、响应返回
+  - 验收点：`AuthController` 不再直接 `new PasswordLoginCommand(...)`，不再在 controller 中拼装登录入参
+  - 重要度：8/10
+
+- [ ] `bacon-auth-application/src/main/java/com/github/thundax/bacon/auth/application/command/LoginApplicationService.java`：统一 auth 登录命令合同
+  - 范围对象：`loginBySms(String, String)`、`loginByWecom(String)`、`loginByGithub(String)`
+  - 处理动作：按 `APPLICATION-REFACTOR` 收口为 `*Command` 入参，去除公开多参数/裸参数登录方法，并同步更新全部调用点
+  - 验收点：`LoginApplicationService` 对外公开写方法只接收稳定 `*Command`
+  - 重要度：9/10
+
+- [ ] `bacon-order-application/src/main/java/com/github/thundax/bacon/order/application/query/OrderPageQuery.java`：对齐分页查询基类
+  - 范围对象：`OrderPageQuery`
+  - 处理动作：按统一分页约定改为复用 `common.application.page.PageQuery`，收口页码归一化入口
+  - 验收点：order 分页查询合同与 `inventory` / `storage` / `upms` 保持一致，不再单独携带分页归一化职责
+  - 重要度：8/10
+
+- [ ] `bacon-order-application/src/main/java/com/github/thundax/bacon/order/application/query/OrderQueryApplicationService.java`：移除 order 查询层重复分页归一化
+  - 范围对象：`page(OrderPageQuery query)`
+  - 处理动作：在 `OrderPageQuery` 完成统一后，删除 service 内部 `PageParamNormalizer` 手工归一化，直接使用标准分页契约
+  - 验收点：`OrderQueryApplicationService` 不再重复处理 `pageNo/pageSize` 归一化
+  - 重要度：7/10
+
+- [ ] `bacon-upms-application/src/main/java/com/github/thundax/bacon/upms/application/audit/SysLogQueryApplicationService.java`：收口 syslog 查询合同
+  - 范围对象：`page(String, String, String, String, Integer, Integer)`、`getLogById(SysLogId)`
+  - 处理动作：新增 `SysLogPageQuery`，将分页查询改为 `page(XxxPageQuery)`；同时按上下文内命名约定收口查询方法名
+  - 验收点：syslog 查询服务不再暴露多参数分页方法，查询命名与 `APPLICATION-REFACTOR` 约定一致
+  - 重要度：9/10
+
+- [ ] `bacon-upms-application/src/main/java/com/github/thundax/bacon/upms/application/command/UserProfileApplicationService.java`：收口 user profile 命名冗余
+  - 范围对象：`createUser`、`updateUser`、`updateUserStatus`
+  - 处理动作：按 bounded context 内部命名约定分别收口为 `create`、`update`、`updateStatus`，并同步修正 controller / facade / tests 调用点
+  - 验收点：用户资料 command service 不再重复 `User` 上下文词
+  - 重要度：8/10
+
+- [ ] `bacon-upms-application/src/main/java/com/github/thundax/bacon/upms/application/query/UserQueryApplicationService.java`：收口 user query 命名冗余
+  - 范围对象：`getUserById`、`getTenantByTenantId`
+  - 处理动作：按 query service 命名约定分别收口为 `getById`、`getTenantById` 或等价上下文内简名，并同步修正 controller / facade / tests 调用点
+  - 验收点：用户查询 service 不再保留 `getXxxByXxx` 冗余命名残留
+  - 重要度：8/10
+
 - [ ] `inventory-interfaces`：对齐 controller 校验注解门禁（`@Validated/@Valid/@HasPermission`）
   - 范围对象：`InventoryReservationController`、`InventoryAuditLogController`、`InventoryAuditCompensationController` 及对应 `interfaces.request.*`
   - 处理动作：新增 ArchUnit 规则，强制上述 controller 保持 `@Validated`（类/方法）与权限注解位置一致，请求对象参数使用 `@Valid`

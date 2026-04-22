@@ -16,10 +16,8 @@ import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.upms.application.command.UserAvatarUpdateCommand;
-import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.command.UserAvatarApplicationService;
-import com.github.thundax.bacon.upms.application.command.UserPasswordApplicationService;
-import com.github.thundax.bacon.upms.application.command.UserProfileApplicationService;
+import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
@@ -34,8 +32,6 @@ class UserControllerTest {
 
     private static final long TENANT_ID = 1001L;
 
-    private UserProfileApplicationService userProfileApplicationService;
-    private UserPasswordApplicationService userPasswordApplicationService;
     private UserAvatarApplicationService userAvatarApplicationService;
     private UserQueryApplicationService userQueryApplicationService;
     private MockMvc mockMvc;
@@ -49,8 +45,6 @@ class UserControllerTest {
     @BeforeEach
     void setUp() {
         BaconContextHolder.set(new BaconContext(TENANT_ID, 2001L));
-        userProfileApplicationService = mock(UserProfileApplicationService.class);
-        userPasswordApplicationService = mock(UserPasswordApplicationService.class);
         userAvatarApplicationService = mock(UserAvatarApplicationService.class);
         userQueryApplicationService = mock(UserQueryApplicationService.class);
         validator = new LocalValidatorFactoryBean();

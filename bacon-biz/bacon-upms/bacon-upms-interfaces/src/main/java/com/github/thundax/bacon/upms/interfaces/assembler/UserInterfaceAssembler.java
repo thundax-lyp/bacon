@@ -30,11 +30,14 @@ import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.interfaces.request.UserCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.request.UserIdentityQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.request.UserPageRequest;
+import com.github.thundax.bacon.upms.interfaces.request.UserPasswordChangeRequest;
 import com.github.thundax.bacon.upms.interfaces.request.UserPasswordResetRequest;
 import com.github.thundax.bacon.upms.interfaces.request.UserRoleAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.request.UserStatusUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.request.UserUpdateRequest;
+import com.github.thundax.bacon.upms.interfaces.response.CurrentUserResponse;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
+import com.github.thundax.bacon.upms.interfaces.response.UserCredentialResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserIdentityResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserPageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserResponse;
@@ -109,6 +112,10 @@ public final class UserInterfaceAssembler {
         return new UserPasswordChangeCommand(userId, request.getOldPassword(), request.getNewPassword());
     }
 
+    public static UserPasswordChangeCommand toPasswordChangeCommand(UserId userId, UserPasswordChangeRequest request) {
+        return new UserPasswordChangeCommand(userId, request.oldPassword(), request.newPassword());
+    }
+
     public static UserAvatarUpdateCommand toAvatarUpdateCommand(Long userId, MultipartFile file) throws IOException {
         return new UserAvatarUpdateCommand(
                 UserId.of(userId),
@@ -128,6 +135,14 @@ public final class UserInterfaceAssembler {
 
     public static UserIdentityResponse toResponse(UserIdentityDTO dto) {
         return UserIdentityResponse.from(dto);
+    }
+
+    public static UserCredentialResponse toResponse(UserLoginCredentialDTO dto) {
+        return UserCredentialResponse.from(dto);
+    }
+
+    public static CurrentUserResponse toCurrentUserResponse(UserDTO dto, String departmentCode) {
+        return CurrentUserResponse.from(dto, departmentCode);
     }
 
     public static UserFacadeResponse toFacadeResponse(UserDTO dto) {

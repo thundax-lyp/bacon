@@ -15,13 +15,15 @@ import com.github.thundax.bacon.upms.interfaces.request.RoleResourceAssignReques
 import com.github.thundax.bacon.upms.interfaces.request.RoleStatusUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.request.RoleUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.response.RoleDataScopeResponse;
+import com.github.thundax.bacon.upms.interfaces.response.RoleDepartmentIdsResponse;
+import com.github.thundax.bacon.upms.interfaces.response.RoleMenuIdsResponse;
 import com.github.thundax.bacon.upms.interfaces.response.RolePageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
+import com.github.thundax.bacon.upms.interfaces.response.RoleResourceCodesResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
-import java.util.Set;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -113,40 +115,44 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "分配角色菜单", eventType = LogEventType.GRANT)
     @GetMapping("/{roleId}/menus")
-    public Set<String> getAssignedMenus(
+    public RoleMenuIdsResponse getAssignedMenus(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId) {
-        return roleQueryApplicationService.getMenuIds(RoleInterfaceAssembler.toRoleId(roleId));
+        return RoleInterfaceAssembler.toMenuIdsResponse(
+                roleQueryApplicationService.getMenuIds(RoleInterfaceAssembler.toRoleId(roleId)));
     }
 
     @Operation(summary = "分配角色菜单")
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "分配角色菜单", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/menus")
-    public Set<String> assignMenus(
+    public RoleMenuIdsResponse assignMenus(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId,
             @Valid @RequestBody RoleMenuAssignRequest request) {
-        return roleCommandApplicationService.updateMenuIds(
-                RoleInterfaceAssembler.toMenuAssignCommand(roleId, request));
+        return RoleInterfaceAssembler.toMenuIdsResponse(
+                roleCommandApplicationService.updateMenuIds(
+                        RoleInterfaceAssembler.toMenuAssignCommand(roleId, request)));
     }
 
     @Operation(summary = "查询角色资源授权")
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "查询角色资源授权", eventType = LogEventType.QUERY)
     @GetMapping("/{roleId}/resources")
-    public Set<String> getAssignedResources(
+    public RoleResourceCodesResponse getAssignedResources(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId) {
-        return roleQueryApplicationService.getResourceCodes(RoleInterfaceAssembler.toRoleId(roleId));
+        return RoleInterfaceAssembler.toResourceCodesResponse(
+                roleQueryApplicationService.getResourceCodes(RoleInterfaceAssembler.toRoleId(roleId)));
     }
 
     @Operation(summary = "分配角色资源")
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "分配角色资源", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/resources")
-    public Set<String> assignResources(
+    public RoleResourceCodesResponse assignResources(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId,
             @Valid @RequestBody RoleResourceAssignRequest request) {
-        return roleCommandApplicationService.updateResourceCodes(
-                RoleInterfaceAssembler.toResourceAssignCommand(roleId, request));
+        return RoleInterfaceAssembler.toResourceCodesResponse(
+                roleCommandApplicationService.updateResourceCodes(
+                        RoleInterfaceAssembler.toResourceAssignCommand(roleId, request)));
     }
 
     @Operation(summary = "查询角色数据权限配置")
@@ -164,10 +170,10 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "配置角色数据权限", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/data-scope")
-    public Set<Long> assignDataScope(
+    public RoleDepartmentIdsResponse assignDataScope(
             @PathVariable("roleId") @Positive(message = "roleId must be greater than 0") Long roleId,
             @Valid @RequestBody RoleDataScopeAssignRequest request) {
-        return RoleInterfaceAssembler.toDepartmentIdValues(
+        return RoleInterfaceAssembler.toDepartmentIdsResponse(
                 roleCommandApplicationService.updateDataScope(
                         RoleInterfaceAssembler.toDataScopeAssignCommand(roleId, request)));
     }

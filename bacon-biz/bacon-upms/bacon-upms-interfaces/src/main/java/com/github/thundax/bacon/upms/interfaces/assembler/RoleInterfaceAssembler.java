@@ -28,8 +28,11 @@ import com.github.thundax.bacon.upms.interfaces.request.RoleResourceAssignReques
 import com.github.thundax.bacon.upms.interfaces.request.RoleStatusUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.request.RoleUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.response.RoleDataScopeResponse;
+import com.github.thundax.bacon.upms.interfaces.response.RoleDepartmentIdsResponse;
+import com.github.thundax.bacon.upms.interfaces.response.RoleMenuIdsResponse;
 import com.github.thundax.bacon.upms.interfaces.response.RolePageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
+import com.github.thundax.bacon.upms.interfaces.response.RoleResourceCodesResponse;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -116,5 +119,17 @@ public final class RoleInterfaceAssembler {
 
     public static Set<Long> toDepartmentIdValues(Set<DepartmentId> departmentIds) {
         return departmentIds.stream().map(DepartmentId::value).collect(Collectors.toSet());
+    }
+
+    public static RoleMenuIdsResponse toMenuIdsResponse(Set<String> menuIds) {
+        return new RoleMenuIdsResponse(menuIds);
+    }
+
+    public static RoleResourceCodesResponse toResourceCodesResponse(Set<String> resourceCodes) {
+        return new RoleResourceCodesResponse(resourceCodes);
+    }
+
+    public static RoleDepartmentIdsResponse toDepartmentIdsResponse(Set<DepartmentId> departmentIds) {
+        return new RoleDepartmentIdsResponse(toDepartmentIdValues(departmentIds));
     }
 }

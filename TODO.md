@@ -8,12 +8,9 @@
 2. `inventory`
    - 对齐 controller 校验注解门禁（`@Validated/@Valid/@HasPermission`）
    - 固化为接口层校验模板域
-3. `upms` / `payment` / `order` / `storage` / `auth`
-   - 补齐 `controller/provider` 参数校验门禁
-   - 对齐 inventory 已固化的接口层校验模板
-4. `*-interfaces/request`
+3. `*-interfaces/request`
    - 收敛请求模型放置与校验注解门禁
-5. 横切收尾
+4. 横切收尾
    - 统一租户边界（`requireTenantId` 落点、平台级/租户级边界）
    - 增加剩余 ArchUnit 规则并逐步加严
    - 保持“先接口收口、后门禁加严”的节奏，避免治理反向阻塞主线
@@ -24,12 +21,6 @@
   - 范围对象：`InventoryReservationController`、`InventoryAuditLogController`、`InventoryAuditCompensationController` 及对应 `interfaces.request.*`
   - 处理动作：新增首个 ArchUnit 规则，强制上述 controller 保持 `@Validated`（类/方法）与权限注解位置一致，请求对象参数使用 `@Valid`
   - 验收点：inventory 入口不再出现“裸参数 + 无校验注解”回退，并可作为其他域推广模板
-  - 重要度：8/10
-
-- [ ] `upms/payment/order/storage/auth-interfaces`：推广 controller 参数校验门禁
-  - 范围对象：各域 `interfaces.controller` 与 `interfaces.provider` 公共入口方法
-  - 处理动作：复用 inventory 已固化的校验模板与门禁规则，限制 request 对象参数必须显式 `@Valid`，禁止 controller 公共方法出现未约束裸对象参数
-  - 验收点：跨域入口参数约束粒度与 inventory 对齐，由统一门禁阻断
   - 重要度：8/10
 
 - [ ] `*-interfaces/request`：收敛请求模型放置与校验注解门禁
@@ -74,7 +65,6 @@
 
 1. `payment`：收口 `/payment` 路由语义 -> 对齐 OpenAPI tag 与 controller 命名
 2. `inventory`：补齐 `@Validated/@Valid/@HasPermission` 门禁并固化模板
-3. `upms/payment/order/storage/auth`：推广 inventory 校验模板 -> 补齐参数校验门禁
-4. `*-interfaces/request`：统一请求模型放置与字段校验门禁
-5. 横切边界：租户边界清单 -> 明确 `upms` 平台级 / 租户级能力边界
-6. 横切治理：目录反向命名门禁 -> `@SysLog` 策略评估
+3. `*-interfaces/request`：统一请求模型放置与字段校验门禁
+4. 横切边界：租户边界清单 -> 明确 `upms` 平台级 / 租户级能力边界
+5. 横切治理：目录反向命名门禁 -> `@SysLog` 策略评估

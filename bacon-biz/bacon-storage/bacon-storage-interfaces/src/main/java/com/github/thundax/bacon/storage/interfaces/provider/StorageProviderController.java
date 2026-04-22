@@ -1,9 +1,6 @@
 package com.github.thundax.bacon.storage.interfaces.provider;
 
 import com.github.thundax.bacon.storage.application.command.StoredObjectCommandApplicationService;
-import com.github.thundax.bacon.storage.application.dto.MultipartUploadPartDTO;
-import com.github.thundax.bacon.storage.application.dto.MultipartUploadSessionDTO;
-import com.github.thundax.bacon.storage.application.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.request.AbortMultipartUploadFacadeRequest;
 import com.github.thundax.bacon.storage.api.request.CompleteMultipartUploadFacadeRequest;
 import com.github.thundax.bacon.storage.api.request.InitMultipartUploadFacadeRequest;
@@ -12,7 +9,10 @@ import com.github.thundax.bacon.storage.api.request.UploadObjectFacadeRequest;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
 import com.github.thundax.bacon.storage.interfaces.assembler.StorageInterfaceAssembler;
 import com.github.thundax.bacon.storage.interfaces.request.StoredObjectPageProviderRequest;
+import com.github.thundax.bacon.storage.interfaces.response.MultipartUploadPartResponse;
+import com.github.thundax.bacon.storage.interfaces.response.MultipartUploadSessionResponse;
 import com.github.thundax.bacon.storage.interfaces.response.StoredObjectPageResponse;
+import com.github.thundax.bacon.storage.interfaces.response.StoredObjectResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
@@ -49,7 +49,7 @@ public class StorageProviderController {
 
     @Operation(summary = "普通文件上传")
     @PostMapping(value = "/objects/upload", consumes = "multipart/form-data")
-    public StoredObjectDTO uploadObject(
+    public StoredObjectResponse uploadObject(
             @RequestParam("ownerType") @NotBlank(message = "ownerType must not be blank") String ownerType,
             @RequestParam(value = "category", required = false) String category,
             @RequestParam("file") @NotNull(message = "file must not be null") MultipartFile file)
@@ -61,13 +61,13 @@ public class StorageProviderController {
                 file.getContentType(),
                 file.getSize(),
                 file.getInputStream());
-        return storedObjectCommandApplicationService.uploadObject(
-                StorageInterfaceAssembler.toUploadObjectCommand(command));
+        return StoredObjectResponse.from(storedObjectCommandApplicationService.uploadObject(
+                StorageInterfaceAssembler.toUploadObjectCommand(command)));
     }
 
     @Operation(summary = "初始化大文件分段上传")
     @PostMapping("/objects/multipart/init")
-    public MultipartUploadSessionDTO initMultipartUpload(
+    public MultipartUploadSessionResponse initMultipartUpload(
             @RequestParam("ownerType") @NotBlank(message = "ownerType must not be blank") String ownerType,
             @RequestParam("ownerId") @NotBlank(message = "ownerId must not be blank") String ownerId,
             @RequestParam(value = "category", required = false) String category,
@@ -80,14 +80,14 @@ public class StorageProviderController {
             @RequestParam("partSize") @NotNull(message = "partSize must not be null")
                     @Positive(message = "partSize must be greater than 0")
                     Long partSize) {
-        return storedObjectCommandApplicationService.initMultipartUpload(
+        return MultipartUploadSessionResponse.from(storedObjectCommandApplicationService.initMultipartUpload(
                 StorageInterfaceAssembler.toInitMultipartUploadCommand(new InitMultipartUploadFacadeRequest(
-                        ownerType, ownerId, category, originalFilename, contentType, totalSize, partSize)));
+                        ownerType, ownerId, category, originalFilename, contentType, totalSize, partSize))));
     }
 
     @Operation(summary = "上传大文件分段")
     @PostMapping(value = "/objects/multipart/{uploadId}/parts", consumes = "multipart/form-data")
-    public MultipartUploadPartDTO uploadMultipartPart(
+    public MultipartUploadPartResponse uploadMultipartPart(
             @PathVariable("uploadId") @NotBlank(message = "uploadId must not be blank") String uploadId,
             @RequestParam("ownerType") @NotBlank(message = "ownerType must not be blank") String ownerType,
             @RequestParam("ownerId") @NotBlank(message = "ownerId must not be blank") String ownerId,
@@ -96,20 +96,20 @@ public class StorageProviderController {
                     Integer partNumber,
             @RequestParam("file") @NotNull(message = "file must not be null") MultipartFile file)
             throws IOException {
-        return storedObjectCommandApplicationService.uploadMultipartPart(
+        return MultipartUploadPartResponse.from(storedObjectCommandApplicationService.uploadMultipartPart(
                 StorageInterfaceAssembler.toUploadMultipartPartCommand(
-                        uploadId, ownerType, ownerId, partNumber, file));
+                        uploadId, ownerType, ownerId, partNumber, file)));
     }
 
     @Operation(summary = "完成大文件分段上传")
     @PostMapping("/objects/multipart/{uploadId}/complete")
-    public StoredObjectDTO completeMultipartUpload(
+    public StoredObjectResponse completeMultipartUpload(
             @PathVariable("uploadId") @NotBlank(message = "uploadId must not be blank") String uploadId,
             @RequestParam("ownerType") @NotBlank(message = "ownerType must not be blank") String ownerType,
             @RequestParam("ownerId") @NotBlank(message = "ownerId must not be blank") String ownerId) {
-        return storedObjectCommandApplicationService.completeMultipartUpload(
+        return StoredObjectResponse.from(storedObjectCommandApplicationService.completeMultipartUpload(
                 StorageInterfaceAssembler.toCompleteMultipartUploadCommand(
-                        new CompleteMultipartUploadFacadeRequest(uploadId, ownerType, ownerId)));
+                        new CompleteMultipartUploadFacadeRequest(uploadId, ownerType, ownerId))));
     }
 
     @Operation(summary = "取消大文件分段上传")
@@ -125,10 +125,11 @@ public class StorageProviderController {
 
     @Operation(summary = "查询存储对象")
     @GetMapping("/objects/{storedObjectNo}")
-    public StoredObjectDTO getObjectById(
+    public StoredObjectResponse getObjectById(
             @PathVariable("storedObjectNo") @NotBlank(message = "storedObjectNo must not be blank")
                     String storedObjectNo) {
-        return storedObjectQueryApplicationService.getObjectByNo(StorageInterfaceAssembler.toGetQuery(storedObjectNo));
+        return StoredObjectResponse.from(
+                storedObjectQueryApplicationService.getObjectByNo(StorageInterfaceAssembler.toGetQuery(storedObjectNo)));
     }
 
     @Operation(summary = "分页查询存储对象")

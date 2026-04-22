@@ -8,7 +8,6 @@
 2. `*-interfaces/request`
    - 收敛请求模型放置与校验注解门禁
 3. 横切收尾
-   - 统一租户边界（平台级/租户级边界）
    - 增加剩余 ArchUnit 规则并逐步加严
    - 保持“先接口收口、后门禁加严”的节奏，避免治理反向阻塞主线
 
@@ -24,12 +23,6 @@
   - 当前状态：`PaymentQueryController`、`PaymentAuditLogController` 共用 `/payment`，`callback` 独立为 `/payment/callbacks`
   - 处理动作：统一资源名与动作语义（按支付单、审计日志、回调）并同步 OpenAPI tag 命名
   - 验收点：支付域路由和 controller 命名一一对应，便于 AI 稳定路由推断
-  - 重要度：6/10
-
-### P2 - 租户边界统一
-
-- [ ] 明确 `upms` 中平台级能力和租户级能力的边界
-  - 输出物：哪些接口必须要求租户，哪些接口允许平台上下文
   - 重要度：6/10
 
 ### P1 - ArchUnit 可落地增强
@@ -52,5 +45,4 @@
 
 1. `payment`：收口 `/payment` 路由语义 -> 对齐 OpenAPI tag 与 controller 命名
 2. `*-interfaces/request`：统一请求模型放置与字段校验门禁
-3. 横切边界：明确 `upms` 平台级 / 租户级能力边界
-4. 横切治理：目录反向命名门禁 -> `@SysLog` 策略评估
+3. 横切治理：目录反向命名门禁 -> `@SysLog` 策略评估

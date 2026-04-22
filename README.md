@@ -145,6 +145,46 @@ mvn -pl bacon-app/bacon-order-starter -am -DskipTests install
 mvn -pl bacon-app/bacon-order-starter spring-boot:run
 ```
 
+### Docker Deployment
+
+`deploy/` 提供两套 `docker compose` 样例：
+
+- `mono`：`deploy/bacon-mono-boot/docker-compose.yml`
+- `micro`：`deploy/bacon-micro/docker-compose.yml`
+
+`mono` 快速启动：
+
+```bash
+mvn -q -pl bacon-app/bacon-mono-boot -am -DskipTests package
+cp deploy/bacon-mono-boot/.env.example deploy/bacon-mono-boot/.env
+docker compose --env-file deploy/bacon-mono-boot/.env -f deploy/bacon-mono-boot/docker-compose.yml up -d
+cat db/schema/*.sql | docker compose --env-file deploy/bacon-mono-boot/.env -f deploy/bacon-mono-boot/docker-compose.yml exec -T mysql mysql -uroot -p<MYSQL_ROOT_PASSWORD> bacon_sample
+cat db/data/*.sql | docker compose --env-file deploy/bacon-mono-boot/.env -f deploy/bacon-mono-boot/docker-compose.yml exec -T mysql mysql -uroot -p<MYSQL_ROOT_PASSWORD> bacon_sample
+```
+
+`micro` 快速启动：
+
+```bash
+mvn -q -pl bacon-app/bacon-gateway,bacon-app/bacon-auth-starter,bacon-app/bacon-upms-starter,bacon-app/bacon-order-starter,bacon-app/bacon-inventory-starter,bacon-app/bacon-payment-starter,bacon-app/bacon-storage-starter -am -DskipTests package
+cp deploy/bacon-micro/.env.example deploy/bacon-micro/.env
+docker compose --env-file deploy/bacon-micro/.env -f deploy/bacon-micro/docker-compose.yml up -d
+cat db/schema/*.sql | docker compose --env-file deploy/bacon-micro/.env -f deploy/bacon-micro/docker-compose.yml exec -T mysql mysql -uroot -p<MYSQL_ROOT_PASSWORD> bacon_sample
+cat db/data/*.sql | docker compose --env-file deploy/bacon-micro/.env -f deploy/bacon-micro/docker-compose.yml exec -T mysql mysql -uroot -p<MYSQL_ROOT_PASSWORD> bacon_sample
+```
+
+停止示例：
+
+```bash
+docker compose --env-file deploy/bacon-mono-boot/.env -f deploy/bacon-mono-boot/docker-compose.yml down
+docker compose --env-file deploy/bacon-micro/.env -f deploy/bacon-micro/docker-compose.yml down
+```
+
+部署细节见：
+
+- [deploy/README.md](deploy/README.md)
+- [deploy/bacon-mono-boot/README.md](deploy/bacon-mono-boot/README.md)
+- [deploy/bacon-micro/README.md](deploy/bacon-micro/README.md)
+
 ## 质量工具
 
 - `spotless`：负责 formatter、import 排序与版式整理

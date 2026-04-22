@@ -23,12 +23,6 @@
 
 ### P0 - 五域风格/手法/功能对齐（inventory/payment/order/storage/upms）
 
-- [ ] `bacon-upms-application/src/main/java/com/github/thundax/bacon/upms/application/audit/SysLogQueryApplicationService.java`：收口 syslog 查询合同
-  - 范围对象：`page(String, String, String, String, Integer, Integer)`、`getLogById(SysLogId)`
-  - 处理动作：新增 `SysLogPageQuery`，将分页查询改为 `page(XxxPageQuery)`；同时按上下文内命名约定收口查询方法名
-  - 验收点：syslog 查询服务不再暴露多参数分页方法，查询命名与 `APPLICATION-REFACTOR` 约定一致
-  - 重要度：9/10
-
 - [ ] `bacon-upms-application/src/main/java/com/github/thundax/bacon/upms/application/command/UserProfileApplicationService.java`：收口 user profile 命名冗余
   - 范围对象：`createUser`、`updateUser`、`updateUserStatus`
   - 处理动作：按 bounded context 内部命名约定分别收口为 `create`、`update`、`updateStatus`，并同步修正 controller / facade / tests 调用点

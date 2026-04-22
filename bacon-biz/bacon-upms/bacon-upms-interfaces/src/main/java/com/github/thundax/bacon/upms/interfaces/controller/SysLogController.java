@@ -5,6 +5,7 @@ import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.application.audit.SysLogQueryApplicationService;
+import com.github.thundax.bacon.upms.interfaces.assembler.SysLogInterfaceAssembler;
 import com.github.thundax.bacon.upms.domain.model.valueobject.SysLogId;
 import com.github.thundax.bacon.upms.interfaces.request.SysLogPageRequest;
 import com.github.thundax.bacon.upms.interfaces.response.SysLogPageResponse;
@@ -38,13 +39,7 @@ public class SysLogController {
     @SysLog(module = "UPMS", action = "分页查询系统日志", eventType = LogEventType.QUERY)
     @GetMapping("/page")
     public SysLogPageResponse page(@Valid @ModelAttribute SysLogPageRequest request) {
-        return SysLogPageResponse.from(sysLogQueryService.page(
-                request.getModule(),
-                request.getEventType() == null ? null : request.getEventType().name(),
-                request.getResult(),
-                request.getOperatorName(),
-                request.getPageNo(),
-                request.getPageSize()));
+        return SysLogPageResponse.from(sysLogQueryService.page(SysLogInterfaceAssembler.toPageQuery(request)));
     }
 
     @Operation(summary = "按日志 ID 查询系统访问日志")
@@ -53,6 +48,6 @@ public class SysLogController {
     @GetMapping("/{logId}")
     public SysLogResponse getLogById(
             @PathVariable("logId") @Positive(message = "logId must be greater than 0") Long logId) {
-        return SysLogResponse.from(sysLogQueryService.getLogById(SysLogId.of(logId)));
+        return SysLogResponse.from(sysLogQueryService.getById(SysLogId.of(logId)));
     }
 }

@@ -42,7 +42,7 @@ class InventoryProviderControllerTest {
                         .param("skuIds", "102")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.records[0].skuId").value(101))
+                .andExpect(jsonPath("$[0].skuId").value(101))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 

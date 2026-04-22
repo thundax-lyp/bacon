@@ -29,7 +29,11 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.interfaces.request.CreateInventoryRequest;
 import com.github.thundax.bacon.inventory.interfaces.request.InventoryAuditDeadLetterPageRequest;
 import com.github.thundax.bacon.inventory.interfaces.request.InventoryBatchQueryRequest;
+import com.github.thundax.bacon.inventory.interfaces.request.InventoryDeductRequest;
 import com.github.thundax.bacon.inventory.interfaces.request.InventoryPageRequest;
+import com.github.thundax.bacon.inventory.interfaces.request.InventoryReleaseRequest;
+import com.github.thundax.bacon.inventory.interfaces.request.InventoryReservationItemRequest;
+import com.github.thundax.bacon.inventory.interfaces.request.InventoryReserveRequest;
 import com.github.thundax.bacon.inventory.interfaces.request.InventoryStatusUpdateRequest;
 import java.util.List;
 import java.util.Set;
@@ -103,15 +107,33 @@ public final class InventoryInterfaceAssembler {
                         : request.getItems().stream().map(InventoryInterfaceAssembler::toReservationItemCommand).toList());
     }
 
+    public static InventoryReserveStockCommand toReserveCommand(InventoryReserveRequest request) {
+        return new InventoryReserveStockCommand(
+                request == null ? null : OrderNoCodec.toDomain(request.orderNo()),
+                request == null || request.items() == null
+                        ? List.of()
+                        : request.items().stream().map(InventoryInterfaceAssembler::toReservationItemCommand).toList());
+    }
+
     public static InventoryReleaseStockCommand toReleaseCommand(InventoryReleaseFacadeRequest request) {
         return new InventoryReleaseStockCommand(
                 request == null ? null : OrderNoCodec.toDomain(request.getOrderNo()),
                 request == null || request.getReason() == null ? null : InventoryReleaseReason.from(request.getReason()));
     }
 
+    public static InventoryReleaseStockCommand toReleaseCommand(InventoryReleaseRequest request) {
+        return new InventoryReleaseStockCommand(
+                request == null ? null : OrderNoCodec.toDomain(request.orderNo()),
+                request == null || request.reason() == null ? null : InventoryReleaseReason.from(request.reason()));
+    }
+
     public static InventoryDeductStockCommand toDeductCommand(InventoryDeductFacadeRequest request) {
         return new InventoryDeductStockCommand(
                 request == null ? null : OrderNoCodec.toDomain(request.getOrderNo()));
+    }
+
+    public static InventoryDeductStockCommand toDeductCommand(InventoryDeductRequest request) {
+        return new InventoryDeductStockCommand(request == null ? null : OrderNoCodec.toDomain(request.orderNo()));
     }
 
     public static InventoryAvailableStockQuery toAvailableStockQuery(InventoryAvailableStockFacadeRequest request) {
@@ -135,5 +157,11 @@ public final class InventoryInterfaceAssembler {
         return new InventoryReservationItemCommand(
                 request == null ? null : SkuIdCodec.toDomain(request.getSkuId()),
                 request == null ? null : request.getQuantity());
+    }
+
+    private static InventoryReservationItemCommand toReservationItemCommand(InventoryReservationItemRequest request) {
+        return new InventoryReservationItemCommand(
+                request == null ? null : SkuIdCodec.toDomain(request.skuId()),
+                request == null ? null : request.quantity());
     }
 }

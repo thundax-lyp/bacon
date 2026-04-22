@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.interfaces.response;
 
 import com.github.thundax.bacon.inventory.application.dto.InventoryReservationDTO;
+import com.github.thundax.bacon.inventory.application.result.InventoryReservationResult;
 import java.time.Instant;
 import java.util.List;
 
@@ -43,5 +44,19 @@ public record InventoryReservationResponse(
                 dto.getCreatedAt(),
                 dto.getReleasedAt(),
                 dto.getDeductedAt());
+    }
+
+    public static InventoryReservationResponse from(InventoryReservationResult result) {
+        return new InventoryReservationResponse(
+                result.getOrderNo(),
+                result.getReservationNo(),
+                result.getReservationStatus(),
+                result.getWarehouseCode(),
+                List.of(),
+                result.getFailureReason(),
+                result.getReleaseReason(),
+                null,
+                result.getReleasedAt(),
+                result.getDeductedAt());
     }
 }

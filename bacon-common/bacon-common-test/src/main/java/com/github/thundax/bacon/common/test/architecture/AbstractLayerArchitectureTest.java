@@ -68,6 +68,18 @@ public abstract class AbstractLayerArchitectureTest {
     }
 
     @Test
+    void shouldEnforceLayerControllerSignatureRequestResponse() {
+        LayerArchitectureRuleSupport.controllerPublicMethodsShouldUseRequestAndResponse(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    void shouldEnforceLayerProviderSignatureRequestResponse() {
+        LayerArchitectureRuleSupport.providerPublicMethodsShouldUseRequestAndResponse(basePackage())
+                .check(classes());
+    }
+
+    @Test
     void shouldEnforceLayerPersistenceAssemblerPublicMethods() {
         NamingAndPlacementRuleSupport.persistenceAssemblerPublicMethodsShouldUseToDomainAndToDataObject(basePackage())
                 .check(classes());

@@ -54,6 +54,8 @@
 - `LAYER_FACADE_SIGNATURE_MODEL`：仅 `api.facade` 方法签名使用 `FacadeRequest` / `FacadeResponse`
 - `LAYER_FACADE_SINGLE_REQUEST`：`Facade` 方法入参固定为“无入参或单个 `XxxFacadeRequest`”
 - `LAYER_FACADE_RESPONSE_ONLY`：`Facade` 方法返回固定为 `XxxFacadeResponse` 或 `void`
+- `LAYER_CONTROLLER_SIGNATURE_REQUEST_RESPONSE`：`interfaces.controller` 公开方法入参固定为“无业务入参、单个 `interfaces.request.*Request`，或带 Web 绑定注解的稳定基础类型参数”；返回固定为 `interfaces.response.*Response`、`List/Set<...Response>`、`ResponseEntity<...Response|Void>` 或 `void`
+- `LAYER_PROVIDER_SIGNATURE_REQUEST_RESPONSE`：`interfaces.provider` 公开方法入参固定为“无业务入参、单个 `interfaces.request.*Request`，或带 Web 绑定注解的稳定基础类型参数”；返回固定为 `interfaces.response.*Response`、`List/Set<...Response>`、`ResponseEntity<...Response|Void>` 或 `void`
 - `LAYER_PERSISTENCE_ASSEMBLER_PLACEMENT`：`*PersistenceAssembler` 必须位于 `infra.persistence.assembler..`
 - `LAYER_PERSISTENCE_ASSEMBLER_PUBLIC_METHODS`：`*PersistenceAssembler` 公开方法只允许 `toDomain(...)`、`toDataObject(...)`
 - `LAYER_APPLICATION_INFRA_NO_ILLEGAL_ARGUMENT`：`application` 与 `infra.repository.impl/support` 禁止把 `IllegalArgumentException` 作为业务异常出口
@@ -102,6 +104,11 @@
 - `LAYER_CODEC_SCOPE`：`Codec` 只做基础类型和值对象互转，不做业务编排；待固定目录/调用写法后再升级为 `Hard Rules`
 - interfaces 层优先完成参数约束校验，避免将明显非法参数下沉到 application
 - application 公共入口优先使用 `Command / Query / VO`，避免长 primitive 参数列表
+- `LAYER_CONTROLLER_SIGNATURE_REQUEST_RESPONSE` / `LAYER_PROVIDER_SIGNATURE_REQUEST_RESPONSE` 的允许项和禁止项固定如下：
+  - 允许入参：无业务入参；单个 `interfaces.request.*Request`；带 `@PathVariable` / `@RequestParam` / `@RequestHeader` / `@ModelAttribute` / `@RequestBody` 的稳定基础类型或框架类型参数
+  - 允许返回：`interfaces.response.*Response`；`List<...Response>`；`Set<...Response>`；`ResponseEntity<...Response>`；`ResponseEntity<Void>`；`void`
+  - 禁止入参：`api.request.*FacadeRequest`、`api.response.*FacadeResponse`、`application.dto.*DTO`、`application.result.*Result`、`domain.model.*`、`infra.persistence.dataobject.*DO` 以及其他业务域内部模型
+  - 禁止返回：`api.response.*FacadeResponse`、`application.dto.*DTO`、`application.result.*Result`、`domain.model.*`、`infra.persistence.dataobject.*DO` 以及其他业务域内部模型
 
 ### Naming & Placement
 

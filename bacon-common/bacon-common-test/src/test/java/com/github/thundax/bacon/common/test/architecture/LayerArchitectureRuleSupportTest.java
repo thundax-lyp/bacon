@@ -6,6 +6,15 @@ import com.github.thundax.bacon.common.test.architecture.fixture.contract.common
 import com.github.thundax.bacon.common.test.architecture.fixture.contract.order.api.facade.InvalidOrderFacadeDependsOnPaymentApplication;
 import com.github.thundax.bacon.common.test.architecture.fixture.contract.order.api.facade.ValidOrderFacadeDependsOnCommon;
 import com.github.thundax.bacon.common.test.architecture.fixture.contract.payment.application.service.PaymentApplicationService;
+import com.github.thundax.bacon.common.test.architecture.fixture.signature.api.request.InvalidFixtureFacadeRequest;
+import com.github.thundax.bacon.common.test.architecture.fixture.signature.api.response.InvalidFixtureFacadeResponse;
+import com.github.thundax.bacon.common.test.architecture.fixture.signature.application.dto.InvalidFixtureDTO;
+import com.github.thundax.bacon.common.test.architecture.fixture.signature.interfaces.controller.InvalidControllerUsesApplicationDto;
+import com.github.thundax.bacon.common.test.architecture.fixture.signature.interfaces.controller.InvalidControllerUsesFacadeRequest;
+import com.github.thundax.bacon.common.test.architecture.fixture.signature.interfaces.controller.ValidFixtureController;
+import com.github.thundax.bacon.common.test.architecture.fixture.signature.interfaces.provider.InvalidProviderReturnsFacadeResponse;
+import com.github.thundax.bacon.common.test.architecture.fixture.signature.interfaces.provider.InvalidProviderUsesFacadeRequest;
+import com.github.thundax.bacon.common.test.architecture.fixture.signature.interfaces.provider.ValidFixtureProviderController;
 import com.github.thundax.bacon.common.test.architecture.fixture.layered.api.facade.InvalidDomainDependentFacade;
 import com.github.thundax.bacon.common.test.architecture.fixture.layered.api.facade.ValidFixtureFacade;
 import com.github.thundax.bacon.common.test.architecture.fixture.layered.api.request.ValidFixtureRequest;
@@ -52,6 +61,61 @@ class LayerArchitectureRuleSupportTest {
                         && detail.contains(PaymentApplicationService.class.getName()));
     }
 
+    @Test
+    void controllerShouldAcceptRequestAndResponseContracts() {
+        EvaluationResult result = evaluateControllerSignatureRule(
+                ValidFixtureController.class,
+                com.github.thundax.bacon.common.test.architecture.fixture.signature.interfaces.request.ValidFixtureRequest.class,
+                com.github.thundax.bacon.common.test.architecture.fixture.signature.interfaces.response.ValidFixtureResponse.class);
+
+        assertThat(result.getFailureReport().getDetails()).isEmpty();
+    }
+
+    @Test
+    void controllerShouldRejectApplicationDtoAndFacadeRequestContracts() {
+        EvaluationResult result = evaluateControllerSignatureRule(
+                InvalidControllerUsesApplicationDto.class,
+                InvalidControllerUsesFacadeRequest.class,
+                InvalidFixtureDTO.class,
+                InvalidFixtureFacadeRequest.class,
+                com.github.thundax.bacon.common.test.architecture.fixture.signature.interfaces.response.ValidFixtureResponse.class);
+
+        assertThat(result.hasViolation()).isTrue();
+        assertThat(result.getFailureReport().getDetails())
+                .anyMatch(detail -> detail.contains(InvalidControllerUsesApplicationDto.class.getName())
+                        && detail.contains(InvalidFixtureDTO.class.getName()));
+        assertThat(result.getFailureReport().getDetails())
+                .anyMatch(detail -> detail.contains(InvalidControllerUsesFacadeRequest.class.getName())
+                        && detail.contains(InvalidFixtureFacadeRequest.class.getName()));
+    }
+
+    @Test
+    void providerShouldAcceptRequestAndResponseContracts() {
+        EvaluationResult result = evaluateProviderSignatureRule(
+                ValidFixtureProviderController.class,
+                com.github.thundax.bacon.common.test.architecture.fixture.signature.interfaces.request.ValidFixtureRequest.class,
+                com.github.thundax.bacon.common.test.architecture.fixture.signature.interfaces.response.ValidFixtureResponse.class);
+
+        assertThat(result.getFailureReport().getDetails()).isEmpty();
+    }
+
+    @Test
+    void providerShouldRejectFacadeRequestAndFacadeResponseContracts() {
+        EvaluationResult result = evaluateProviderSignatureRule(
+                InvalidProviderUsesFacadeRequest.class,
+                InvalidProviderReturnsFacadeResponse.class,
+                InvalidFixtureFacadeRequest.class,
+                InvalidFixtureFacadeResponse.class);
+
+        assertThat(result.hasViolation()).isTrue();
+        assertThat(result.getFailureReport().getDetails())
+                .anyMatch(detail -> detail.contains(InvalidProviderUsesFacadeRequest.class.getName())
+                        && detail.contains(InvalidFixtureFacadeRequest.class.getName()));
+        assertThat(result.getFailureReport().getDetails())
+                .anyMatch(detail -> detail.contains(InvalidProviderReturnsFacadeResponse.class.getName())
+                        && detail.contains(InvalidFixtureFacadeResponse.class.getName()));
+    }
+
     private static EvaluationResult evaluateApiDomainRule(Class<?>... targetClasses) {
         String basePackage = "com.github.thundax.bacon.common.test.architecture.fixture.layered";
         return LayerArchitectureRuleSupport.apiShouldNotDependOnAnyDomain(basePackage)
@@ -61,6 +125,18 @@ class LayerArchitectureRuleSupportTest {
     private static EvaluationResult evaluateApiOtherDomainModuleRule(Class<?>... targetClasses) {
         String basePackage = "com.github.thundax.bacon.common.test.architecture.fixture.contract.order";
         return LayerArchitectureRuleSupport.apiShouldNotDependOnAnyOtherDomainModules(basePackage)
+                .evaluate(new ClassFileImporter().importClasses(targetClasses));
+    }
+
+    private static EvaluationResult evaluateControllerSignatureRule(Class<?>... targetClasses) {
+        String basePackage = "com.github.thundax.bacon.common.test.architecture.fixture.signature";
+        return LayerArchitectureRuleSupport.controllerPublicMethodsShouldUseRequestAndResponse(basePackage)
+                .evaluate(new ClassFileImporter().importClasses(targetClasses));
+    }
+
+    private static EvaluationResult evaluateProviderSignatureRule(Class<?>... targetClasses) {
+        String basePackage = "com.github.thundax.bacon.common.test.architecture.fixture.signature";
+        return LayerArchitectureRuleSupport.providerPublicMethodsShouldUseRequestAndResponse(basePackage)
                 .evaluate(new ClassFileImporter().importClasses(targetClasses));
     }
 }

@@ -18,6 +18,8 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -379,6 +381,24 @@ public final class LayerArchitectureRuleSupport {
                                 + "must map DTO/Response in application.assembler");
     }
 
+    public static ArchRule controllerPublicMethodsShouldUseRequestAndResponse(String basePackage) {
+        return interfaceEndpointPublicMethodsShouldUseRequestAndResponse(
+                basePackage,
+                basePackage + ".interfaces.controller..",
+                "controller",
+                "RULE LAYER_CONTROLLER_SIGNATURE_REQUEST_RESPONSE: interfaces.controller public methods must use "
+                        + "request/response contracts");
+    }
+
+    public static ArchRule providerPublicMethodsShouldUseRequestAndResponse(String basePackage) {
+        return interfaceEndpointPublicMethodsShouldUseRequestAndResponse(
+                basePackage,
+                basePackage + ".interfaces.provider..",
+                "provider",
+                "RULE LAYER_PROVIDER_SIGNATURE_REQUEST_RESPONSE: interfaces.provider public methods must use "
+                        + "request/response contracts");
+    }
+
     public static ArchRule interfacesAssemblersShouldOnlyBeCalledByInterfaces(String basePackage) {
         return noClassesOutsidePackageShouldCallClassesInPackage(
                 basePackage + ".interfaces..",
@@ -550,6 +570,39 @@ public final class LayerArchitectureRuleSupport {
         return false;
     }
 
+    private static ArchRule interfaceEndpointPublicMethodsShouldUseRequestAndResponse(
+            String basePackage, String endpointPackage, String endpointType, String because) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAPackage(endpointPackage)
+                .should(new ArchCondition<>("use stable request/response contracts on public " + endpointType + " methods") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        for (JavaMethod method : item.getMethods()) {
+                            if (!method.getOwner().equals(item)
+                                    || !method.getModifiers().contains(JavaModifier.PUBLIC)) {
+                                continue;
+                            }
+                            for (JavaClass parameterType : method.getRawParameterTypes()) {
+                                if (!isAllowedInterfaceEndpointParameterType(basePackage, parameterType)) {
+                                    events.add(SimpleConditionEvent.violated(
+                                            method,
+                                            method.getFullName() + " uses forbidden parameter type "
+                                                    + parameterType.getFullName()));
+                                }
+                            }
+                            if (!isAllowedInterfaceEndpointReturnType(basePackage, method)) {
+                                events.add(SimpleConditionEvent.violated(
+                                        method,
+                                        method.getFullName() + " uses forbidden return type "
+                                                + method.getRawReturnType().getFullName()));
+                            }
+                        }
+                    }
+                })
+                .because(because);
+    }
+
     private static ArchRule noDirectDependencies(
             String sourcePackage,
             Predicate<String> forbiddenTargetPackage,
@@ -582,6 +635,74 @@ public final class LayerArchitectureRuleSupport {
         }
         return packageName.startsWith(basePackage + ".api.dto.")
                 && (simpleName.endsWith("QueryDTO") || simpleName.endsWith("PageQueryDTO"));
+    }
+
+    private static boolean isAllowedInterfaceEndpointParameterType(String basePackage, JavaClass parameterType) {
+        String packageName = parameterType.getPackageName();
+        if (!packageName.startsWith(ROOT_PACKAGE + ".")) {
+            return true;
+        }
+        return packageName.startsWith(basePackage + ".interfaces.request")
+                && parameterType.getSimpleName().endsWith("Request");
+    }
+
+    private static boolean isAllowedInterfaceEndpointReturnType(String basePackage, JavaMethod method) {
+        return isAllowedInterfaceEndpointReturnType(basePackage, method.reflect().getGenericReturnType());
+    }
+
+    private static boolean isAllowedInterfaceEndpointReturnType(String basePackage, Type returnType) {
+        if (returnType instanceof Class<?> rawClass) {
+            return isAllowedInterfaceEndpointReturnClass(basePackage, rawClass);
+        }
+        if (returnType instanceof ParameterizedType parameterizedType) {
+            Type rawType = parameterizedType.getRawType();
+            if (!(rawType instanceof Class<?> rawClass)) {
+                return false;
+            }
+            if (isAllowedCollectionWrapper(rawClass) || isResponseEntity(rawClass)) {
+                Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                return actualTypeArguments.length == 1
+                        && isAllowedInterfaceEndpointResponsePayload(basePackage, actualTypeArguments[0]);
+            }
+            return isAllowedInterfaceEndpointReturnClass(basePackage, rawClass);
+        }
+        return false;
+    }
+
+    private static boolean isAllowedInterfaceEndpointResponsePayload(String basePackage, Type payloadType) {
+        if (payloadType instanceof Class<?> payloadClass) {
+            return isAllowedInterfaceEndpointReturnClass(basePackage, payloadClass);
+        }
+        if (payloadType instanceof ParameterizedType parameterizedType) {
+            Type rawType = parameterizedType.getRawType();
+            if (!(rawType instanceof Class<?> rawClass) || !isAllowedCollectionWrapper(rawClass)) {
+                return false;
+            }
+            Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+            return actualTypeArguments.length == 1
+                    && isAllowedInterfaceEndpointResponsePayload(basePackage, actualTypeArguments[0]);
+        }
+        return false;
+    }
+
+    private static boolean isAllowedInterfaceEndpointReturnClass(String basePackage, Class<?> returnClass) {
+        String packageName = returnClass.getPackageName();
+        if (void.class.equals(returnClass) || Void.class.equals(returnClass)) {
+            return true;
+        }
+        if (!packageName.startsWith(ROOT_PACKAGE + ".")) {
+            return isAllowedCollectionWrapper(returnClass) || isResponseEntity(returnClass);
+        }
+        return packageName.startsWith(basePackage + ".interfaces.response")
+                && returnClass.getSimpleName().endsWith("Response");
+    }
+
+    private static boolean isAllowedCollectionWrapper(Class<?> rawClass) {
+        return List.class.equals(rawClass) || Set.class.equals(rawClass);
+    }
+
+    private static boolean isResponseEntity(Class<?> rawClass) {
+        return "org.springframework.http.ResponseEntity".equals(rawClass.getName());
     }
 
     private static boolean isWhitelistedInterfacesDependency(

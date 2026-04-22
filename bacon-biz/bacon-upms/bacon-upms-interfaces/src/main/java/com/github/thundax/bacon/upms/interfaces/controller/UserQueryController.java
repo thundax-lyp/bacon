@@ -4,6 +4,8 @@ import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
+import com.github.thundax.bacon.common.web.annotation.ApiAnnotationException;
+import com.github.thundax.bacon.common.web.annotation.ApiAnnotationExceptionBucket;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.interfaces.assembler.UserInterfaceAssembler;
 import com.github.thundax.bacon.upms.application.query.UserQueryApplicationService;
@@ -62,6 +64,7 @@ public class UserQueryController {
     }
 
     @Operation(summary = "访问用户头像")
+    @ApiAnnotationException(bucket = ApiAnnotationExceptionBucket.AUTH_PUBLIC)
     @SysLog(module = "UPMS", action = "访问用户头像", eventType = LogEventType.QUERY)
     @GetMapping("/{userId}/avatar")
     public ResponseEntity<Void> getAvatar(

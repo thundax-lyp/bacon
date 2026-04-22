@@ -20,6 +20,8 @@ import com.github.thundax.bacon.auth.interfaces.response.CurrentSessionResponse;
 import com.github.thundax.bacon.auth.interfaces.response.PasswordLoginChallengeResponse;
 import com.github.thundax.bacon.auth.interfaces.response.UserLoginResponse;
 import com.github.thundax.bacon.auth.interfaces.response.UserTokenRefreshResponse;
+import com.github.thundax.bacon.common.web.annotation.ApiAnnotationException;
+import com.github.thundax.bacon.common.web.annotation.ApiAnnotationExceptionBucket;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.common.web.util.BearerTokenUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,6 +42,7 @@ import org.springframework.validation.annotation.Validated;
 @RequestMapping("/auth")
 @Validated
 @Tag(name = "Auth-Management", description = "认证、登录、令牌与会话接口")
+@ApiAnnotationException(bucket = ApiAnnotationExceptionBucket.AUTH_PUBLIC)
 public class AuthController {
 
     private final LoginApplicationService loginApplicationService;

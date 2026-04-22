@@ -14,6 +14,8 @@ import com.github.thundax.bacon.auth.interfaces.response.OAuth2AuthorizationView
 import com.github.thundax.bacon.auth.interfaces.response.OAuth2IntrospectionResponse;
 import com.github.thundax.bacon.auth.interfaces.response.OAuth2TokenResponse;
 import com.github.thundax.bacon.auth.interfaces.response.OAuth2UserinfoResponse;
+import com.github.thundax.bacon.common.web.annotation.ApiAnnotationException;
+import com.github.thundax.bacon.common.web.annotation.ApiAnnotationExceptionBucket;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.common.web.util.BearerTokenUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,6 +37,7 @@ import org.springframework.validation.annotation.Validated;
 @RequestMapping("/auth/oauth2")
 @Validated
 @Tag(name = "Auth-OAuth2", description = "OAuth2 授权协议接口")
+@ApiAnnotationException(bucket = ApiAnnotationExceptionBucket.OAUTH2_PROTOCOL)
 public class OAuth2Controller {
 
     private final OAuth2AuthorizationCommandApplicationService oAuth2AuthorizationCommandApplicationService;

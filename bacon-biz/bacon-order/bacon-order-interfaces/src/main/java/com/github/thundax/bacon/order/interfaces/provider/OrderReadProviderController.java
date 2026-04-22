@@ -5,6 +5,7 @@ import com.github.thundax.bacon.order.application.query.OrderQueryApplicationSer
 import com.github.thundax.bacon.order.api.request.OrderPageFacadeRequest;
 import com.github.thundax.bacon.order.api.response.OrderDetailFacadeResponse;
 import com.github.thundax.bacon.order.api.response.OrderPageFacadeResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -26,12 +27,14 @@ public class OrderReadProviderController {
         this.orderQueryService = orderQueryService;
     }
 
+    @Operation(summary = "按订单号查询订单详情")
     @GetMapping("/{orderNo}")
     public OrderDetailFacadeResponse getByOrderNo(@PathVariable("orderNo") @NotBlank String orderNo) {
         return OrderInterfaceAssembler.toDetailFacadeResponse(
                 orderQueryService.getByOrderNo(OrderInterfaceAssembler.toByOrderNoQuery(orderNo)));
     }
 
+    @Operation(summary = "分页查询订单")
     @GetMapping
     public OrderPageFacadeResponse page(@Valid OrderPageFacadeRequest request) {
         return OrderInterfaceAssembler.toPageFacadeResponse(

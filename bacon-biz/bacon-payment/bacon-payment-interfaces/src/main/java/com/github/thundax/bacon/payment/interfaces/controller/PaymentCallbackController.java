@@ -3,6 +3,8 @@ package com.github.thundax.bacon.payment.interfaces.controller;
 import com.github.thundax.bacon.payment.application.command.PaymentCallbackApplicationService;
 import com.github.thundax.bacon.payment.interfaces.assembler.PaymentInterfaceAssembler;
 import com.github.thundax.bacon.payment.interfaces.request.PaymentCallbackRequest;
+import com.github.thundax.bacon.common.web.annotation.ApiAnnotationException;
+import com.github.thundax.bacon.common.web.annotation.ApiAnnotationExceptionBucket;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/payment/callbacks")
 @Tag(name = "Payment-Callback", description = "支付回调接口")
+@ApiAnnotationException(bucket = ApiAnnotationExceptionBucket.CALLBACK_ENDPOINT)
 public class PaymentCallbackController {
 
     private final PaymentCallbackApplicationService paymentCallbackApplicationService;

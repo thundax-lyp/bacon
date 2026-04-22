@@ -60,7 +60,7 @@ public class UserQueryController {
     @GetMapping("/{userId}")
     public UserResponse getUserById(
             @PathVariable("userId") @Positive(message = "userId must be greater than 0") Long userId) {
-        return UserInterfaceAssembler.toResponse(userQueryApplicationService.getUserById(UserIdCodec.toDomain(userId)));
+        return UserInterfaceAssembler.toResponse(userQueryApplicationService.getById(UserIdCodec.toDomain(userId)));
     }
 
     @Operation(summary = "访问用户头像")

@@ -23,12 +23,6 @@
 
 ### P0 - 五域风格/手法/功能对齐（inventory/payment/order/storage/upms）
 
-- [ ] `bacon-upms-application/src/main/java/com/github/thundax/bacon/upms/application/query/UserQueryApplicationService.java`：收口 user query 命名冗余
-  - 范围对象：`getUserById`、`getTenantByTenantId`
-  - 处理动作：按 query service 命名约定分别收口为 `getById`、`getTenantById` 或等价上下文内简名，并同步修正 controller / facade / tests 调用点
-  - 验收点：用户查询 service 不再保留 `getXxxByXxx` 冗余命名残留
-  - 重要度：8/10
-
 - [ ] `inventory-interfaces`：对齐 controller 校验注解门禁（`@Validated/@Valid/@HasPermission`）
   - 范围对象：`InventoryReservationController`、`InventoryAuditLogController`、`InventoryAuditCompensationController` 及对应 `interfaces.request.*`
   - 处理动作：新增 ArchUnit 规则，强制上述 controller 保持 `@Validated`（类/方法）与权限注解位置一致，请求对象参数使用 `@Valid`

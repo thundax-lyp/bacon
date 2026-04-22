@@ -62,7 +62,7 @@ public class UserQueryApplicationService {
         this.storedObjectReadFacade = storedObjectReadFacade;
     }
 
-    public UserDTO getUserById(UserId userId) {
+    public UserDTO getById(UserId userId) {
         User user = requireUser(userId);
         return UserAssembler.toDto(
                 user,
@@ -92,7 +92,7 @@ public class UserQueryApplicationService {
         return UserIdentityAssembler.toLoginCredentialDto(user, userIdentity, passwordCredential, account, phone);
     }
 
-    public TenantDTO getTenantByTenantId(TenantId tenantId) {
+    public TenantDTO getTenantById(TenantId tenantId) {
         Tenant tenant = tenantRepository
                 .findById(tenantId)
                 .orElseThrow(() -> new NotFoundException("Tenant not found: " + tenantId.value()));

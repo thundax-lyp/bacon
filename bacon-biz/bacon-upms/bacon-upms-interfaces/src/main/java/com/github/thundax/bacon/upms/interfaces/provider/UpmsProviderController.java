@@ -54,7 +54,7 @@ public class UpmsProviderController {
     @Operation(summary = "查询当前用户")
     @GetMapping("/users/current")
     public UserFacadeResponse getCurrentUser() {
-        UserDTO user = userQueryApplicationService.getUserById(BaconIdContextHelper.requireUserId());
+        UserDTO user = userQueryApplicationService.getById(BaconIdContextHelper.requireUserId());
         String departmentCode = user.getDepartmentId() == null
                 ? null
                 : departmentQueryApplicationService
@@ -95,7 +95,7 @@ public class UpmsProviderController {
     @GetMapping("/tenants/current")
     public TenantFacadeResponse getCurrentTenant() {
         return TenantInterfaceAssembler.toFacadeResponse(
-                userQueryApplicationService.getTenantByTenantId(BaconIdContextHelper.requireTenantId()));
+                userQueryApplicationService.getTenantById(BaconIdContextHelper.requireTenantId()));
     }
 
     @Operation(summary = "查询当前用户数据权限范围")

@@ -38,7 +38,7 @@ public class CurrentUserReadFacadeLocalImpl implements CurrentUserReadFacade {
     @Override
     public UserFacadeResponse getCurrentUser() {
         BaconContextHolder.requireTenantId();
-        UserDTO user = userQueryApplicationService.getUserById(BaconIdContextHelper.requireUserId());
+        UserDTO user = userQueryApplicationService.getById(BaconIdContextHelper.requireUserId());
         return UserInterfaceAssembler.toFacadeResponse(user, resolveDepartmentCode(user));
     }
 
@@ -46,7 +46,7 @@ public class CurrentUserReadFacadeLocalImpl implements CurrentUserReadFacade {
     public TenantFacadeResponse getCurrentTenant() {
         BaconContextHolder.requireTenantId();
         return TenantInterfaceAssembler.toFacadeResponse(
-                userQueryApplicationService.getTenantByTenantId(BaconIdContextHelper.requireTenantId()));
+                userQueryApplicationService.getTenantById(BaconIdContextHelper.requireTenantId()));
     }
 
     @Override

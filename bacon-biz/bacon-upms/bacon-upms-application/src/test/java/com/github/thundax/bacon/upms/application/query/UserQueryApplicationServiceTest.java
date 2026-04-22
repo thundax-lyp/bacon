@@ -87,7 +87,7 @@ class UserQueryApplicationServiceTest {
     }
 
     @Test
-    void shouldGetUserByIdWithAvatarUrl() {
+    void shouldGetByIdWithAvatarUrl() {
         User user = user(
                 101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ACTIVE);
         when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
@@ -98,7 +98,7 @@ class UserQueryApplicationServiceTest {
         when(storedObjectReadFacade.getObjectByNo(new StoredObjectGetFacadeRequest("storage-20260327100000-000501")))
                 .thenReturn(storedObject);
 
-        UserDTO result = service.getUserById(UserId.of(101L));
+        UserDTO result = service.getById(UserId.of(101L));
 
         assertThat(result.getId()).isEqualTo(101L);
         assertThat(result.getAccount()).isEqualTo("alice");
@@ -234,11 +234,11 @@ class UserQueryApplicationServiceTest {
     }
 
     @Test
-    void shouldGetTenantByTenantId() {
+    void shouldGetTenantById() {
         when(tenantRepository.findById(TenantId.of(1001L)))
                 .thenReturn(Optional.of(tenant(1001L, "租户A", "TENANT_A", TenantStatus.ACTIVE, null)));
 
-        TenantDTO result = service.getTenantByTenantId(TenantId.of(1001L));
+        TenantDTO result = service.getTenantById(TenantId.of(1001L));
 
         assertThat(result.getId()).isEqualTo(1001L);
         assertThat(result.getName()).isEqualTo("租户A");

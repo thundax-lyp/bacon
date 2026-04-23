@@ -11,8 +11,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,14 +28,14 @@ public class OrderReadProviderController {
     }
 
     @Operation(summary = "按订单号查询订单详情")
-    @GetMapping("/{orderNo}")
-    public OrderDetailResponse getByOrderNo(@PathVariable("orderNo") @NotBlank String orderNo) {
+    @GetMapping("/queries/detail")
+    public OrderDetailResponse getByOrderNo(@RequestParam("orderNo") @NotBlank String orderNo) {
         return OrderInterfaceAssembler.toDetailResponse(
                 orderQueryService.getByOrderNo(OrderInterfaceAssembler.toByOrderNoQuery(orderNo)));
     }
 
     @Operation(summary = "分页查询订单")
-    @GetMapping
+    @GetMapping("/queries/page")
     public OrderPageResponse page(@Valid OrderPageRequest request) {
         return OrderInterfaceAssembler.toPageResponse(
                 orderQueryService.page(OrderInterfaceAssembler.toPageQuery(request)));

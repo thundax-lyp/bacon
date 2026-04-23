@@ -32,20 +32,20 @@ public class OrderCommandProviderController {
     }
 
     @Operation(summary = "标记订单支付成功")
-    @PostMapping("/mark-paid")
+    @PostMapping("/commands/mark-paid")
     public void markPaid(@Valid @RequestBody OrderMarkPaidRequest request) {
         orderPaymentResultApplicationService.markPaid(OrderInterfaceAssembler.toMarkPaidCommand(request));
     }
 
     @Operation(summary = "标记订单支付失败")
-    @PostMapping("/mark-payment-failed")
+    @PostMapping("/commands/mark-payment-failed")
     public void markPaymentFailed(@Valid @RequestBody OrderMarkPaymentFailedRequest request) {
         orderPaymentResultApplicationService.markPaymentFailed(
                 OrderInterfaceAssembler.toMarkPaymentFailedCommand(request));
     }
 
     @Operation(summary = "关闭过期订单")
-    @PostMapping("/close-expired")
+    @PostMapping("/commands/close-expired")
     public void closeExpired(@Valid @RequestBody OrderCloseExpiredRequest request) {
         orderTimeoutApplicationService.closeExpiredOrder(OrderInterfaceAssembler.toCloseExpiredCommand(request));
     }

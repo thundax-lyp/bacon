@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Validated
 @WrappedApiController
-@RequestMapping("/order")
+@RequestMapping("/order/orders")
 @Tag(name = "Order-Management", description = "订单创建、查询与取消接口")
 public class OrderController {
 

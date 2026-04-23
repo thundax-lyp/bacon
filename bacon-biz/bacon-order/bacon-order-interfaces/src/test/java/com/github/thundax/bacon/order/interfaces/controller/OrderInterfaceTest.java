@@ -69,7 +69,7 @@ class OrderInterfaceTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/order").param("pageNo", "1").param("pageSize", "20"))
+        mockMvc.perform(get("/order/orders").param("pageNo", "1").param("pageSize", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.records[0].orderNo").value("ORD-1"));
@@ -88,7 +88,7 @@ class OrderInterfaceTest {
                 .build();
         BaconContextHolder.set(new BaconContext(9999L, 2001L));
 
-        mockMvc.perform(get("/order").param("pageNo", "1").param("pageSize", "20"))
+        mockMvc.perform(get("/order/orders").param("pageNo", "1").param("pageSize", "20"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
     }
@@ -106,7 +106,7 @@ class OrderInterfaceTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/order")
+        mockMvc.perform(get("/order/orders")
                         .param("orderStatus", "INVALID")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
@@ -129,7 +129,7 @@ class OrderInterfaceTest {
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
-                                "/order/outbox/dead-letters/1001/replay"))
+                                "/order/orders/outbox/dead-letters/1001/replay"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.deadLetterId").value(1001L))
@@ -145,7 +145,7 @@ class OrderInterfaceTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-                mockMvc.perform(get("/providers/order")
+                mockMvc.perform(get("/providers/order/queries/page")
                         .param("pageNo", "1")
                         .param("pageSize", "20")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
@@ -164,7 +164,8 @@ class OrderInterfaceTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/order/ORD-1")
+        mockMvc.perform(get("/providers/order/queries/detail")
+                        .param("orderNo", "ORD-1")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderNo").value("ORD-1"))
@@ -182,7 +183,7 @@ class OrderInterfaceTest {
 
         ServletException exception = assertThrows(
                 ServletException.class,
-                () -> mockMvc.perform(get("/providers/order")
+                () -> mockMvc.perform(get("/providers/order/queries/page")
                         .param("pageNo", "1")
                         .param("pageSize", "20")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
@@ -198,7 +199,7 @@ class OrderInterfaceTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/order").param("pageNo", "1").param("pageSize", "20"))
+        mockMvc.perform(get("/providers/order/queries/page").param("pageNo", "1").param("pageSize", "20"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -211,7 +212,7 @@ class OrderInterfaceTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/order")
+        mockMvc.perform(get("/providers/order/queries/page")
                         .param("pageNo", "1")
                         .param("pageSize", "20")
                         .header(PROVIDER_TOKEN_HEADER, "wrong-token"))
@@ -228,7 +229,8 @@ class OrderInterfaceTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/providers/order/close-expired")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                                "/providers/order/commands/close-expired")
                         .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                         .content("{\"orderNo\":\"ORD-1\",\"reason\":\"expired\"}")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))

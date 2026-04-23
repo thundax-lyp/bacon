@@ -7,8 +7,8 @@
 
 ## 当前主线顺序（按模块执行）
 
-1. `*-interfaces/request`
-   - 收敛请求模型放置与校验注解门禁
+1. 目录反向命名门禁
+   - 补齐 `interfaces.request` 等关键目录的反向命名校验
 2. 质量门禁
    - 补齐覆盖率、静态分析、依赖漏洞扫描和 CI 阻断
 3. 生产级代码与业务能力补齐
@@ -24,10 +24,11 @@
 
 ## P0 - 五域风格/手法/功能对齐（inventory/payment/order/storage/upms）
 
-- [ ] `*-interfaces/request`：收敛请求模型放置与校验注解门禁
+- [ ] `interfaces.request`：补齐请求模型反向命名门禁
   - 范围对象：`interfaces.request..` 包下请求模型
-  - 处理动作：新增 ArchUnit 规则，限制请求模型仅放在 `interfaces.request`，并对关键字段缺失 Bean Validation 注解的类进行阻断
-  - 验收点：请求模型职责清晰，校验不再依赖人工约定
+  - 现状：Controller / Provider 公开方法的请求模型放置与 `@Valid` 已有门禁；仍缺少“目录下类名必须匹配目录语义”的反向校验
+  - 处理动作：新增 ArchUnit 规则，限制 `interfaces.request..` 下类必须以 `Request` 结尾；字段级 Bean Validation 继续按业务测试和审阅处理，不做通用硬门禁
+  - 验收点：请求模型目录与类名双向一致，不再重复建设已存在的参数放置和 `@Valid` 门禁
   - 重要度：7/10
 
 ## P0 - 生产级代码与业务功能补齐
@@ -167,7 +168,7 @@
   - 重要度：6/10
 
 - [ ] 增加 ArchUnit 规则：目录反向命名校验
-  - 现状：当前大多是“某后缀应该放在哪个目录”，但还缺少“某目录下的类必须使用该后缀”的反向门禁
+  - 现状：当前大多是“某后缀应该放在哪个目录”，但还缺少“某目录下的类必须使用该后缀”的反向门禁；`interfaces.request` 已单列，不在本项重复表达
   - 处理动作：限制 `interfaces.controller` 目录下类必须以 `Controller` 结尾，`domain.repository` 下接口必须以 `Repository` 结尾，`infra.persistence.mapper` 下类必须以 `Mapper` 结尾，其他关键目录同理
   - 验收点：目录语义和类名语义双向一致，存量偏差更容易被发现
   - 重要度：7/10
@@ -190,13 +191,12 @@
 
 ## 建议执行顺序（细化）
 
-1. `payment`：收口 `/payment` 路由语义 -> 对齐 OpenAPI tag 与 controller 命名
-2. `*-interfaces/request`：统一请求模型放置与字段校验门禁
-3. 质量门禁：覆盖率 -> 静态分析 -> 依赖漏洞扫描
-4. `common-web` / `common-core`：统一错误码和错误响应
-5. `order` / `inventory` / `payment`：固定状态机 -> 幂等补偿 -> 对账
-6. `auth` / `upms` / `storage`：补齐会话权限闭环和上传安全校验
-7. 测试补齐：主链路集成测试 -> Facade 契约测试 -> Controller 回归测试
-8. 观测告警：日志上下文 -> 指标暴露 -> Dashboard -> Alert Rules
-9. 发布运行：部署模板 -> Release Checklist -> 回滚步骤 -> Runbook
-10. 横切治理：限流防重放 -> 安全基线 -> 目录反向命名门禁 -> `@SysLog` 策略评估
+1. 目录反向命名门禁：`interfaces.request` -> 其他关键目录
+2. 质量门禁：覆盖率 -> 静态分析 -> 依赖漏洞扫描
+3. `common-web` / `common-core`：统一错误码和错误响应
+4. `order` / `inventory` / `payment`：固定状态机 -> 幂等补偿 -> 对账
+5. `auth` / `upms` / `storage`：补齐会话权限闭环和上传安全校验
+6. 测试补齐：主链路集成测试 -> Facade 契约测试 -> Controller 回归测试
+7. 观测告警：日志上下文 -> 指标暴露 -> Dashboard -> Alert Rules
+8. 发布运行：部署模板 -> Release Checklist -> 回滚步骤 -> Runbook
+9. 横切治理：限流防重放 -> 安全基线 -> `@SysLog` 策略评估

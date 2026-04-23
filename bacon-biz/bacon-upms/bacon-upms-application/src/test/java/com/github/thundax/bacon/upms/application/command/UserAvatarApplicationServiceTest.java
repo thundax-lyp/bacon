@@ -3,13 +3,13 @@ package com.github.thundax.bacon.upms.application.command;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
-import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
 import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
@@ -94,13 +94,15 @@ class UserAvatarApplicationServiceTest {
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).update(userCaptor.capture());
         verify(storedObjectCommandFacade)
-                .markObjectReferenced(
-                        new StoredObjectReferenceFacadeRequest(
-                                "storage-20260327100000-000401", "UPMS_USER_AVATAR", "101"));
+                .markObjectReferenced(argThat(request -> request != null
+                        && "storage-20260327100000-000401".equals(request.getStoredObjectNo())
+                        && "UPMS_USER_AVATAR".equals(request.getOwnerType())
+                        && "101".equals(request.getOwnerId())));
         verify(storedObjectCommandFacade)
-                .clearObjectReference(
-                        new StoredObjectReferenceFacadeRequest(
-                                "storage-20260327100000-000301", "UPMS_USER_AVATAR", "101"));
+                .clearObjectReference(argThat(request -> request != null
+                        && "storage-20260327100000-000301".equals(request.getStoredObjectNo())
+                        && "UPMS_USER_AVATAR".equals(request.getOwnerType())
+                        && "101".equals(request.getOwnerId())));
         assertThat(userCaptor.getValue().getAvatarStoredObjectNo())
                 .isEqualTo(AvatarStoredObjectNo.of("storage-20260327100000-000401"));
         assertThat(result.getAvatarStoredObjectNo()).isEqualTo("storage-20260327100000-000401");

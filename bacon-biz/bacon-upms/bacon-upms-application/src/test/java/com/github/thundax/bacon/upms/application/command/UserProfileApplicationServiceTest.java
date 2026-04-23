@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.upms.application.command;
 
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
-import com.github.thundax.bacon.auth.api.request.SessionInvalidateUserFacadeRequest;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
@@ -14,12 +14,11 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
-import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
-import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
@@ -110,11 +109,15 @@ class UserProfileApplicationServiceTest {
 
         verify(userRepository).delete(UserId.of(101L));
         verify(storedObjectCommandFacade)
-                .clearObjectReference(
-                        new StoredObjectReferenceFacadeRequest(
-                                "storage-20260327100000-000501", "UPMS_USER_AVATAR", "101"));
+                .clearObjectReference(argThat(request -> request != null
+                        && "storage-20260327100000-000501".equals(request.getStoredObjectNo())
+                        && "UPMS_USER_AVATAR".equals(request.getOwnerType())
+                        && "101".equals(request.getOwnerId())));
         verify(sessionCommandFacade)
-                .invalidateUserSessions(new SessionInvalidateUserFacadeRequest(1001L, 101L, "USER_DELETED"));
+                .invalidateUserSessions(argThat(request -> request != null
+                        && request.getTenantId().equals(1001L)
+                        && request.getUserId().equals(101L)
+                        && request.getReason().equals("USER_DELETED")));
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.application.query;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,14 +12,13 @@ import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
-import com.github.thundax.bacon.storage.api.request.StoredObjectGetFacadeRequest;
 import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
+import com.github.thundax.bacon.common.application.page.PageResult;
 import com.github.thundax.bacon.upms.application.dto.RoleDTO;
 import com.github.thundax.bacon.upms.application.dto.TenantDTO;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.application.dto.UserLoginCredentialDTO;
-import com.github.thundax.bacon.common.application.page.PageResult;
 import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
@@ -105,7 +105,8 @@ class UserQueryApplicationServiceTest {
                 null,
                 null,
                 null);
-        when(storedObjectReadFacade.getObjectByNo(new StoredObjectGetFacadeRequest("storage-20260327100000-000501")))
+        when(storedObjectReadFacade.getObjectByNo(argThat(request ->
+                        request != null && "storage-20260327100000-000501".equals(request.getStoredObjectNo()))))
                 .thenReturn(storedObject);
 
         UserDTO result = service.getById(UserId.of(101L));
@@ -213,7 +214,8 @@ class UserQueryApplicationServiceTest {
                 null,
                 null);
         when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
-        when(storedObjectReadFacade.getObjectByNo(new StoredObjectGetFacadeRequest("storage-20260327100000-000501")))
+        when(storedObjectReadFacade.getObjectByNo(argThat(request ->
+                        request != null && "storage-20260327100000-000501".equals(request.getStoredObjectNo()))))
                 .thenReturn(storedObject);
 
         assertThat(service.getAvatarAccessUrl(UserId.of(101L))).contains("https://cdn.example.com/avatar/501.png");

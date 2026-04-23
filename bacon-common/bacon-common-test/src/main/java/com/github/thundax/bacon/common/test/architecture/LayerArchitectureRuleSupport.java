@@ -20,9 +20,15 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class LayerArchitectureRuleSupport {
 
@@ -39,6 +45,20 @@ public final class LayerArchitectureRuleSupport {
             Set.of("auth", "inventory", "order", "payment", "storage", "upms");
     private static final Set<String> BUSINESS_LAYERS = Set.of("api", "interfaces", "application", "domain", "infra");
     private static final Set<String> PROTOCOL_MAPPING_METHOD_PREFIXES = Set.of("to", "from", "of");
+    private static final Set<String> REQUIRED_PROTOCOL_MODEL_LOMBOK_ANNOTATIONS =
+            Set.of("Getter", "NoArgsConstructor", "AllArgsConstructor");
+    private static final Set<String> KNOWN_PROTOCOL_MODEL_LOMBOK_ANNOTATIONS = Set.of(
+            "Getter",
+            "Setter",
+            "Data",
+            "Value",
+            "Builder",
+            "SuperBuilder",
+            "NoArgsConstructor",
+            "AllArgsConstructor",
+            "RequiredArgsConstructor",
+            "ToString",
+            "EqualsAndHashCode");
     private static final List<String> DOMAIN_FORBIDDEN_TECH_PACKAGES = List.of(
             "org.springframework.web.",
             "org.springframework.http.",
@@ -480,11 +500,103 @@ public final class LayerArchitectureRuleSupport {
                                 + "to interfaces.assembler.*InterfaceAssembler");
     }
 
+    public static ArchRule protocolModelClassesShouldUseExactLombokAnnotations(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAnyPackage(
+                        basePackage + ".interfaces.request..",
+                        basePackage + ".interfaces.response..",
+                        basePackage + ".api.request..",
+                        basePackage + ".api.response..")
+                .should(new ArchCondition<>("use exact Lombok annotations on class protocol models") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        Optional<String> source = readSource(item);
+                        if (source.isEmpty()) {
+                            events.add(SimpleConditionEvent.violated(
+                                    item, item.getFullName() + " source file cannot be resolved for Lombok check"));
+                            return;
+                        }
+                        if (!declaresClassProtocolModel(source.get(), item.getSimpleName())) {
+                            return;
+                        }
+                        Set<String> actualAnnotations = extractClassLombokAnnotations(source.get(), item.getSimpleName());
+                        if (REQUIRED_PROTOCOL_MODEL_LOMBOK_ANNOTATIONS.equals(actualAnnotations)) {
+                            return;
+                        }
+                        Set<String> missing = new TreeSet<>(REQUIRED_PROTOCOL_MODEL_LOMBOK_ANNOTATIONS);
+                        missing.removeAll(actualAnnotations);
+                        Set<String> extra = new TreeSet<>(actualAnnotations);
+                        extra.removeAll(REQUIRED_PROTOCOL_MODEL_LOMBOK_ANNOTATIONS);
+                        events.add(SimpleConditionEvent.violated(
+                                item,
+                                item.getFullName()
+                                        + " Lombok annotations must be exactly "
+                                        + new TreeSet<>(REQUIRED_PROTOCOL_MODEL_LOMBOK_ANNOTATIONS)
+                                        + "; missing="
+                                        + missing
+                                        + ", extra="
+                                        + extra));
+                    }
+                })
+                .allowEmptyShould(true)
+                .because(
+                        "RULE LAYER_PROTOCOL_MODEL_CLASS_LOMBOK_EXACT_ANNOTATIONS: class protocol models must use "
+                                + "exactly @Getter, @NoArgsConstructor and @AllArgsConstructor");
+    }
+
     private static boolean isForbiddenDomainTechnologyPackage(String packageName) {
         return DOMAIN_FORBIDDEN_TECH_PACKAGES.stream().anyMatch(packageName::startsWith);
     }
 
+    private static Optional<String> readSource(JavaClass item) {
+        try {
+            Optional<Path> sourceFile = NamingAndPlacementRuleSupport.resolveSourceFilePath(item.getSource(), item);
+            if (sourceFile.isEmpty()) {
+                return Optional.empty();
+            }
+            return Optional.of(Files.readString(sourceFile.get()));
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
+    }
+
+    private static boolean declaresClassProtocolModel(String source, String simpleName) {
+        return Pattern.compile("\\bclass\\s+" + Pattern.quote(simpleName) + "\\b")
+                .matcher(source)
+                .find();
+    }
+
+    private static Set<String> extractClassLombokAnnotations(String source, String simpleName) {
+        Matcher classMatcher = Pattern.compile("\\bclass\\s+" + Pattern.quote(simpleName) + "\\b").matcher(source);
+        if (!classMatcher.find()) {
+            return Set.of();
+        }
+        String classHeader = source.substring(0, classMatcher.start());
+        int importBoundary = classHeader.lastIndexOf(';');
+        int typeBoundary = classHeader.lastIndexOf('}');
+        int annotationBoundary = Math.max(importBoundary, typeBoundary);
+        String annotationRegion = classHeader.substring(annotationBoundary + 1);
+        Set<String> annotations = new TreeSet<>();
+        Matcher annotationMatcher = Pattern.compile("@([A-Za-z0-9_.]+)").matcher(annotationRegion);
+        while (annotationMatcher.find()) {
+            String annotationName = simpleAnnotationName(annotationMatcher.group(1));
+            if (KNOWN_PROTOCOL_MODEL_LOMBOK_ANNOTATIONS.contains(annotationName)) {
+                annotations.add(annotationName);
+            }
+        }
+        return annotations;
+    }
+
+    private static String simpleAnnotationName(String annotationName) {
+        int dotIndex = annotationName.lastIndexOf('.');
+        return dotIndex < 0 ? annotationName : annotationName.substring(dotIndex + 1);
+    }
+
     private static boolean isProtocolMappingMethodName(String methodName) {
+        if ("toString".equals(methodName)) {
+            return false;
+        }
         return PROTOCOL_MAPPING_METHOD_PREFIXES.stream().anyMatch(prefix -> hasMappingPrefix(methodName, prefix));
     }
 

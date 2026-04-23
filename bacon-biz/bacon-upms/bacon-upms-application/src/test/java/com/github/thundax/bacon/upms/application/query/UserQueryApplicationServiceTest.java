@@ -93,8 +93,18 @@ class UserQueryApplicationServiceTest {
         when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
         mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
-        StoredObjectFacadeResponse storedObject = new StoredObjectFacadeResponse();
-        storedObject.setAccessEndpoint("https://cdn.example.com/avatar/501.png");
+        StoredObjectFacadeResponse storedObject = new StoredObjectFacadeResponse(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "https://cdn.example.com/avatar/501.png",
+                null,
+                null,
+                null);
         when(storedObjectReadFacade.getObjectByNo(new StoredObjectGetFacadeRequest("storage-20260327100000-000501")))
                 .thenReturn(storedObject);
 
@@ -190,8 +200,18 @@ class UserQueryApplicationServiceTest {
     void shouldResolveAvatarAccessUrl() {
         User user = user(
                 101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ACTIVE);
-        StoredObjectFacadeResponse storedObject = new StoredObjectFacadeResponse();
-        storedObject.setAccessEndpoint("https://cdn.example.com/avatar/501.png");
+        StoredObjectFacadeResponse storedObject = new StoredObjectFacadeResponse(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "https://cdn.example.com/avatar/501.png",
+                null,
+                null,
+                null);
         when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
         when(storedObjectReadFacade.getObjectByNo(new StoredObjectGetFacadeRequest("storage-20260327100000-000501")))
                 .thenReturn(storedObject);

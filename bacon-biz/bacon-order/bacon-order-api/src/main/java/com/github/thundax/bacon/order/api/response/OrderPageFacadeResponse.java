@@ -2,13 +2,13 @@ package com.github.thundax.bacon.order.api.response;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
  * 订单分页门面响应。
  */
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderPageFacadeResponse {

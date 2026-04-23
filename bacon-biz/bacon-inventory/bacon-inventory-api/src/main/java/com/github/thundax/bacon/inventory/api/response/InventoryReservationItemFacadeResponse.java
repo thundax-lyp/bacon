@@ -1,13 +1,13 @@
 package com.github.thundax.bacon.inventory.api.response;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
  * 库存预占明细门面响应。
  */
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventoryReservationItemFacadeResponse {

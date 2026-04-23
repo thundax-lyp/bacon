@@ -3,13 +3,13 @@ package com.github.thundax.bacon.inventory.api.request;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
  * 库存预占门面请求明细。
  */
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventoryReservationItemFacadeRequest {

@@ -3,10 +3,10 @@ package com.github.thundax.bacon.upms.interfaces.request;
 import jakarta.validation.constraints.Positive;
 import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class DepartmentBatchQueryRequest {

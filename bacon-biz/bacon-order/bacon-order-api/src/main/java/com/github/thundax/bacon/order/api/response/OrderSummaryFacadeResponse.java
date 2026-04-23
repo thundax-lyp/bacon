@@ -3,13 +3,13 @@ package com.github.thundax.bacon.order.api.response;
 import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
  * 订单摘要门面响应。
  */
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderSummaryFacadeResponse {

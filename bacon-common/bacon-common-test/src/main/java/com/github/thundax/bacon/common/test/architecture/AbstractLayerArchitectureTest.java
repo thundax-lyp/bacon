@@ -197,4 +197,10 @@ public abstract class AbstractLayerArchitectureTest {
         LayerArchitectureRuleSupport.protocolModelsShouldNotDeclareMappingMethods(basePackage())
                 .check(classes());
     }
+
+    @Test
+    void shouldUseExactLombokAnnotationsOnClassProtocolModels() {
+        LayerArchitectureRuleSupport.protocolModelClassesShouldUseExactLombokAnnotations(basePackage())
+                .check(classes());
+    }
 }

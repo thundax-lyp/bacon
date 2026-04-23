@@ -2,10 +2,10 @@ package com.github.thundax.bacon.payment.api.response;
 
 import java.time.Instant;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentCreateFacadeResponse {

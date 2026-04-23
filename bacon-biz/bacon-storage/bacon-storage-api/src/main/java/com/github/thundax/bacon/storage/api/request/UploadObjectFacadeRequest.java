@@ -2,10 +2,10 @@ package com.github.thundax.bacon.storage.api.request;
 
 import java.io.InputStream;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class UploadObjectFacadeRequest {

@@ -4,13 +4,13 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
  * 订单详情门面响应。
  */
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderDetailFacadeResponse {

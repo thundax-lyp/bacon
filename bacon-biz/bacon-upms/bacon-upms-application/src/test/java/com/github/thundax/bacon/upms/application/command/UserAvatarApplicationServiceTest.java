@@ -65,9 +65,18 @@ class UserAvatarApplicationServiceTest {
                 AvatarStoredObjectNo.of("storage-20260327100000-000401"),
                 DEPARTMENT_ID,
                 UserStatus.ACTIVE);
-        StoredObjectFacadeResponse storedObject = new StoredObjectFacadeResponse();
-        storedObject.setStoredObjectNo("storage-20260327100000-000401");
-        storedObject.setAccessEndpoint("https://cdn.example.com/avatar/401.png");
+        StoredObjectFacadeResponse storedObject = new StoredObjectFacadeResponse(
+                "storage-20260327100000-000401",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "https://cdn.example.com/avatar/401.png",
+                null,
+                null,
+                null);
 
         when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");

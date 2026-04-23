@@ -2,13 +2,13 @@ package com.github.thundax.bacon.inventory.api.response;
 
 import java.time.Instant;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
  * 库存门面响应。
  */
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventoryStockFacadeResponse {

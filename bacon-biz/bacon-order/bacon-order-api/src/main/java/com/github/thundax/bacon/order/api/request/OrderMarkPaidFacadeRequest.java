@@ -6,13 +6,13 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
  * 订单支付成功回写门面请求。
  */
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderMarkPaidFacadeRequest {

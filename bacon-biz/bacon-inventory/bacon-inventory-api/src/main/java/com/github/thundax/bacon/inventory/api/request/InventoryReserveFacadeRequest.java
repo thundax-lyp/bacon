@@ -6,13 +6,13 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
  * 库存预占门面请求。
  */
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventoryReserveFacadeRequest {

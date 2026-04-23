@@ -10,7 +10,7 @@
 1. 质量门禁
    - 补齐覆盖率、静态分析、依赖漏洞扫描和 CI 阻断
 2. 生产级代码与业务能力补齐
-   - 统一错误码、错误响应与 API 版本策略
+   - 统一错误码与错误响应
    - 补齐订单、支付、库存状态机、幂等、补偿和对账
    - 补齐契约测试、集成测试、限流、防重放、日志上下文和业务指标
 3. 观测告警、部署发布与安全运行
@@ -29,12 +29,6 @@
   - 处理动作：固定错误响应字段 `code`、`message`、`requestId`、`timestamp`；按 `AUTH`、`UPMS`、`ORDER`、`INVENTORY`、`PAYMENT`、`STORAGE` 分段定义错误码
   - 验收点：Controller 异常响应结构统一，业务异常不暴露底层异常信息，测试覆盖参数错误、资源不存在、业务冲突和领域规则错误
   - 重要度：10/10
-
-- [ ] `interfaces`：固定 API 版本治理策略
-  - 范围对象：外部 HTTP Controller 路径、Provider 内部路径、OpenAPI tag
-  - 处理动作：明确 `/api/v1` 或现有域根路径的兼容策略；固定新增接口版本规则、废弃接口标记规则和 Provider 路径不对外暴露规则
-  - 验收点：新增 Controller 路径有稳定版本口径，OpenAPI 能区分外部接口与内部 Provider
-  - 重要度：7/10
 
 - [ ] `order` / `inventory` / `payment`：补齐主链路状态机治理
   - 范围对象：`OrderStatus`、`PayStatus`、`InventoryStatus`、支付单状态、库存预占/扣减/释放状态

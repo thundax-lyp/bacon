@@ -20,6 +20,8 @@
 
 - 纯实现、修 bug、重构业务逻辑：
   读 `ARCHITECTURE.md`，再读对应 `10-requirements/*-REQUIREMENTS.md`
+- 需要解释架构意图、规则冲突、分层取舍或 AI 误改风险：
+  读 `00-governance/ARCHITECTURE-INTENT.md`
 - 新增类、改类名、改目录、判断分层：
   再读 `00-governance/NAMING-AND-PLACEMENT-RULES.md`
 - 数据库、DO、Mapper、持久化查询：
@@ -52,6 +54,15 @@
 - commit 整理、纯格式调整、无实现判断的机械修改：
   不额外加载业务需求文档。
 - 只有当当前文档明确引用下一个文档时，才继续向下追。
+
+## TODO Lifecycle
+
+- 根目录 `TODO.md` 是任务执行队列，不是完成历史。
+- 已完成任务不得在 `TODO.md` 中打勾长期保留，必须直接删除。
+- 删除已完成 TODO 项必须和完成该任务的代码、文档或测试修改放在同一个 commit。
+- 任务只完成一部分时，不得删除整项；必须拆分或收窄为剩余未完成内容。
+- 待讨论项完成决策后，必须删除待讨论项；若仍需执行，新增明确执行项。
+- 完成历史以 GitHub commit / PR 保留，不在 `TODO.md` 中重复记录。
 
 ## Directory Map
 

@@ -89,6 +89,8 @@
 - `create(...)` 表达“新建业务对象”，给 `application` 使用
 - `reconstruct(...)` 表达“从持久化状态恢复对象”，给 `infra` 使用
 - 不要用 `reconstruct(...)` 承担 application 的创建语义
+- `src/test/java` 中允许 `domain` 行为测试使用 `reconstruct(...)` 构造已存在对象、历史状态、终态和异常边界状态
+- 测试使用 `reconstruct(...)` 只允许作为 Given 阶段的状态准备，不得替代对 `create(...)` 创建语义、不变量和默认状态的测试
 
 ### infra
 

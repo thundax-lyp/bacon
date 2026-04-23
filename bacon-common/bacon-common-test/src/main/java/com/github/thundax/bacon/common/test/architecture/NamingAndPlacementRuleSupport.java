@@ -44,6 +44,9 @@ public final class NamingAndPlacementRuleSupport {
             "insert",
             "update");
 
+    private static final Set<String> HTTP_MAPPING_ANNOTATIONS = Set.of(
+            "GetMapping", "PostMapping", "PutMapping", "DeleteMapping", "PatchMapping");
+
     private NamingAndPlacementRuleSupport() {}
 
     public static JavaClasses importDomainClasses(String basePackage) {
@@ -520,16 +523,19 @@ public final class NamingAndPlacementRuleSupport {
     }
 
     public static ArchRule controllerRequestMappingShouldUseDomainPrefix(String basePackage) {
+        return controllerRequestMappingShouldUseDomainResourcePath(basePackage);
+    }
+
+    public static ArchRule controllerRequestMappingShouldUseDomainResourcePath(String basePackage) {
         String domain = domainName(basePackage);
-        String prefix = "/" + domain;
         return ArchRuleDefinition.classes()
                 .that()
                 .resideInAPackage(basePackage + ".interfaces.controller..")
                 .and()
                 .haveSimpleNameEndingWith("Controller")
-                .should(new RequestMappingPathPrefixCondition(prefix, "Controller"))
+                .should(new ControllerDomainResourcePathCondition(domain))
                 .allowEmptyShould(true)
-                .because("Controller path must use /{domain}/**");
+                .because("RULE PATH_CONTROLLER_RESOURCE_PATH: Controller path must use /{domain}/{resources}");
     }
 
     public static ArchRule providerControllerRequestMappingShouldUseDomainPrefix(String basePackage) {
@@ -543,6 +549,18 @@ public final class NamingAndPlacementRuleSupport {
                 .should(new RequestMappingPathPrefixCondition(prefix, "ProviderController"))
                 .allowEmptyShould(true)
                 .because("ProviderController path must use /providers/{domain}/**");
+    }
+
+    public static ArchRule providerControllerRequestMappingShouldUseCommandOrQueryPath(String basePackage) {
+        String domain = domainName(basePackage);
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAPackage(basePackage + ".interfaces.provider..")
+                .and()
+                .haveSimpleNameEndingWith("ProviderController")
+                .should(new ProviderCommandQueryPathCondition(domain))
+                .allowEmptyShould(true)
+                .because("RULE PATH_PROVIDER_COMMAND_QUERY_PATH: Provider paths must use commands or queries");
     }
 
     public static ArchRule simpleEnumShouldUseNameAndFromConvention(String... fullyQualifiedClassNames) {
@@ -816,6 +834,192 @@ public final class NamingAndPlacementRuleSupport {
                     .toList();
         } catch (Exception ex) {
             return List.of();
+        }
+    }
+
+    private static List<String> extractClassRequestMappings(String source, JavaClass item) {
+        int classIndex = source.indexOf("class " + item.getSimpleName());
+        if (classIndex < 0) {
+            return List.of();
+        }
+        String classHeader = source.substring(0, classIndex);
+        int requestMappingIndex = classHeader.lastIndexOf("@RequestMapping(");
+        if (requestMappingIndex < 0) {
+            return List.of();
+        }
+        int annotationEnd = classHeader.indexOf(")", requestMappingIndex);
+        if (annotationEnd < 0) {
+            return List.of();
+        }
+        return extractQuotedPaths(classHeader.substring(requestMappingIndex, annotationEnd + 1));
+    }
+
+    private static List<String> extractMethodMappings(String source) {
+        return Pattern.compile("@(" + String.join("|", HTTP_MAPPING_ANNOTATIONS) + ")(?:\\s*\\(([^)]*)\\))?")
+                .matcher(source)
+                .results()
+                .flatMap(result -> {
+                    String annotationContent = result.group(2);
+                    if (annotationContent == null) {
+                        return Stream.of("");
+                    }
+                    List<String> paths = extractQuotedPaths(annotationContent);
+                    return paths.isEmpty() ? Stream.of("") : paths.stream();
+                })
+                .toList();
+    }
+
+    private static List<String> extractQuotedPaths(String text) {
+        return Pattern.compile("\"([^\"]*)\"")
+                .matcher(text)
+                .results()
+                .map(result -> result.group(1))
+                .filter(path -> path.startsWith("/") || path.isBlank())
+                .toList();
+    }
+
+    private static String composePath(String classMapping, String methodMapping) {
+        String normalizedClassMapping = normalizePath(classMapping);
+        String normalizedMethodMapping = normalizePath(methodMapping);
+        if (normalizedMethodMapping.isBlank() || "/".equals(normalizedMethodMapping)) {
+            return normalizedClassMapping;
+        }
+        if ("/".equals(normalizedClassMapping)) {
+            return normalizedMethodMapping;
+        }
+        return normalizedClassMapping + normalizedMethodMapping;
+    }
+
+    private static String normalizePath(String path) {
+        if (path == null || path.isBlank()) {
+            return "";
+        }
+        String normalized = path.startsWith("/") ? path : "/" + path;
+        while (normalized.endsWith("/") && normalized.length() > 1) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        return normalized;
+    }
+
+    private static boolean isDomainResourcePath(String mapping, String domain) {
+        String normalized = normalizePath(mapping);
+        String prefix = "/" + domain + "/";
+        if (!normalized.startsWith(prefix)) {
+            return false;
+        }
+        String remaining = normalized.substring(prefix.length());
+        if (remaining.isBlank()) {
+            return false;
+        }
+        String resourceSegment = remaining.split("/", 2)[0];
+        return !resourceSegment.isBlank() && !resourceSegment.startsWith("{") && !resourceSegment.endsWith("}");
+    }
+
+    private static boolean isProviderCommandQueryPath(String mapping, String domain) {
+        String normalized = normalizePath(mapping);
+        return normalized.startsWith("/providers/" + domain + "/queries/")
+                || normalized.startsWith("/providers/" + domain + "/commands/");
+    }
+
+    private static final class ControllerDomainResourcePathCondition extends ArchCondition<JavaClass> {
+
+        private final String domain;
+
+        private ControllerDomainResourcePathCondition(String domain) {
+            super("Controller must declare @RequestMapping with /" + domain + "/{resources}");
+            this.domain = domain;
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            try {
+                Optional<Path> sourceFile = resolveSourceFilePath(item.getSource(), item);
+                if (sourceFile.isEmpty()) {
+                    events.add(SimpleConditionEvent.violated(
+                            item, item.getFullName() + " source file not found, cannot inspect @RequestMapping"));
+                    return;
+                }
+                List<String> mappings = extractClassRequestMappings(Files.readString(sourceFile.get()), item);
+                if (mappings.isEmpty()) {
+                    events.add(SimpleConditionEvent.violated(
+                            item, "Controller must declare non-empty class-level @RequestMapping"));
+                    return;
+                }
+                List<String> invalid = mappings.stream()
+                        .filter(mapping -> !isDomainResourcePath(mapping, domain))
+                        .toList();
+                if (invalid.isEmpty()) {
+                    events.add(SimpleConditionEvent.satisfied(
+                            item, item.getFullName() + " uses controller resource path " + mappings));
+                    return;
+                }
+                events.add(SimpleConditionEvent.violated(
+                        item,
+                        item.getFullName() + " mapping " + invalid
+                                + " violates RULE PATH_CONTROLLER_RESOURCE_PATH, expected /" + domain
+                                + "/{resources}"));
+            } catch (Exception ex) {
+                events.add(SimpleConditionEvent.violated(
+                        item,
+                        item.getFullName() + " cannot be checked for controller resource path because "
+                                + ex.getMessage()));
+            }
+        }
+    }
+
+    private static final class ProviderCommandQueryPathCondition extends ArchCondition<JavaClass> {
+
+        private final String domain;
+
+        private ProviderCommandQueryPathCondition(String domain) {
+            super("Provider endpoints must use /providers/" + domain + "/queries|commands/{name}");
+            this.domain = domain;
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            try {
+                Optional<Path> sourceFile = resolveSourceFilePath(item.getSource(), item);
+                if (sourceFile.isEmpty()) {
+                    events.add(SimpleConditionEvent.violated(
+                            item, item.getFullName() + " source file not found, cannot inspect provider paths"));
+                    return;
+                }
+                String source = Files.readString(sourceFile.get());
+                List<String> classMappings = extractClassRequestMappings(source, item);
+                if (classMappings.isEmpty()) {
+                    events.add(SimpleConditionEvent.violated(
+                            item, "ProviderController must declare non-empty class-level @RequestMapping"));
+                    return;
+                }
+                List<String> methodMappings = extractMethodMappings(source);
+                if (methodMappings.isEmpty()) {
+                    events.add(SimpleConditionEvent.satisfied(
+                            item, item.getFullName() + " declares no provider endpoint methods"));
+                    return;
+                }
+                List<String> invalid = classMappings.stream()
+                        .flatMap(classMapping -> methodMappings.stream()
+                                .map(methodMapping -> composePath(classMapping, methodMapping)))
+                        .filter(mapping -> !isProviderCommandQueryPath(mapping, domain))
+                        .distinct()
+                        .toList();
+                if (invalid.isEmpty()) {
+                    events.add(SimpleConditionEvent.satisfied(
+                            item, item.getFullName() + " uses provider command/query paths"));
+                    return;
+                }
+                events.add(SimpleConditionEvent.violated(
+                        item,
+                        item.getFullName() + " mapping " + invalid
+                                + " violates RULE PATH_PROVIDER_COMMAND_QUERY_PATH, expected /providers/" + domain
+                                + "/queries/{query-name} or /providers/" + domain + "/commands/{command-name}"));
+            } catch (Exception ex) {
+                events.add(SimpleConditionEvent.violated(
+                        item,
+                        item.getFullName() + " cannot be checked for provider command/query path because "
+                                + ex.getMessage()));
+            }
         }
     }
 

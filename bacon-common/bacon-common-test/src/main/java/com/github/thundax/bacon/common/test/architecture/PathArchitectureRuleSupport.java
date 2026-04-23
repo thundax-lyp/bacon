@@ -15,7 +15,15 @@ public final class PathArchitectureRuleSupport {
         return NamingAndPlacementRuleSupport.controllerRequestMappingShouldUseDomainPrefix(basePackage);
     }
 
+    public static ArchRule controllerRequestMappingShouldUseDomainResourcePath(String basePackage) {
+        return NamingAndPlacementRuleSupport.controllerRequestMappingShouldUseDomainResourcePath(basePackage);
+    }
+
     public static ArchRule providerControllerRequestMappingShouldUseDomainPrefix(String basePackage) {
         return NamingAndPlacementRuleSupport.providerControllerRequestMappingShouldUseDomainPrefix(basePackage);
+    }
+
+    public static ArchRule providerControllerRequestMappingShouldUseCommandOrQueryPath(String basePackage) {
+        return NamingAndPlacementRuleSupport.providerControllerRequestMappingShouldUseCommandOrQueryPath(basePackage);
     }
 }

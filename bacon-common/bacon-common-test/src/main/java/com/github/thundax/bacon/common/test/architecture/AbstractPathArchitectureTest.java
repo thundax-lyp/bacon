@@ -22,13 +22,20 @@ public abstract class AbstractPathArchitectureTest {
     }
 
     @Test
-    void shouldEnforcePathControllerPrefix() {
-        PathArchitectureRuleSupport.controllerRequestMappingShouldUseDomainPrefix(basePackage()).check(classes());
+    void shouldEnforcePathControllerResourcePath() {
+        PathArchitectureRuleSupport.controllerRequestMappingShouldUseDomainResourcePath(basePackage())
+                .check(classes());
     }
 
     @Test
     void shouldEnforcePathProviderPrefix() {
         PathArchitectureRuleSupport.providerControllerRequestMappingShouldUseDomainPrefix(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    void shouldEnforcePathProviderCommandQueryPath() {
+        PathArchitectureRuleSupport.providerControllerRequestMappingShouldUseCommandOrQueryPath(basePackage())
                 .check(classes());
     }
 }

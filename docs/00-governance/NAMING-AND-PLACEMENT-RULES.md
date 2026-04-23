@@ -42,7 +42,9 @@
 ### Path
 
 - `PATH_CONTROLLER_PREFIX`：`interfaces.controller` 类级路径必须以 `/{domain}` 开头
+- `PATH_CONTROLLER_RESOURCE_PATH`：`interfaces.controller` 类级路径固定为 `/{domain}/{resources}` 起步；`{resources}` 表达外部资源集合，使用稳定英文资源名，不使用 `/providers/**`
 - `PATH_PROVIDER_PREFIX`：`interfaces.provider` 类级路径必须以 `/providers/{domain}` 开头
+- `PATH_PROVIDER_COMMAND_QUERY_PATH`：`interfaces.provider` 完整路径固定为 `/providers/{domain}/queries/{query-name}` 或 `/providers/{domain}/commands/{command-name}`
 - `PATH_CONTROLLER_NO_PROVIDERS`：`interfaces.controller` 不得使用 `/providers/**` 前缀
 - `PATH_DOMAIN_CANONICAL`：`{domain}` 固定与业务域目录名一致，不混用别名
 - `PATH_APPLICATION_PAGE_CONTRACT`：`PageQuery` / `PageResult` 必须位于 `com.github.thundax.bacon.common.application.page..`
@@ -94,10 +96,12 @@
 ### Path
 
 - `PATH_CONTEXT_COMPOSE`：完整外部路径由 `server.servlet.context-path` 叠加；默认 `context-path=/api` 时完整路径分别为 `/api/{...}` 与 `/api/providers/{...}`
-- 路径语义推荐使用 `/{bounded-context}/{resource}/{action?}`，但该条以 AI/人工审阅为准，不作为 ArchUnit 硬门禁
-- `{action}` 只在资源名不足以表达语义时出现，不使用 `query`、`list`、`detail`
-- `{bounded-context}` 与 `{resource}` 同义、近义或仅单复数差异时，省略其一
-- 优先使用稳定资源语义，避免重复资源命名（如 `order/orders`、`inventory/inventories`）
+- 外部 Controller 路径固定使用 `/api/{domain}/{resources}` 语义；`{domain}` 表达业务域边界，`{resources}` 表达该域对外暴露的资源集合
+- 外部 Controller 不因 `{domain}` 与 `{resources}` 词根接近而省略资源段；`/api/order/orders` 合法，`/api/order` 不合法
+- `{action}` 只在资源名不足以表达语义时作为方法级路径出现，不使用 `query`、`list`、`detail` 表达查询动作
+- 分页查询使用资源集合路径加 `pageNo` / `pageSize` 查询参数表达，不使用 `/page` 作为路径动作
+- Provider 路径表达内部能力，不表达公开 REST 资源；查询能力固定进入 `queries`，命令能力固定进入 `commands`
+- Provider 命令不得把业务对象 ID 放入能力路径中塑造成资源子路径；业务标识通过 request body 或 query parameter 传递
 
 ### Layer
 
@@ -120,23 +124,28 @@
 
 以下示例为完整外部路径（默认 `context-path=/api`）：
 
-- `/api/order`
+- `/api/order/orders`
+- `/api/payment/payments`
 - `/api/payment/refunds`
 - `/api/inventory/stocks`
-- `/api/inventory/reservations/reserve`
+- `/api/inventory/reservations`
 - `/api/upms/users`
-- `/api/providers/order/mark-paid`
-- `/api/providers/inventory/reservations/release`
+- `/api/providers/order/queries/detail`
+- `/api/providers/order/commands/mark-paid`
+- `/api/providers/inventory/commands/release-reservation`
 
 ## Bad Paths
 
 以下示例为完整外部路径（默认 `context-path=/api`）：
 
-- `/api/order/orders`
+- `/api/order`
 - `/api/inventory/inventories`
 - `/api/upms/user`
+- `/api/upms/users/page`
 - `/api/order/detail`
 - `/api/payment/query`
+- `/api/providers/order/mark-paid`
+- `/api/providers/order/orders/{orderNo}/payment-success`
 
 ## Good Names
 

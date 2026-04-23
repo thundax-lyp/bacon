@@ -66,7 +66,7 @@
 | `ANNO_CALLBACK_OPERATION_REQUIRED` | `CALLBACK_SELECTOR` 中 HTTP 方法 | 必须声明 `@Operation` | ArchUnit | `[ANNO_CALLBACK_OPERATION_REQUIRED] <class#method> violates Operation required: <foundAnnotations>` |
 | `ANNO_CALLBACK_PERMISSION_FORBIDDEN` | `CALLBACK_SELECTOR` 中 HTTP 方法 | 禁止 `@HasPermission` | ArchUnit | `[ANNO_CALLBACK_PERMISSION_FORBIDDEN] <class#method> violates HasPermission forbidden: <foundAnnotations>` |
 | `ANNO_CALLBACK_SYSLOG_FORBIDDEN` | `CALLBACK_SELECTOR` 中 HTTP 方法 | 禁止 `@SysLog` | ArchUnit | `[ANNO_CALLBACK_SYSLOG_FORBIDDEN] <class#method> violates SysLog forbidden: <foundAnnotations>` |
-| `ANNO_PROVIDER_PATH_PREFIX_REQUIRED` | `PROVIDER_SELECTOR` | 类级 `@RequestMapping` 必须以 `/providers/` 开头 | ArchUnit | `[ANNO_PROVIDER_PATH_PREFIX_REQUIRED] <class> violates provider path prefix required: <foundPath>` |
+| `ANNO_PROVIDER_PATH_PREFIX_REQUIRED` | `PROVIDER_SELECTOR` | 类级 `@RequestMapping` 必须以 `/providers/` 开头；完整 provider URL 形态以 `NAMING-AND-PLACEMENT-RULES.md` 的 Path 规则为准 | ArchUnit | `[ANNO_PROVIDER_PATH_PREFIX_REQUIRED] <class> violates provider path prefix required: <foundPath>` |
 | `ANNO_PROVIDER_METHOD_OPERATION_REQUIRED` | `PROVIDER_SELECTOR` 中 HTTP 方法 | 必须声明 `@Operation` | ArchUnit | `[ANNO_PROVIDER_METHOD_OPERATION_REQUIRED] <class#method> violates Operation required: <foundAnnotations>` |
 | `ANNO_PROVIDER_PERMISSION_FORBIDDEN` | `PROVIDER_SELECTOR` 中 HTTP 方法 | 禁止 `@HasPermission` | ArchUnit | `[ANNO_PROVIDER_PERMISSION_FORBIDDEN] <class#method> violates HasPermission forbidden: <foundAnnotations>` |
 | `ANNO_FACADE_ENDPOINT_ANNOTATION_FORBIDDEN` | `FACADE_SELECTOR` 类与方法 | 禁止端点注解：`@RestController @RequestMapping @Get/@Post/@Put/@Delete/@PatchMapping` | ArchUnit | `[ANNO_FACADE_ENDPOINT_ANNOTATION_FORBIDDEN] <typeOrMethod> violates endpoint annotation forbidden: <foundAnnotations>` |
@@ -81,7 +81,7 @@
 | --- | --- | --- |
 | BFF | `@RestController @RequestMapping @Validated @Tag @WrappedApiController`；方法级 `@Operation` + HTTP Mapping；管理接口 `@HasPermission`；`interfaces.request.*Request` 参数声明 `@Valid` | 无 |
 | Callback | `@RestController @RequestMapping @Validated @Tag`；方法级 `@Operation` + HTTP Mapping；`interfaces.request.*Request` 参数声明 `@Valid` | `@HasPermission @SysLog` |
-| Provider | `@RestController @RequestMapping(/providers/**) @Validated @Tag`；方法级 `@Operation` + HTTP Mapping；`interfaces.request.*Request` 参数声明 `@Valid` | `@HasPermission` |
+| Provider | `@RestController @RequestMapping(/providers/**) @Validated @Tag`；方法级 `@Operation` + HTTP Mapping；`interfaces.request.*Request` 参数声明 `@Valid`；完整路径遵守 provider command/query 规则 | `@HasPermission` |
 | Facade | 无 | 端点注解、安全审计注解 |
 
 ## 8. CI Gate

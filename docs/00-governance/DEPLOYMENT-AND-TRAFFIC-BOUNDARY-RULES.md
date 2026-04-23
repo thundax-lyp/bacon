@@ -62,8 +62,8 @@
 ## 6. Provider Route Rule
 
 - `provider.controller` 固定表示内部 `Facade` HTTP 入口。
-- `provider.controller` 路径固定使用 `/providers/{domain}/**`。
-- 当服务设置 `server.servlet.context-path=/api` 时，完整路径固定为 `/api/providers/{domain}/**`。
+- `provider.controller` 路径固定使用 `/providers/{domain}/queries/{query-name}` 或 `/providers/{domain}/commands/{command-name}`。
+- 当服务设置 `server.servlet.context-path=/api` 时，完整路径固定为 `/api/providers/{domain}/queries/{query-name}` 或 `/api/providers/{domain}/commands/{command-name}`。
 - `interfaces.controller` 不得使用 `/providers/**` 前缀。
 - 对外控制器不得复用 `provider.controller` 的路径前缀。
 

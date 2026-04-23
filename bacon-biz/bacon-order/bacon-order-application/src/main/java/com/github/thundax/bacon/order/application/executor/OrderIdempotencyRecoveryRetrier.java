@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.order.application.executor;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
 import java.time.Instant;
@@ -30,18 +32,23 @@ public class OrderIdempotencyRecoveryRetrier {
         }
         Instant now = Instant.now();
         int recovered = 0;
-        // 定时任务只负责扫描过期 PROCESSING 记录，并通过领域规则把它们转为 FAILED，不直接重放业务动作。
-        for (var record : orderIdempotencyRepository.listExpiredProcessing(now)) {
-            record.expire(RECOVER_MESSAGE, now);
-            if (orderIdempotencyRepository.updateStatus(
-                    record,
-                    OrderIdempotencyStatus.PROCESSING,
-                    now)) {
+        // 定时任务没有请求租户上下文：先跨租户扫描，再按记录自身 tenantId 恢复上下文执行状态更新。
+        for (var scopedRecord : orderIdempotencyRepository.listExpiredProcessingAcrossTenants(now)) {
+            Long tenantId = scopedRecord.tenantId() == null ? null : scopedRecord.tenantId().value();
+            boolean updated = BaconContextHolder.callWithTenantId(
+                    tenantId,
+                    () -> expireOne(scopedRecord.record(), now));
+            if (updated) {
                 recovered++;
             }
         }
         if (recovered > 0) {
             log.warn("Recovered expired order idempotency processing records, count={}", recovered);
         }
+    }
+
+    private boolean expireOne(OrderIdempotencyRecord record, Instant now) {
+        record.expire(RECOVER_MESSAGE, now);
+        return orderIdempotencyRepository.updateStatus(record, OrderIdempotencyStatus.PROCESSING, now);
     }
 }

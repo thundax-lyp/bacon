@@ -2,9 +2,11 @@ package com.github.thundax.bacon.order.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
+import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
 import com.github.thundax.bacon.order.infra.persistence.assembler.OrderIdempotencyRecordPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderIdempotencyRecordDO;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderIdempotencyRecordMapper;
@@ -90,6 +92,18 @@ public class OrderIdempotencyRepositorySupport {
                         .le(OrderIdempotencyRecordDO::getLeaseUntil, now))
                 .stream()
                 .map(orderIdempotencyRecordPersistenceAssembler::toDomain)
+                .toList();
+    }
+
+    public List<OrderIdempotencyRepository.TenantScopedIdempotencyRecord> listExpiredProcessingAcrossTenants(
+            Instant now) {
+        return mapper.selectList(Wrappers.<OrderIdempotencyRecordDO>lambdaQuery()
+                        .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
+                        .le(OrderIdempotencyRecordDO::getLeaseUntil, now))
+                .stream()
+                .map(dataObject -> new OrderIdempotencyRepository.TenantScopedIdempotencyRecord(
+                        dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
+                        orderIdempotencyRecordPersistenceAssembler.toDomain(dataObject)))
                 .toList();
     }
 

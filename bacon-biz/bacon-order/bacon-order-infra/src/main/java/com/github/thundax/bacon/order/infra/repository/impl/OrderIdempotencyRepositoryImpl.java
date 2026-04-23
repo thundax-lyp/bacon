@@ -47,4 +47,9 @@ public class OrderIdempotencyRepositoryImpl implements OrderIdempotencyRepositor
     public List<OrderIdempotencyRecord> listExpiredProcessing(Instant now) {
         return support.listExpiredProcessing(now);
     }
+
+    @Override
+    public List<TenantScopedIdempotencyRecord> listExpiredProcessingAcrossTenants(Instant now) {
+        return support.listExpiredProcessingAcrossTenants(now);
+    }
 }

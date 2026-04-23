@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.domain.repository;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
@@ -8,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderIdempotencyRepository {
+
+    record TenantScopedIdempotencyRecord(TenantId tenantId, OrderIdempotencyRecord record) {}
 
     default boolean insert(OrderIdempotencyRecord record) {
         return false;
@@ -29,6 +32,10 @@ public interface OrderIdempotencyRepository {
     }
 
     default List<OrderIdempotencyRecord> listExpiredProcessing(Instant now) {
+        return List.of();
+    }
+
+    default List<TenantScopedIdempotencyRecord> listExpiredProcessingAcrossTenants(Instant now) {
         return List.of();
     }
 }

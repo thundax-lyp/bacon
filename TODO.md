@@ -12,8 +12,7 @@
    - 同步 OpenAPI tag 与 controller 命名
 2. `*-interfaces/request`
    - 收敛请求模型放置与校验注解门禁
-3. 数据库迁移与质量门禁
-   - 固定 `Flyway` 或 `Liquibase`
+3. 质量门禁
    - 补齐覆盖率、静态分析、依赖漏洞扫描和 CI 阻断
 4. 生产级代码与业务能力补齐
    - 统一错误码、错误响应与 API 版本策略
@@ -41,12 +40,6 @@
   - 重要度：6/10
 
 ## P0 - 生产级代码与业务功能补齐
-
-- [ ] `db` / `pom.xml` / `bacon-app`：接入数据库版本化迁移
-  - 范围对象：核心业务表、索引、初始化数据、应用启动迁移校验
-  - 处理动作：固定 `Flyway` 或 `Liquibase`；建立基线迁移目录、脚本命名规则、迁移校验命令和回滚说明
-  - 验收点：本地与 CI 均可执行迁移校验，不再以手工改表作为默认流程
-  - 重要度：10/10
 
 - [ ] `common-web` / `common-core`：统一错误码与错误响应模型
   - 范围对象：`BadRequestException`、`NotFoundException`、`ConflictException`、各域 `*DomainException`、全局异常处理
@@ -194,11 +187,6 @@
 
 ## 待讨论项
 
-- [ ] 数据库迁移方案固定为 `Flyway` 还是 `Liquibase`
-  - 关联任务：`db` / `pom.xml` / `bacon-app`：接入数据库版本化迁移
-  - 决策要求：固定一种方案后再落地迁移目录、命名规则和 CI 校验
-  - 重要度：9/10
-
 - [ ] 静态分析方案固定为 `SpotBugs` 还是 `PMD`
   - 关联任务：`pom.xml` / `.github/workflows`：补齐质量门禁流水线
   - 决策要求：固定一种方案后再写入 POM、CI 和质量门禁说明
@@ -213,7 +201,7 @@
 
 1. `payment`：收口 `/payment` 路由语义 -> 对齐 OpenAPI tag 与 controller 命名
 2. `*-interfaces/request`：统一请求模型放置与字段校验门禁
-3. 迁移与门禁：数据库版本化迁移 -> 覆盖率 -> 静态分析 -> 依赖漏洞扫描
+3. 质量门禁：覆盖率 -> 静态分析 -> 依赖漏洞扫描
 4. `common-web` / `common-core`：统一错误码和错误响应
 5. `order` / `inventory` / `payment`：固定状态机 -> 幂等补偿 -> 对账
 6. `auth` / `upms` / `storage`：补齐会话权限闭环和上传安全校验

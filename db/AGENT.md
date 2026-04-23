@@ -58,7 +58,22 @@ db/
 
 ## 4. Execution Order
 
-手工初始化数据库时，推荐顺序：
+推荐使用仓库脚本初始化数据库：
+
+```bash
+scripts/db-migrate.sh
+```
+
+脚本读取以下环境变量：
+
+- `BACON_DB_URL`：可选，格式为 `jdbc:mysql://host:port/database?...`
+- `BACON_DB_HOST`：未设置 `BACON_DB_URL` 时使用，默认 `127.0.0.1`
+- `BACON_DB_PORT`：未设置 `BACON_DB_URL` 时使用，默认 `3306`
+- `BACON_DB_NAME`：未设置 `BACON_DB_URL` 时必须提供
+- `BACON_DB_USERNAME`：必须提供
+- `BACON_DB_PASSWORD`：可选
+
+脚本固定按以下顺序执行：
 
 1. `db/schema/upms.sql`
 2. `db/data/upms.sql`

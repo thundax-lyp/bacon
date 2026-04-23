@@ -80,12 +80,6 @@
   - 验收点：主链路集成测试进入 CI，失败时能定位到订单、库存或支付具体阶段，幂等、重试、补偿规则不会被回退
   - 重要度：10/10
 
-- [ ] `inventory-api` / `inventory-interfaces.facade` / `inventory-infra.facade.remote`：补齐 Inventory 跨域 Facade 契约测试
-  - 范围对象：`InventoryReadFacade`、`InventoryCommandFacade`、Inventory Provider Controller、Inventory Facade request/response
-  - 处理动作：固定可用库存读取、批量可用库存读取、按订单预占查询、库存预占、扣减和释放的本地调用语义、远程调用语义、异常映射和空值语义
-  - 验收点：Inventory mono 模式与 micro 模式 Facade 行为一致，Inventory 契约变更会被测试阻断
-  - 重要度：9/10
-
 - [ ] `payment-api` / `payment-interfaces.facade` / `payment-infra.facade.remote`：补齐 Payment 跨域 Facade 契约测试
   - 范围对象：`PaymentReadFacade`、`PaymentCommandFacade`、Payment Provider Controller、Payment Facade request/response
   - 处理动作：固定支付创建、支付关闭、支付详情读取和按订单读取支付单的本地调用语义、远程调用语义、异常映射和空值语义

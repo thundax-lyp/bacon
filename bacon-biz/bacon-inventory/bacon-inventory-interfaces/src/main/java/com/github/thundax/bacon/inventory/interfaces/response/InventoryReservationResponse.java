@@ -15,6 +15,8 @@ public record InventoryReservationResponse(
         String reservationNo,
         /** 预占状态。 */
         String reservationStatus,
+        /** 库存状态。 */
+        String inventoryStatus,
         /** 仓库业务编码。 */
         String warehouseCode,
         /** 预占明细列表。 */
@@ -35,6 +37,7 @@ public record InventoryReservationResponse(
                 dto.getOrderNo(),
                 dto.getReservationNo(),
                 dto.getReservationStatus(),
+                dto.getReservationStatus(),
                 dto.getWarehouseCode(),
                 dto.getItems().stream()
                         .map(InventoryReservationItemResponse::from)
@@ -51,6 +54,7 @@ public record InventoryReservationResponse(
                 result.getOrderNo(),
                 result.getReservationNo(),
                 result.getReservationStatus(),
+                result.getInventoryStatus(),
                 result.getWarehouseCode(),
                 List.of(),
                 result.getFailureReason(),

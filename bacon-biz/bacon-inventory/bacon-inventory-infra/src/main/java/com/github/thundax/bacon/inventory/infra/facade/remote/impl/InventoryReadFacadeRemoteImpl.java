@@ -10,6 +10,8 @@ import com.github.thundax.bacon.inventory.api.response.InventoryStockListFacadeR
 import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
+import java.util.Arrays;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -46,7 +48,7 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
             type = Bulkhead.Type.SEMAPHORE,
             fallbackMethod = "batchGetAvailableStockFallback")
     public InventoryStockListFacadeResponse batchGetAvailableStock(InventoryBatchAvailableStockFacadeRequest request) {
-        return restClient
+        InventoryStockFacadeResponse[] records = restClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/providers/inventory/queries/available-stocks")
@@ -55,7 +57,8 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
                                 request.getSkuIds() == null ? new Object[0] : request.getSkuIds().toArray())
                         .build())
                 .retrieve()
-                .body(InventoryStockListFacadeResponse.class);
+                .body(InventoryStockFacadeResponse[].class);
+        return new InventoryStockListFacadeResponse(records == null ? List.of() : Arrays.asList(records));
     }
 
     @Override

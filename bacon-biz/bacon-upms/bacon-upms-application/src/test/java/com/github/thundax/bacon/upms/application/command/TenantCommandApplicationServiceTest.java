@@ -3,11 +3,11 @@ package com.github.thundax.bacon.upms.application.command;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
-import com.github.thundax.bacon.auth.api.request.SessionInvalidateTenantFacadeRequest;
 import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -100,7 +100,8 @@ class TenantCommandApplicationServiceTest {
 
         assertThat(result.getStatus()).isEqualTo("DISABLED");
         verify(sessionCommandFacade)
-                .invalidateTenantSessions(new SessionInvalidateTenantFacadeRequest(1001L, "TENANT_DISABLED"));
+                .invalidateTenantSessions(argThat(request ->
+                        request.getTenantId().equals(1001L) && request.getReason().equals("TENANT_DISABLED")));
     }
 
     private static Tenant tenant(Long id, String name, String code, TenantStatus status, Instant expiredAt) {

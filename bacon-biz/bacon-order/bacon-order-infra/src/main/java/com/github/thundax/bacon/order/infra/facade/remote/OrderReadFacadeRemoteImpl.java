@@ -6,10 +6,12 @@ import com.github.thundax.bacon.order.api.request.OrderDetailFacadeRequest;
 import com.github.thundax.bacon.order.api.request.OrderPageFacadeRequest;
 import com.github.thundax.bacon.order.api.response.OrderDetailFacadeResponse;
 import com.github.thundax.bacon.order.api.response.OrderPageFacadeResponse;
+import java.net.URI;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriBuilder;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
@@ -37,15 +39,28 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
 
     @Override
     public OrderPageFacadeResponse page(OrderPageFacadeRequest request) {
-        // 分页查询只透传当前 provider 实际支持的条件；其余筛选条件应先在契约层明确后再下沉到这里。
         return restClient
                 .get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/providers/order/queries/page")
-                        .queryParam("userId", request.getUserId())
-                        .queryParam("orderNo", request.getOrderNo())
-                        .build())
+                .uri(uriBuilder -> buildPageUri(uriBuilder, request))
                 .retrieve()
                 .body(OrderPageFacadeResponse.class);
+    }
+
+    private URI buildPageUri(UriBuilder uriBuilder, OrderPageFacadeRequest request) {
+        UriBuilder builder = uriBuilder.path("/providers/order/queries/page");
+        builder = queryParamIfPresent(builder, "userId", request.getUserId());
+        builder = queryParamIfPresent(builder, "orderNo", request.getOrderNo());
+        builder = queryParamIfPresent(builder, "orderStatus", request.getOrderStatus());
+        builder = queryParamIfPresent(builder, "payStatus", request.getPayStatus());
+        builder = queryParamIfPresent(builder, "inventoryStatus", request.getInventoryStatus());
+        builder = queryParamIfPresent(builder, "createdAtFrom", request.getCreatedAtFrom());
+        builder = queryParamIfPresent(builder, "createdAtTo", request.getCreatedAtTo());
+        builder = queryParamIfPresent(builder, "pageNo", request.getPageNo());
+        builder = queryParamIfPresent(builder, "pageSize", request.getPageSize());
+        return builder.build();
+    }
+
+    private UriBuilder queryParamIfPresent(UriBuilder builder, String name, Object value) {
+        return value == null ? builder : builder.queryParam(name, value);
     }
 }

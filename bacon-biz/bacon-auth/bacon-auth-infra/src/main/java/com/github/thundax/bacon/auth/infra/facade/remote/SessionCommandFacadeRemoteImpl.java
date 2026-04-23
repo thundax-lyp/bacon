@@ -31,7 +31,7 @@ public class SessionCommandFacadeRemoteImpl implements SessionCommandFacade {
         restClient
                 .post()
                 .uri(
-                        "/providers/auth/sessions/invalidate-user?tenantId={tenantId}&userId={userId}&reason={reason}",
+                        "/providers/auth/commands/invalidate-user-sessions?tenantId={tenantId}&userId={userId}&reason={reason}",
                         request.getTenantId(),
                         request.getUserId(),
                         request.getReason())
@@ -45,7 +45,7 @@ public class SessionCommandFacadeRemoteImpl implements SessionCommandFacade {
         restClient
                 .post()
                 .uri(
-                        "/providers/auth/sessions/invalidate-tenant?tenantId={tenantId}&reason={reason}",
+                        "/providers/auth/commands/invalidate-tenant-sessions?tenantId={tenantId}&reason={reason}",
                         request.getTenantId(),
                         request.getReason())
                 .retrieve()
@@ -58,7 +58,7 @@ public class SessionCommandFacadeRemoteImpl implements SessionCommandFacade {
         restClient
                 .post()
                 .uri(
-                        "/providers/auth/sessions/{sessionId}/invalidate?reason={reason}",
+                        "/providers/auth/commands/invalidate-session?sessionId={sessionId}&reason={reason}",
                         request.getSessionId(),
                         request.getReason())
                 .retrieve()

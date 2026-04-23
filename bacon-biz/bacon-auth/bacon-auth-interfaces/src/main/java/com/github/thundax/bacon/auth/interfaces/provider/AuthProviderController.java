@@ -19,7 +19,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -46,7 +45,7 @@ public class AuthProviderController {
     }
 
     @Operation(summary = "校验访问令牌")
-    @GetMapping("/tokens/verify")
+    @GetMapping("/queries/verify-token")
     public SessionValidationResponse verify(
             @RequestParam("accessToken") @NotBlank(message = "accessToken must not be blank") String accessToken) {
         return AuthInterfaceAssembler.toSessionValidationResponse(
@@ -54,15 +53,15 @@ public class AuthProviderController {
     }
 
     @Operation(summary = "获取会话上下文")
-    @GetMapping("/sessions/{sessionId}")
+    @GetMapping("/queries/session-context")
     public CurrentSessionResponse currentSession(
-            @PathVariable @NotBlank(message = "sessionId must not be blank") String sessionId) {
+            @RequestParam("sessionId") @NotBlank(message = "sessionId must not be blank") String sessionId) {
         CurrentSessionDTO currentSession = tokenQueryApplicationService.getSessionContext(new SessionContextQuery(sessionId));
         return AuthInterfaceAssembler.toCurrentSessionResponse(currentSession);
     }
 
     @Operation(summary = "失效指定用户会话")
-    @PostMapping("/sessions/invalidate-user")
+    @PostMapping("/commands/invalidate-user-sessions")
     public void invalidateUserSessions(
             @RequestParam("tenantId") @Positive(message = "tenantId must be greater than 0") Long tenantId,
             @RequestParam("userId") @Positive(message = "userId must be greater than 0") Long userId,
@@ -71,7 +70,7 @@ public class AuthProviderController {
     }
 
     @Operation(summary = "失效指定租户会话")
-    @PostMapping("/sessions/invalidate-tenant")
+    @PostMapping("/commands/invalidate-tenant-sessions")
     public void invalidateTenantSessions(
             @RequestParam("tenantId") @Positive(message = "tenantId must be greater than 0") Long tenantId,
             @RequestParam("reason") @NotBlank(message = "reason must not be blank") String reason) {
@@ -79,16 +78,17 @@ public class AuthProviderController {
     }
 
     @Operation(summary = "失效指定会话")
-    @PostMapping("/sessions/{sessionId}/invalidate")
+    @PostMapping("/commands/invalidate-session")
     public void invalidateSession(
-            @PathVariable @NotBlank(message = "sessionId must not be blank") String sessionId,
+            @RequestParam("sessionId") @NotBlank(message = "sessionId must not be blank") String sessionId,
             @RequestParam("reason") @NotBlank(message = "reason must not be blank") String reason) {
         sessionCommandApplicationService.invalidateSession(new SessionInvalidateCommand(sessionId, reason));
     }
 
     @Operation(summary = "查询 OAuth 客户端")
-    @GetMapping("/oauth-clients/{clientId}")
-    public OAuthClientResponse getClient(@PathVariable @NotBlank(message = "clientId must not be blank") String clientId) {
+    @GetMapping("/queries/oauth-client")
+    public OAuthClientResponse getClient(
+            @RequestParam("clientId") @NotBlank(message = "clientId must not be blank") String clientId) {
         return AuthInterfaceAssembler.toOAuthClientResponse(
                 oAuthClientQueryApplicationService.getClientByClientId(new OAuthClientQuery(clientId)));
     }

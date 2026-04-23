@@ -39,7 +39,7 @@ import org.springframework.validation.annotation.Validated;
 
 @RestController
 @WrappedApiController
-@RequestMapping("/auth")
+@RequestMapping("/auth/authentications")
 @Validated
 @Tag(name = "Auth-Management", description = "认证、登录、令牌与会话接口")
 @ApiAnnotationException(bucket = ApiAnnotationExceptionBucket.AUTH_PUBLIC)

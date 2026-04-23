@@ -29,7 +29,7 @@ public class OAuthClientReadFacadeRemoteImpl implements OAuthClientReadFacade {
         // OAuth client 元数据是授权链路的只读基线，remote facade 只透传 auth 侧定义的客户端配置。
         return restClient
                 .get()
-                .uri("/providers/auth/oauth-clients/{clientId}", request.getClientId())
+                .uri("/providers/auth/queries/oauth-client?clientId={clientId}", request.getClientId())
                 .retrieve()
                 .body(OAuthClientFacadeResponse.class);
     }

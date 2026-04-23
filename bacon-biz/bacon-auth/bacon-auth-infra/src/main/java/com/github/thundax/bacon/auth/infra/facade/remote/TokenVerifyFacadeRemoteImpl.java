@@ -31,7 +31,7 @@ public class TokenVerifyFacadeRemoteImpl implements TokenVerifyFacade {
         // 鉴权链路依赖这里返回标准化的 session 校验结果；remote facade 不做本地缓存，始终以 auth 为准。
         return restClient
                 .get()
-                .uri("/providers/auth/tokens/verify?accessToken={accessToken}", request.getAccessToken())
+                .uri("/providers/auth/queries/verify-token?accessToken={accessToken}", request.getAccessToken())
                 .retrieve()
                 .body(SessionValidationFacadeResponse.class);
     }
@@ -41,7 +41,7 @@ public class TokenVerifyFacadeRemoteImpl implements TokenVerifyFacade {
         // session 上下文查询和 token 校验拆成两个端点，避免每次鉴权都返回超出当前场景的会话细节。
         return restClient
                 .get()
-                .uri("/providers/auth/sessions/{sessionId}", request.getSessionId())
+                .uri("/providers/auth/queries/session-context?sessionId={sessionId}", request.getSessionId())
                 .retrieve()
                 .body(CurrentSessionFacadeResponse.class);
     }

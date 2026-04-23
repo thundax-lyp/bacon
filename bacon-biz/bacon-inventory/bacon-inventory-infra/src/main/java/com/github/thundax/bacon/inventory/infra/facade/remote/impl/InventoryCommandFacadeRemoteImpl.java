@@ -31,7 +31,7 @@ public class InventoryCommandFacadeRemoteImpl implements InventoryCommandFacade 
         // reserve/release/deduct 都只转发 provider 契约，不在 remote facade 里实现任何库存业务降级。
         return restClient
                 .post()
-                .uri("/providers/inventory/reservations/reserve")
+                .uri("/providers/inventory/commands/reserve")
                 .body(request)
                 .retrieve()
                 .body(InventoryReservationFacadeResponse.class);
@@ -44,7 +44,7 @@ public class InventoryCommandFacadeRemoteImpl implements InventoryCommandFacade 
     public InventoryReservationFacadeResponse releaseReservedStock(InventoryReleaseFacadeRequest request) {
         return restClient
                 .post()
-                .uri("/providers/inventory/reservations/release")
+                .uri("/providers/inventory/commands/release")
                 .body(request)
                 .retrieve()
                 .body(InventoryReservationFacadeResponse.class);
@@ -57,7 +57,7 @@ public class InventoryCommandFacadeRemoteImpl implements InventoryCommandFacade 
     public InventoryReservationFacadeResponse deductReservedStock(InventoryDeductFacadeRequest request) {
         return restClient
                 .post()
-                .uri("/providers/inventory/reservations/deduct")
+                .uri("/providers/inventory/commands/deduct")
                 .body(request)
                 .retrieve()
                 .body(InventoryReservationFacadeResponse.class);

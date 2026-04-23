@@ -22,10 +22,10 @@ import jakarta.validation.constraints.Positive;
 import java.util.List;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Validated
@@ -46,14 +46,14 @@ public class InventoryProviderController {
     }
 
     @Operation(summary = "查询 SKU 可用库存")
-    @GetMapping("/stocks/{skuId}")
-    public InventoryStockResponse getAvailableStock(@PathVariable @NotNull @Positive Long skuId) {
+    @GetMapping("/queries/available-stock")
+    public InventoryStockResponse getAvailableStock(@RequestParam("skuId") @NotNull @Positive Long skuId) {
         return InventoryStockResponse.from(
                 inventoryQueryService.getAvailableStock(InventoryInterfaceAssembler.toAvailableStockQuery(skuId)));
     }
 
     @Operation(summary = "批量查询 SKU 可用库存")
-    @GetMapping("/stocks")
+    @GetMapping("/queries/available-stocks")
     public List<InventoryStockResponse> batchGetAvailableStock(@Valid InventoryBatchQueryRequest request) {
         return inventoryQueryService
                 .batchGetAvailableStock(InventoryInterfaceAssembler.toBatchAvailableStockQuery(request))
@@ -63,14 +63,14 @@ public class InventoryProviderController {
     }
 
     @Operation(summary = "按订单号查询库存预占结果")
-    @GetMapping("/reservations/{orderNo}")
-    public InventoryReservationResponse getReservation(@PathVariable @NotBlank String orderNo) {
+    @GetMapping("/queries/reservation")
+    public InventoryReservationResponse getReservation(@RequestParam("orderNo") @NotBlank String orderNo) {
         return InventoryReservationResponse.from(
                 inventoryQueryService.getReservationByOrderNo(InventoryInterfaceAssembler.toReservationQuery(orderNo)));
     }
 
     @Operation(summary = "按订单号查询库存流水")
-    @GetMapping("/ledgers")
+    @GetMapping("/queries/ledgers")
     public List<InventoryLedgerResponse> listLedgers(@Valid InventoryOrderScopedRequest request) {
         return inventoryQueryService.listLedgersByOrderNo(InventoryInterfaceAssembler.toLedgerQuery(request.getOrderNo()))
                 .stream()
@@ -79,7 +79,7 @@ public class InventoryProviderController {
     }
 
     @Operation(summary = "按订单号查询库存审计日志")
-    @GetMapping("/audit-logs")
+    @GetMapping("/queries/audit-logs")
     public List<InventoryAuditLogResponse> listAuditLogs(@Valid InventoryOrderScopedRequest request) {
         return inventoryQueryService
                 .listAuditLogsByOrderNo(InventoryInterfaceAssembler.toAuditLogQuery(request.getOrderNo()))
@@ -89,7 +89,7 @@ public class InventoryProviderController {
     }
 
     @Operation(summary = "预占库存")
-    @PostMapping("/reservations/reserve")
+    @PostMapping("/commands/reserve")
     public InventoryReservationResponse reserve(@Valid @RequestBody InventoryReserveRequest request) {
         return InventoryReservationResponse.from(
                 inventoryCommandApplicationService.reserveStock(
@@ -97,7 +97,7 @@ public class InventoryProviderController {
     }
 
     @Operation(summary = "释放预占库存")
-    @PostMapping("/reservations/release")
+    @PostMapping("/commands/release")
     public InventoryReservationResponse release(@Valid @RequestBody InventoryReleaseRequest request) {
         return InventoryReservationResponse.from(
                 inventoryCommandApplicationService.releaseReservedStock(
@@ -105,7 +105,7 @@ public class InventoryProviderController {
     }
 
     @Operation(summary = "扣减预占库存")
-    @PostMapping("/reservations/deduct")
+    @PostMapping("/commands/deduct")
     public InventoryReservationResponse deduct(@Valid @RequestBody InventoryDeductRequest request) {
         return InventoryReservationResponse.from(
                 inventoryCommandApplicationService.deductReservedStock(

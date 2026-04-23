@@ -33,7 +33,7 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
         // 查询链路沿用和命令链路一致的 resilience/fallback 规则，避免读接口出现另一套异常语义。
         return restClient
                 .get()
-                .uri("/providers/inventory/stocks/{skuId}", request.getSkuId())
+                .uri("/providers/inventory/queries/available-stock?skuId={skuId}", request.getSkuId())
                 .retrieve()
                 .body(InventoryStockFacadeResponse.class);
     }
@@ -49,7 +49,7 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
         return restClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/providers/inventory/stocks")
+                        .path("/providers/inventory/queries/available-stocks")
                         .queryParam(
                                 "skuIds",
                                 request.getSkuIds() == null ? new Object[0] : request.getSkuIds().toArray())
@@ -68,7 +68,7 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
     public InventoryReservationFacadeResponse getReservationByOrderNo(InventoryReservationGetFacadeRequest request) {
         return restClient
                 .get()
-                .uri("/providers/inventory/reservations/{orderNo}", request.getOrderNo())
+                .uri("/providers/inventory/queries/reservation?orderNo={orderNo}", request.getOrderNo())
                 .retrieve()
                 .body(InventoryReservationFacadeResponse.class);
     }

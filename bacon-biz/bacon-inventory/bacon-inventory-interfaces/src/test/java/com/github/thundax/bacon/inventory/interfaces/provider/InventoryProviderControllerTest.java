@@ -37,7 +37,7 @@ class InventoryProviderControllerTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/inventory/stocks")
+        mockMvc.perform(get("/providers/inventory/queries/available-stocks")
                         .param("skuIds", "101")
                         .param("skuIds", "102")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
@@ -58,7 +58,7 @@ class InventoryProviderControllerTest {
 
         ServletException exception = assertThrows(
                 ServletException.class,
-                () -> mockMvc.perform(get("/providers/inventory/stocks")
+                () -> mockMvc.perform(get("/providers/inventory/queries/available-stocks")
                         .param("skuIds", "101")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
         assertEquals("tenantId must not be null", exception.getCause().getMessage());
@@ -76,7 +76,7 @@ class InventoryProviderControllerTest {
 
         ServletException exception = assertThrows(
                 ServletException.class,
-                () -> mockMvc.perform(get("/providers/inventory/stocks")
+                () -> mockMvc.perform(get("/providers/inventory/queries/available-stocks")
                         .param("skuIds", "101")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
         assertEquals("Invalid tenant: 9999", exception.getCause().getMessage());
@@ -92,7 +92,7 @@ class InventoryProviderControllerTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/inventory/stocks").param("skuIds", "101"))
+        mockMvc.perform(get("/providers/inventory/queries/available-stocks").param("skuIds", "101"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -106,7 +106,7 @@ class InventoryProviderControllerTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/inventory/stocks")
+        mockMvc.perform(get("/providers/inventory/queries/available-stocks")
                         .param("skuIds", "101")
                         .header(PROVIDER_TOKEN_HEADER, "wrong-token"))
                 .andExpect(status().isForbidden());

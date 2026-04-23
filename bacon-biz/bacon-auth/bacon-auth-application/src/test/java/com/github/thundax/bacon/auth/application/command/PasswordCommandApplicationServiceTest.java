@@ -2,6 +2,7 @@ package com.github.thundax.bacon.auth.application.command;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -11,7 +12,6 @@ import com.github.thundax.bacon.auth.application.query.SessionQueryApplicationSe
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
-import com.github.thundax.bacon.upms.api.request.UserPasswordChangeFacadeRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -80,7 +80,9 @@ class PasswordCommandApplicationServiceTest {
         assertDoesNotThrow(() ->
                 service.changePassword(new PasswordChangeCommand("access-token", "OldPass123", "NewPass123")));
 
-        verify(userPasswordFacade).changePassword(new UserPasswordChangeFacadeRequest("OldPass123", "NewPass123"));
+        verify(userPasswordFacade).changePassword(argThat(request ->
+                request.getOldPassword().equals("OldPass123")
+                        && request.getNewPassword().equals("NewPass123")));
         verify(sessionCommandApplicationService).invalidateUserSessions(
                 new SessionInvalidateUserCommand(1001L, 2001L, "SELF_PASSWORD_CHANGED"));
     }

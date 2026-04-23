@@ -31,7 +31,7 @@ public class PaymentReadFacadeRemoteImpl implements PaymentReadFacade {
         // 查询链路也沿用同一套 resilience + translator 规则，避免读写远程调用产生不同的失败语义。
         return restClient
                 .get()
-                .uri("/providers/payment/{paymentNo}", request.getPaymentNo())
+                .uri("/providers/payment/queries/detail?paymentNo={paymentNo}", request.getPaymentNo())
                 .retrieve()
                 .body(PaymentDetailFacadeResponse.class);
     }
@@ -43,7 +43,7 @@ public class PaymentReadFacadeRemoteImpl implements PaymentReadFacade {
     public PaymentDetailFacadeResponse getByOrderNo(PaymentGetByOrderNoFacadeRequest request) {
         return restClient
                 .get()
-                .uri("/providers/payment?orderNo={orderNo}", request.getOrderNo())
+                .uri("/providers/payment/queries/by-order?orderNo={orderNo}", request.getOrderNo())
                 .retrieve()
                 .body(PaymentDetailFacadeResponse.class);
     }

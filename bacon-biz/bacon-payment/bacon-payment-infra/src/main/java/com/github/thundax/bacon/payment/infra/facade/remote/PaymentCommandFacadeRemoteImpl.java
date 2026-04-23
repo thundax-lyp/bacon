@@ -33,7 +33,7 @@ public class PaymentCommandFacadeRemoteImpl implements PaymentCommandFacade {
         return restClient
                 .post()
                 .uri(
-                        "/providers/payment/create?orderNo={orderNo}&userId={userId}"
+                        "/providers/payment/commands/create?orderNo={orderNo}&userId={userId}"
                                 + "&amount={amount}&channelCode={channelCode}&subject={subject}&expiredAt={expiredAt}",
                         request.getOrderNo(),
                         request.getUserId(),
@@ -52,7 +52,7 @@ public class PaymentCommandFacadeRemoteImpl implements PaymentCommandFacade {
     public PaymentCloseFacadeResponse closePayment(PaymentCloseFacadeRequest request) {
         return restClient
                 .post()
-                .uri("/providers/payment/close?paymentNo={paymentNo}&reason={reason}",
+                .uri("/providers/payment/commands/close?paymentNo={paymentNo}&reason={reason}",
                         request.getPaymentNo(),
                         request.getReason())
                 .retrieve()

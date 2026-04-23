@@ -7,21 +7,18 @@
 
 ## 当前主线顺序（按模块执行）
 
-1. `payment`
-   - 收口 `/payment` 根路径下查询/审计/回调分组语义
-   - 同步 OpenAPI tag 与 controller 命名
-2. `*-interfaces/request`
+1. `*-interfaces/request`
    - 收敛请求模型放置与校验注解门禁
-3. 质量门禁
+2. 质量门禁
    - 补齐覆盖率、静态分析、依赖漏洞扫描和 CI 阻断
-4. 生产级代码与业务能力补齐
+3. 生产级代码与业务能力补齐
    - 统一错误码、错误响应与 API 版本策略
    - 补齐订单、支付、库存状态机、幂等、补偿和对账
    - 补齐契约测试、集成测试、限流、防重放、日志上下文和业务指标
-5. 观测告警、部署发布与安全运行
+4. 观测告警、部署发布与安全运行
    - 补齐健康检查、Prometheus 指标、Dashboard、Alert Rules
    - 补齐部署模板、环境变量清单、Release Checklist、Runbook
-6. 横切收尾
+5. 横切收尾
    - 增加剩余 ArchUnit 规则并逐步加严
    - 保持“先接口收口、后门禁加严”的节奏，避免治理反向阻塞主线
 
@@ -32,12 +29,6 @@
   - 处理动作：新增 ArchUnit 规则，限制请求模型仅放在 `interfaces.request`，并对关键字段缺失 Bean Validation 注解的类进行阻断
   - 验收点：请求模型职责清晰，校验不再依赖人工约定
   - 重要度：7/10
-
-- [ ] `payment`：收口 `/payment` 根路径下的查询/审计/回调分组语义
-  - 当前状态：`PaymentQueryController`、`PaymentAuditLogController` 共用 `/payment`，`callback` 独立为 `/payment/callbacks`
-  - 处理动作：统一资源名与动作语义（按支付单、审计日志、回调）并同步 OpenAPI tag 命名
-  - 验收点：支付域路由和 controller 命名一一对应，便于 AI 稳定路由推断
-  - 重要度：6/10
 
 ## P0 - 生产级代码与业务功能补齐
 

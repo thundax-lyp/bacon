@@ -47,7 +47,9 @@ class PaymentProviderControllerTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/payment/PAY-10001").header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
+        mockMvc.perform(get("/providers/payment/queries/detail")
+                        .param("paymentNo", "PAY-10001")
+                        .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.paymentNo").value("PAY-10001"))
                 .andExpect(jsonPath("$.code").doesNotExist());
@@ -66,7 +68,7 @@ class PaymentProviderControllerTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/payment").header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
+        mockMvc.perform(get("/providers/payment/queries/by-order").header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isBadRequest());
     }
 
@@ -86,7 +88,9 @@ class PaymentProviderControllerTest {
         ServletException exception = assertThrows(
                 ServletException.class,
                 () -> mockMvc.perform(
-                        get("/providers/payment/PAY-10001").header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
+                        get("/providers/payment/queries/detail")
+                                .param("paymentNo", "PAY-10001")
+                                .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
         assertEquals(PaymentDomainException.class, exception.getCause().getClass());
         assertEquals(
                 PaymentErrorCode.PAYMENT_NOT_FOUND.code(), ((PaymentDomainException) exception.getCause()).getCode());
@@ -105,7 +109,9 @@ class PaymentProviderControllerTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/payment/PAY-10001/audit-logs").header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
+        mockMvc.perform(get("/providers/payment/queries/audit-logs")
+                        .param("paymentNo", "PAY-10001")
+                        .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].paymentNo").value("PAY-10001"))
                 .andExpect(jsonPath("$[0].actionType").value("CREATE"));
@@ -124,7 +130,8 @@ class PaymentProviderControllerTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/payment/PAY-10001")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/providers/payment/queries/detail").param("paymentNo", "PAY-10001"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -140,7 +147,9 @@ class PaymentProviderControllerTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/payment/PAY-10001").header(PROVIDER_TOKEN_HEADER, "wrong-token"))
+        mockMvc.perform(get("/providers/payment/queries/detail")
+                        .param("paymentNo", "PAY-10001")
+                        .header(PROVIDER_TOKEN_HEADER, "wrong-token"))
                 .andExpect(status().isForbidden());
     }
 

@@ -36,7 +36,7 @@ class PaymentAuditLogControllerTest {
 
     @Test
     void shouldReturnAuditLogsWhenRequestIsValid() throws Exception {
-        mockMvc.perform(get("/payment/PAY-10001/audit-logs"))
+        mockMvc.perform(get("/payment/payments/PAY-10001/audit-logs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].paymentNo").value("PAY-10001"))
                 .andExpect(jsonPath("$.data[0].actionType").value("CREATE"));

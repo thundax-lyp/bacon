@@ -39,7 +39,7 @@ class PaymentFacadeRemoteTest {
     @Test
     void shouldCallCreatePaymentProviderPath() {
         server.expect(requestTo(BASE_URL
-                        + "/providers/payment/create?orderNo=ORD-10001&userId=2001"
+                        + "/providers/payment/commands/create?orderNo=ORD-10001&userId=2001"
                         + "&amount=88.80&channelCode=MOCK&subject=test-subject&expiredAt=2026-03-27T10%3A30%3A00Z"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
@@ -68,7 +68,8 @@ class PaymentFacadeRemoteTest {
 
     @Test
     void shouldCallClosePaymentProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/payment/close?paymentNo=PAY-10001&reason=SYSTEM_CANCELLED"))
+        server.expect(requestTo(BASE_URL
+                + "/providers/payment/commands/close?paymentNo=PAY-10001&reason=SYSTEM_CANCELLED"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess(
@@ -94,7 +95,7 @@ class PaymentFacadeRemoteTest {
 
     @Test
     void shouldCallGetByPaymentNoProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/payment/PAY-10001"))
+        server.expect(requestTo(BASE_URL + "/providers/payment/queries/detail?paymentNo=PAY-10001"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(
@@ -129,7 +130,7 @@ class PaymentFacadeRemoteTest {
 
     @Test
     void shouldCallGetByOrderNoProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/payment?orderNo=ORD-10001"))
+        server.expect(requestTo(BASE_URL + "/providers/payment/queries/by-order?orderNo=ORD-10001"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(

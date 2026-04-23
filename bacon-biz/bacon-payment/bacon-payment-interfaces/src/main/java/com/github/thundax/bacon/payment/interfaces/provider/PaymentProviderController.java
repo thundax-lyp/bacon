@@ -19,7 +19,6 @@ import java.time.Instant;
 import java.util.List;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,28 +47,29 @@ public class PaymentProviderController {
     }
 
     @Operation(summary = "按支付单号查询支付单")
-    @GetMapping("/{paymentNo}")
-    public PaymentDetailResponse getByPaymentNo(@PathVariable("paymentNo") @NotBlank String paymentNo) {
+    @GetMapping("/queries/detail")
+    public PaymentDetailResponse getByPaymentNo(@RequestParam("paymentNo") @NotBlank String paymentNo) {
         return PaymentInterfaceAssembler.toDetailResponse(
                 paymentQueryService.getByPaymentNo(PaymentInterfaceAssembler.toGetByPaymentNoQuery(paymentNo)));
     }
 
     @Operation(summary = "按订单号查询支付单")
-    @GetMapping
+    @GetMapping("/queries/by-order")
     public PaymentDetailResponse getByOrderNo(@RequestParam("orderNo") @NotBlank String orderNo) {
         return PaymentInterfaceAssembler.toDetailResponse(
                 paymentQueryService.getByOrderNo(PaymentInterfaceAssembler.toGetByOrderNoQuery(orderNo)));
     }
 
     @Operation(summary = "按支付单号查询支付审计日志")
-    @GetMapping("/{paymentNo}/audit-logs")
-    public List<PaymentAuditLogResponse> getAuditLogsByPaymentNo(@PathVariable("paymentNo") @NotBlank String paymentNo) {
+    @GetMapping("/queries/audit-logs")
+    public List<PaymentAuditLogResponse> getAuditLogsByPaymentNo(
+            @RequestParam("paymentNo") @NotBlank String paymentNo) {
         return PaymentInterfaceAssembler.toAuditLogResponses(
                 paymentAuditQueryApplicationService.getByPaymentNo(PaymentInterfaceAssembler.toAuditLogQuery(paymentNo)));
     }
 
     @Operation(summary = "创建支付单")
-    @PostMapping("/create")
+    @PostMapping("/commands/create")
     public PaymentCreateResponse createPayment(
             @RequestParam("orderNo") @NotBlank String orderNo,
             @RequestParam("userId") @NotNull @Positive Long userId,
@@ -82,7 +82,7 @@ public class PaymentProviderController {
     }
 
     @Operation(summary = "关闭支付单")
-    @PostMapping("/close")
+    @PostMapping("/commands/close")
     public PaymentCloseResponse closePayment(
             @RequestParam("paymentNo") @NotBlank String paymentNo, @RequestParam("reason") @NotBlank String reason) {
         return PaymentInterfaceAssembler.toCloseResponse(

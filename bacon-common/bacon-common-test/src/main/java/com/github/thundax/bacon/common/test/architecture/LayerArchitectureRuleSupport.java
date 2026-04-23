@@ -45,7 +45,11 @@ public final class LayerArchitectureRuleSupport {
             Set.of("auth", "inventory", "order", "payment", "storage", "upms");
     private static final Set<String> BUSINESS_LAYERS = Set.of("api", "interfaces", "application", "domain", "infra");
     private static final Set<String> PROTOCOL_MAPPING_METHOD_PREFIXES = Set.of("to", "from", "of");
-    private static final Set<String> REQUIRED_PROTOCOL_MODEL_LOMBOK_ANNOTATIONS =
+    private static final Set<String> REQUIRED_PROTOCOL_REQUEST_MODEL_LOMBOK_ANNOTATIONS =
+            Set.of("Getter", "Setter", "NoArgsConstructor", "AllArgsConstructor");
+    private static final Set<String> REQUIRED_PROTOCOL_API_REQUEST_MODEL_LOMBOK_ANNOTATIONS =
+            Set.of("Getter", "NoArgsConstructor", "AllArgsConstructor");
+    private static final Set<String> REQUIRED_PROTOCOL_RESPONSE_MODEL_LOMBOK_ANNOTATIONS =
             Set.of("Getter", "NoArgsConstructor", "AllArgsConstructor");
     private static final Set<String> KNOWN_PROTOCOL_MODEL_LOMBOK_ANNOTATIONS = Set.of(
             "Getter",
@@ -521,18 +525,20 @@ public final class LayerArchitectureRuleSupport {
                             return;
                         }
                         Set<String> actualAnnotations = extractClassLombokAnnotations(source.get(), item.getSimpleName());
-                        if (REQUIRED_PROTOCOL_MODEL_LOMBOK_ANNOTATIONS.equals(actualAnnotations)) {
+                        Set<String> expectedAnnotations =
+                                expectedProtocolModelLombokAnnotations(basePackage, item.getPackageName());
+                        if (expectedAnnotations.equals(actualAnnotations)) {
                             return;
                         }
-                        Set<String> missing = new TreeSet<>(REQUIRED_PROTOCOL_MODEL_LOMBOK_ANNOTATIONS);
+                        Set<String> missing = new TreeSet<>(expectedAnnotations);
                         missing.removeAll(actualAnnotations);
                         Set<String> extra = new TreeSet<>(actualAnnotations);
-                        extra.removeAll(REQUIRED_PROTOCOL_MODEL_LOMBOK_ANNOTATIONS);
+                        extra.removeAll(expectedAnnotations);
                         events.add(SimpleConditionEvent.violated(
                                 item,
-                                item.getFullName()
+                                        item.getFullName()
                                         + " Lombok annotations must be exactly "
-                                        + new TreeSet<>(REQUIRED_PROTOCOL_MODEL_LOMBOK_ANNOTATIONS)
+                                        + new TreeSet<>(expectedAnnotations)
                                         + "; missing="
                                         + missing
                                         + ", extra="
@@ -541,8 +547,24 @@ public final class LayerArchitectureRuleSupport {
                 })
                 .allowEmptyShould(true)
                 .because(
-                        "RULE LAYER_PROTOCOL_MODEL_CLASS_LOMBOK_EXACT_ANNOTATIONS: class protocol models must use "
+                        "RULE LAYER_PROTOCOL_MODEL_INTERFACES_REQUEST_CLASS_LOMBOK_EXACT_ANNOTATIONS / "
+                                + "LAYER_PROTOCOL_MODEL_API_REQUEST_CLASS_LOMBOK_EXACT_ANNOTATIONS / "
+                                + "LAYER_PROTOCOL_MODEL_RESPONSE_CLASS_LOMBOK_EXACT_ANNOTATIONS: interfaces.request "
+                                + "class protocol models must use exactly @Getter, @Setter, @NoArgsConstructor and "
+                                + "@AllArgsConstructor; api.request and response class protocol models must use "
                                 + "exactly @Getter, @NoArgsConstructor and @AllArgsConstructor");
+    }
+
+    private static Set<String> expectedProtocolModelLombokAnnotations(String basePackage, String packageName) {
+        if (packageName.equals(basePackage + ".interfaces.request")
+                || packageName.startsWith(basePackage + ".interfaces.request.")) {
+            return REQUIRED_PROTOCOL_REQUEST_MODEL_LOMBOK_ANNOTATIONS;
+        }
+        if (packageName.equals(basePackage + ".api.request")
+                || packageName.startsWith(basePackage + ".api.request.")) {
+            return REQUIRED_PROTOCOL_API_REQUEST_MODEL_LOMBOK_ANNOTATIONS;
+        }
+        return REQUIRED_PROTOCOL_RESPONSE_MODEL_LOMBOK_ANNOTATIONS;
     }
 
     private static boolean isForbiddenDomainTechnologyPackage(String packageName) {

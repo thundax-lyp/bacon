@@ -23,7 +23,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -71,7 +70,7 @@ public class OrderController {
     @Operation(summary = "分页查询订单")
     @HasPermission("order:order:view")
     @GetMapping
-    public OrderPageResponse page(@Valid @ModelAttribute OrderPageRequest request) {
+    public OrderPageResponse page(@Valid OrderPageRequest request) {
         return OrderInterfaceAssembler.toPageResponse(orderQueryService.page(OrderInterfaceAssembler.toPageQuery(request)));
     }
 

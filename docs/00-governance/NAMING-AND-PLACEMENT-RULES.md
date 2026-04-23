@@ -64,7 +64,9 @@
 - `LAYER_APPLICATION_ASSEMBLER_EXCLUSIVE_MAPPING`：`application.command/query/audit/support` 禁止直接构造业务 `*DTO/*Response`；`Domain <-> DTO/Result` 装配固定收敛到 `application.assembler`
 - `LAYER_ASSEMBLER_CALL_BOUNDARY`：`interfaces.*InterfaceAssembler` 只能被 `interfaces` 调用，`application.*Assembler` 只能被 `application` 调用，`infra.*PersistenceAssembler` 只能被 `infra` 调用
 - `LAYER_PROTOCOL_MODEL_NO_MAPPING_METHODS`：`interfaces.request/response` 与 `api.request/response` 协议模型禁止声明 `toXxx(...)`、`fromXxx(...)`、`ofXxx(...)` 装配方法；协议模型与应用契约、Facade 契约之间的转换固定收敛到 `interfaces.assembler.*InterfaceAssembler`
-- `LAYER_PROTOCOL_MODEL_CLASS_LOMBOK_EXACT_ANNOTATIONS`：`interfaces.request/response` 与 `api.request/response` 中 class 形态协议模型的 Lombok 注解固定且仅允许 `@Getter`、`@NoArgsConstructor`、`@AllArgsConstructor`；record 形态协议模型不适用该规则
+- `LAYER_PROTOCOL_MODEL_INTERFACES_REQUEST_CLASS_LOMBOK_EXACT_ANNOTATIONS`：`interfaces.request` 中 class 形态协议模型的 Lombok 注解固定且仅允许 `@Getter`、`@Setter`、`@NoArgsConstructor`、`@AllArgsConstructor`；record 形态协议模型不适用该规则
+- `LAYER_PROTOCOL_MODEL_API_REQUEST_CLASS_LOMBOK_EXACT_ANNOTATIONS`：`api.request` 中 class 形态协议模型的 Lombok 注解固定且仅允许 `@Getter`、`@NoArgsConstructor`、`@AllArgsConstructor`；record 形态协议模型不适用该规则
+- `LAYER_PROTOCOL_MODEL_RESPONSE_CLASS_LOMBOK_EXACT_ANNOTATIONS`：`interfaces.response` 与 `api.response` 中 class 形态协议模型的 Lombok 注解固定且仅允许 `@Getter`、`@NoArgsConstructor`、`@AllArgsConstructor`；record 形态协议模型不适用该规则
 - `LAYER_ANNOTATION_PLACEMENT_WHITELIST`：`@RestController` 仅允许在 `interfaces.controller/provider`，`@FeignClient` 仅允许在 `infra.facade.remote`，`@Mapper` 仅允许在 `infra.persistence.mapper`，`@TableName/@TableField` 仅允许在 `infra.persistence.dataobject`
 
 ### Naming & Placement
@@ -110,8 +112,9 @@
 - `LAYER_CODEC_SCOPE`：`Codec` 只做基础类型和值对象互转，不做业务编排；待固定目录/调用写法后再升级为 `Hard Rules`
 - interfaces 层优先完成参数约束校验，避免将明显非法参数下沉到 application
 - application 公共入口优先使用 `Command / Query / VO`，避免长 primitive 参数列表
+- `interfaces.request.*Request` 如需承接 `GET` / query parameter 绑定，应保留可写属性入口；默认使用 `@Setter`
 - `LAYER_CONTROLLER_SIGNATURE_REQUEST_RESPONSE` / `LAYER_PROVIDER_SIGNATURE_REQUEST_RESPONSE` 的允许项和禁止项固定如下：
-  - 允许入参：无业务入参；单个 `interfaces.request.*Request`；带 `@PathVariable` / `@RequestParam` / `@RequestHeader` / `@ModelAttribute` / `@RequestBody` 的稳定基础类型或框架类型参数
+  - 允许入参：无业务入参；单个 `interfaces.request.*Request`；带 `@PathVariable` / `@RequestParam` / `@RequestHeader` / `@RequestBody` 的稳定基础类型或框架类型参数
   - 允许返回：`interfaces.response.*Response`；`List<...Response>`；`Set<...Response>`；`ResponseEntity<...Response>`；`ResponseEntity<Void>`；`void`
   - 禁止入参：`api.request.*FacadeRequest`、`api.response.*FacadeResponse`、`application.dto.*DTO`、`application.result.*Result`、`domain.model.*`、`infra.persistence.dataobject.*DO` 以及其他业务域内部模型
   - 禁止返回：`api.response.*FacadeResponse`、`application.dto.*DTO`、`application.result.*Result`、`domain.model.*`、`infra.persistence.dataobject.*DO` 以及其他业务域内部模型

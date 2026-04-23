@@ -80,12 +80,6 @@
   - 验收点：主链路集成测试进入 CI，失败时能定位到订单、库存或支付具体阶段，幂等、重试、补偿规则不会被回退
   - 重要度：10/10
 
-- [ ] `auth-api` / `auth-interfaces.facade` / `auth-infra.facade.remote`：补齐 Auth 跨域 Facade 契约测试
-  - 范围对象：`TokenVerifyFacade`、`SessionCommandFacade`、`OAuthClientReadFacade`、Auth Provider Controller、Auth Facade request/response
-  - 处理动作：固定 token 校验、会话上下文读取、会话失效和 OAuth2 client 读取的本地调用语义、远程调用语义、异常映射和空值语义
-  - 验收点：Auth mono 模式与 micro 模式 Facade 行为一致，Auth 契约变更会被测试阻断
-  - 重要度：9/10
-
 - [ ] `upms-api` / `upms-interfaces.facade` / `upms-infra.facade.remote`：补齐 UPMS 跨域 Facade 契约测试
   - 范围对象：`CurrentUserReadFacade`、`UserCredentialReadFacade`、`UserPasswordFacade`、UPMS Provider Controller、UPMS Facade request/response
   - 处理动作：固定当前用户读取、当前租户读取、数据权限读取、身份凭据读取和用户改密的本地调用语义、远程调用语义、异常映射和空值语义

@@ -96,7 +96,7 @@ bacon:
   id:
     generator:
       providers:
-        - tinyid
+        - snowflake
       fallback-enabled: true
       tiny-id:
         server: ${BACON_TINYID_SERVER:127.0.0.1:9999}

@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.order.interfaces.request;
 
-import com.github.thundax.bacon.order.application.command.CreateOrderItemCommand;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
@@ -11,9 +10,4 @@ public record CreateOrderItemRequest(
         @Size(max = 128) @Schema(description = "SKU 名称", example = "demo-item") String skuName,
         @Size(max = 512) @Schema(description = "商品图片地址快照", example = "https://cdn.example.com/items/101.png") String imageUrl,
         @Schema(description = "数量", example = "1") Integer quantity,
-        @Schema(description = "销售价", example = "10.00") BigDecimal salePrice) {
-
-    public CreateOrderItemCommand toCommand() {
-        return new CreateOrderItemCommand(skuId, skuName, imageUrl, quantity, salePrice);
-    }
-}
+        @Schema(description = "销售价", example = "10.00") BigDecimal salePrice) {}

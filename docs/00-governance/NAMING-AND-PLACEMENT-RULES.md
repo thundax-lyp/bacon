@@ -63,6 +63,7 @@
 - `LAYER_APPLICATION_INFRA_NO_ILLEGAL_ARGUMENT`：`application` 与 `infra.repository.impl/support` 禁止把 `IllegalArgumentException` 作为业务异常出口
 - `LAYER_APPLICATION_ASSEMBLER_EXCLUSIVE_MAPPING`：`application.command/query/audit/support` 禁止直接构造业务 `*DTO/*Response`；`Domain <-> DTO/Result` 装配固定收敛到 `application.assembler`
 - `LAYER_ASSEMBLER_CALL_BOUNDARY`：`interfaces.*InterfaceAssembler` 只能被 `interfaces` 调用，`application.*Assembler` 只能被 `application` 调用，`infra.*PersistenceAssembler` 只能被 `infra` 调用
+- `LAYER_PROTOCOL_MODEL_NO_MAPPING_METHODS`：`interfaces.request/response` 与 `api.request/response` 协议模型禁止声明 `toXxx(...)`、`fromXxx(...)`、`ofXxx(...)` 装配方法；协议模型与应用契约、Facade 契约之间的转换固定收敛到 `interfaces.assembler.*InterfaceAssembler`
 - `LAYER_ANNOTATION_PLACEMENT_WHITELIST`：`@RestController` 仅允许在 `interfaces.controller/provider`，`@FeignClient` 仅允许在 `infra.facade.remote`，`@Mapper` 仅允许在 `infra.persistence.mapper`，`@TableName/@TableField` 仅允许在 `infra.persistence.dataobject`
 
 ### Naming & Placement

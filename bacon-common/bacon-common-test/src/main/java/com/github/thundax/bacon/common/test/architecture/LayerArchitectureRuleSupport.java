@@ -38,6 +38,7 @@ public final class LayerArchitectureRuleSupport {
     private static final Set<String> BUSINESS_DOMAINS =
             Set.of("auth", "inventory", "order", "payment", "storage", "upms");
     private static final Set<String> BUSINESS_LAYERS = Set.of("api", "interfaces", "application", "domain", "infra");
+    private static final Set<String> PROTOCOL_MAPPING_METHOD_PREFIXES = Set.of("to", "from", "of");
     private static final List<String> DOMAIN_FORBIDDEN_TECH_PACKAGES = List.of(
             "org.springframework.web.",
             "org.springframework.http.",
@@ -447,8 +448,50 @@ public final class LayerArchitectureRuleSupport {
                                 + "as business exception");
     }
 
+    public static ArchRule protocolModelsShouldNotDeclareMappingMethods(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAnyPackage(
+                        basePackage + ".interfaces.request..",
+                        basePackage + ".interfaces.response..",
+                        basePackage + ".api.request..",
+                        basePackage + ".api.response..")
+                .should(new ArchCondition<>("declare toXxx/fromXxx/ofXxx protocol mapping methods") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        for (JavaMethod method : item.getMethods()) {
+                            if (!method.getOwner().equals(item)
+                                    || !method.getModifiers().contains(JavaModifier.PUBLIC)
+                                    || !isProtocolMappingMethodName(method.getName())) {
+                                continue;
+                            }
+                            events.add(SimpleConditionEvent.violated(
+                                    method,
+                                    method.getFullName()
+                                            + " declares protocol mapping method; move conversion to "
+                                            + basePackage
+                                            + ".interfaces.assembler.*InterfaceAssembler"));
+                        }
+                    }
+                })
+                .allowEmptyShould(true)
+                .because(
+                        "RULE LAYER_PROTOCOL_MODEL_NO_MAPPING_METHODS: protocol Request/Response mapping must move "
+                                + "to interfaces.assembler.*InterfaceAssembler");
+    }
+
     private static boolean isForbiddenDomainTechnologyPackage(String packageName) {
         return DOMAIN_FORBIDDEN_TECH_PACKAGES.stream().anyMatch(packageName::startsWith);
+    }
+
+    private static boolean isProtocolMappingMethodName(String methodName) {
+        return PROTOCOL_MAPPING_METHOD_PREFIXES.stream().anyMatch(prefix -> hasMappingPrefix(methodName, prefix));
+    }
+
+    private static boolean hasMappingPrefix(String methodName, String prefix) {
+        return methodName.length() > prefix.length()
+                && methodName.startsWith(prefix)
+                && Character.isUpperCase(methodName.charAt(prefix.length()));
     }
 
     private static ArchRule noClassesOutsidePackageShouldUseAnnotations(

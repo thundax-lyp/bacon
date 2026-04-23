@@ -51,7 +51,7 @@ public final class OrderInterfaceAssembler {
         }
         List<CreateOrderItemCommand> itemCommands = request.items() == null
                 ? List.of()
-                : request.items().stream().map(CreateOrderItemRequest::toCommand).toList();
+                : request.items().stream().map(OrderInterfaceAssembler::toCreateItemCommand).toList();
         return new CreateOrderCommand(
                 UserIdCodec.toDomain(request.userId()),
                 request.currencyCode(),
@@ -59,6 +59,11 @@ public final class OrderInterfaceAssembler {
                 request.remark(),
                 request.expiredAt(),
                 itemCommands);
+    }
+
+    private static CreateOrderItemCommand toCreateItemCommand(CreateOrderItemRequest request) {
+        return new CreateOrderItemCommand(
+                request.skuId(), request.skuName(), request.imageUrl(), request.quantity(), request.salePrice());
     }
 
     public static OrderCancelCommand toCancelCommand(String orderNo, CancelOrderRequest request) {

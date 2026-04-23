@@ -191,4 +191,10 @@ public abstract class AbstractLayerArchitectureTest {
         LayerArchitectureRuleSupport.applicationAndInfraRepositoryShouldNotUseIllegalArgumentException(basePackage())
                 .check(classes());
     }
+
+    @Test
+    void shouldMoveProtocolModelMappingMethodsToInterfaceAssembler() {
+        LayerArchitectureRuleSupport.protocolModelsShouldNotDeclareMappingMethods(basePackage())
+                .check(classes());
+    }
 }

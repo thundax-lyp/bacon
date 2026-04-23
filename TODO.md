@@ -80,10 +80,40 @@
   - 验收点：主链路集成测试进入 CI，失败时能定位到订单、库存或支付具体阶段，幂等、重试、补偿规则不会被回退
   - 重要度：10/10
 
-- [ ] `*-api` / `*-interfaces.facade` / `*-infra.facade.remote`：补齐跨域 Facade 契约测试
-  - 范围对象：本地 Facade、远程 Facade、Provider Controller、Facade request/response
-  - 处理动作：固定本地调用和远程调用的返回语义、异常映射、空值语义和分页语义
-  - 验收点：mono 模式与 micro 模式的 Facade 行为一致，契约变更会被测试阻断
+- [ ] `auth-api` / `auth-interfaces.facade` / `auth-infra.facade.remote`：补齐 Auth 跨域 Facade 契约测试
+  - 范围对象：`TokenVerifyFacade`、`SessionCommandFacade`、`OAuthClientReadFacade`、Auth Provider Controller、Auth Facade request/response
+  - 处理动作：固定 token 校验、会话上下文读取、会话失效和 OAuth2 client 读取的本地调用语义、远程调用语义、异常映射和空值语义
+  - 验收点：Auth mono 模式与 micro 模式 Facade 行为一致，Auth 契约变更会被测试阻断
+  - 重要度：9/10
+
+- [ ] `upms-api` / `upms-interfaces.facade` / `upms-infra.facade.remote`：补齐 UPMS 跨域 Facade 契约测试
+  - 范围对象：`CurrentUserReadFacade`、`UserCredentialReadFacade`、`UserPasswordFacade`、UPMS Provider Controller、UPMS Facade request/response
+  - 处理动作：固定当前用户读取、当前租户读取、数据权限读取、身份凭据读取和用户改密的本地调用语义、远程调用语义、异常映射和空值语义
+  - 验收点：UPMS mono 模式与 micro 模式 Facade 行为一致，UPMS 契约变更会被测试阻断
+  - 重要度：9/10
+
+- [ ] `order-api` / `order-interfaces.facade` / `order-infra.facade.remote`：补齐 Order 跨域 Facade 契约测试
+  - 范围对象：`OrderReadFacade`、`OrderCommandFacade`、Order Provider Controller、Order Facade request/response
+  - 处理动作：固定订单详情读取、订单分页读取、支付成功标记、支付失败标记和过期关闭的本地调用语义、远程调用语义、异常映射、空值语义和分页语义
+  - 验收点：Order mono 模式与 micro 模式 Facade 行为一致，Order 契约变更会被测试阻断
+  - 重要度：9/10
+
+- [ ] `inventory-api` / `inventory-interfaces.facade` / `inventory-infra.facade.remote`：补齐 Inventory 跨域 Facade 契约测试
+  - 范围对象：`InventoryReadFacade`、`InventoryCommandFacade`、Inventory Provider Controller、Inventory Facade request/response
+  - 处理动作：固定可用库存读取、批量可用库存读取、按订单预占查询、库存预占、扣减和释放的本地调用语义、远程调用语义、异常映射和空值语义
+  - 验收点：Inventory mono 模式与 micro 模式 Facade 行为一致，Inventory 契约变更会被测试阻断
+  - 重要度：9/10
+
+- [ ] `payment-api` / `payment-interfaces.facade` / `payment-infra.facade.remote`：补齐 Payment 跨域 Facade 契约测试
+  - 范围对象：`PaymentReadFacade`、`PaymentCommandFacade`、Payment Provider Controller、Payment Facade request/response
+  - 处理动作：固定支付创建、支付关闭、支付详情读取和按订单读取支付单的本地调用语义、远程调用语义、异常映射和空值语义
+  - 验收点：Payment mono 模式与 micro 模式 Facade 行为一致，Payment 契约变更会被测试阻断
+  - 重要度：9/10
+
+- [ ] `storage-api` / `storage-interfaces.facade` / `storage-infra.facade.remote`：补齐 Storage 跨域 Facade 契约测试
+  - 范围对象：`StoredObjectCommandFacade`、`StoredObjectReadFacade`、Storage Provider Controller、Storage Facade request/response
+  - 处理动作：固定对象上传、分片上传初始化、分片上传、分片完成、分片终止、对象查询、对象引用标记、引用清理和对象删除的本地调用语义、远程调用语义、异常映射和空值语义
+  - 验收点：Storage mono 模式与 micro 模式 Facade 行为一致，Storage 契约变更会被测试阻断
   - 重要度：9/10
 
 - [ ] `*-interfaces.controller`：补齐 Controller API 回归测试

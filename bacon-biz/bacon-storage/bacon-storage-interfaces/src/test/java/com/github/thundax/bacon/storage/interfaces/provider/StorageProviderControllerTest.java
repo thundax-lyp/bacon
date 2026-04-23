@@ -67,7 +67,7 @@ class StorageProviderControllerTest {
 
         MockMultipartFile file = new MockMultipartFile("file", "a.txt", "text/plain", new byte[] {1, 2, 3});
 
-        mockMvc.perform(multipart("/providers/storage/objects/upload")
+        mockMvc.perform(multipart("/providers/storage/commands/upload-object")
                         .file(file)
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
@@ -92,7 +92,7 @@ class StorageProviderControllerTest {
                         0,
                         "INITIATED"));
 
-        mockMvc.perform(post("/providers/storage/objects/multipart/init")
+        mockMvc.perform(post("/providers/storage/commands/init-multipart-upload")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1")
@@ -113,8 +113,9 @@ class StorageProviderControllerTest {
         MockMultipartFile file =
                 new MockMultipartFile("file", "part-1.bin", "application/octet-stream", new byte[] {1, 2, 3});
 
-        mockMvc.perform(multipart("/providers/storage/objects/multipart/{uploadId}/parts", "1")
+        mockMvc.perform(multipart("/providers/storage/commands/upload-multipart-part")
                         .file(file)
+                        .param("uploadId", "1")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1")
@@ -141,7 +142,8 @@ class StorageProviderControllerTest {
                         "UNREFERENCED",
                         Instant.parse("2026-03-27T10:00:00Z")));
 
-        mockMvc.perform(post("/providers/storage/objects/multipart/{uploadId}/complete", "1")
+        mockMvc.perform(post("/providers/storage/commands/complete-multipart-upload")
+                        .param("uploadId", "1")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1"))
@@ -154,7 +156,8 @@ class StorageProviderControllerTest {
     void shouldAbortMultipartUploadWithoutResponseEnvelope() throws Exception {
         doNothing().when(storedObjectCommandApplicationService).abortMultipartUpload(any());
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/multipart/{uploadId}", "1")
+        mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/commands/abort-multipart-upload")
+                        .param("uploadId", "1")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1"))
@@ -184,7 +187,8 @@ class StorageProviderControllerTest {
                         "UNREFERENCED",
                         Instant.parse("2026-03-27T10:00:00Z")));
 
-        mockMvc.perform(get("/providers/storage/objects/{storedObjectNo}", "storage-20260327100000-000100")
+        mockMvc.perform(get("/providers/storage/queries/object")
+                        .param("storedObjectNo", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.storedObjectNo").value("storage-20260327100000-000100"))
@@ -218,7 +222,7 @@ class StorageProviderControllerTest {
                         1,
                         20));
 
-        mockMvc.perform(get("/providers/storage/objects")
+        mockMvc.perform(get("/providers/storage/queries/page")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("tenantId", "1")
                         .param("storageType", "LOCAL_FILE")
@@ -234,7 +238,8 @@ class StorageProviderControllerTest {
     void shouldMarkStoredObjectReferenceWithoutResponseEnvelope() throws Exception {
         doNothing().when(storedObjectCommandApplicationService).markObjectReferenced(any());
 
-        mockMvc.perform(post("/providers/storage/objects/{storedObjectNo}/references", "storage-20260327100000-000100")
+        mockMvc.perform(post("/providers/storage/commands/mark-object-referenced")
+                        .param("storedObjectNo", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1"))
@@ -246,7 +251,8 @@ class StorageProviderControllerTest {
         doNothing().when(storedObjectCommandApplicationService).clearObjectReference(any());
 
         mockMvc.perform(MockMvcRequestBuilders.delete(
-                                "/providers/storage/objects/{storedObjectNo}/references", "storage-20260327100000-000100")
+                                "/providers/storage/commands/clear-object-reference")
+                        .param("storedObjectNo", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1"))
@@ -259,20 +265,23 @@ class StorageProviderControllerTest {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(
-                                        "/providers/storage/objects/{storedObjectNo}", "storage-20260327100000-000100")
+                                        "/providers/storage/commands/delete-object")
+                        .param("storedObjectNo", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(status().isOk());
     }
 
     @Test
     void shouldRejectProviderRequestWhenTokenMissing() throws Exception {
-        mockMvc.perform(get("/providers/storage/objects/{storedObjectNo}", "storage-20260327100000-000100"))
+        mockMvc.perform(get("/providers/storage/queries/object")
+                        .param("storedObjectNo", "storage-20260327100000-000100"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void shouldRejectProviderRequestWhenTokenInvalid() throws Exception {
-        mockMvc.perform(get("/providers/storage/objects/{storedObjectNo}", "storage-20260327100000-000100")
+        mockMvc.perform(get("/providers/storage/queries/object")
+                        .param("storedObjectNo", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", "wrong-token"))
                 .andExpect(status().isForbidden());
     }

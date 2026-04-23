@@ -24,7 +24,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,7 +47,7 @@ public class StorageProviderController {
     }
 
     @Operation(summary = "普通文件上传")
-    @PostMapping(value = "/objects/upload", consumes = "multipart/form-data")
+    @PostMapping(value = "/commands/upload-object", consumes = "multipart/form-data")
     public StoredObjectResponse uploadObject(
             @RequestParam("ownerType") @NotBlank(message = "ownerType must not be blank") String ownerType,
             @RequestParam(value = "category", required = false) String category,
@@ -66,7 +65,7 @@ public class StorageProviderController {
     }
 
     @Operation(summary = "初始化大文件分段上传")
-    @PostMapping("/objects/multipart/init")
+    @PostMapping("/commands/init-multipart-upload")
     public MultipartUploadSessionResponse initMultipartUpload(
             @RequestParam("ownerType") @NotBlank(message = "ownerType must not be blank") String ownerType,
             @RequestParam("ownerId") @NotBlank(message = "ownerId must not be blank") String ownerId,
@@ -86,9 +85,9 @@ public class StorageProviderController {
     }
 
     @Operation(summary = "上传大文件分段")
-    @PostMapping(value = "/objects/multipart/{uploadId}/parts", consumes = "multipart/form-data")
+    @PostMapping(value = "/commands/upload-multipart-part", consumes = "multipart/form-data")
     public MultipartUploadPartResponse uploadMultipartPart(
-            @PathVariable("uploadId") @NotBlank(message = "uploadId must not be blank") String uploadId,
+            @RequestParam("uploadId") @NotBlank(message = "uploadId must not be blank") String uploadId,
             @RequestParam("ownerType") @NotBlank(message = "ownerType must not be blank") String ownerType,
             @RequestParam("ownerId") @NotBlank(message = "ownerId must not be blank") String ownerId,
             @RequestParam("partNumber") @NotNull(message = "partNumber must not be null")
@@ -102,9 +101,9 @@ public class StorageProviderController {
     }
 
     @Operation(summary = "完成大文件分段上传")
-    @PostMapping("/objects/multipart/{uploadId}/complete")
+    @PostMapping("/commands/complete-multipart-upload")
     public StoredObjectResponse completeMultipartUpload(
-            @PathVariable("uploadId") @NotBlank(message = "uploadId must not be blank") String uploadId,
+            @RequestParam("uploadId") @NotBlank(message = "uploadId must not be blank") String uploadId,
             @RequestParam("ownerType") @NotBlank(message = "ownerType must not be blank") String ownerType,
             @RequestParam("ownerId") @NotBlank(message = "ownerId must not be blank") String ownerId) {
         return StoredObjectResponse.from(storedObjectCommandApplicationService.completeMultipartUpload(
@@ -113,9 +112,9 @@ public class StorageProviderController {
     }
 
     @Operation(summary = "取消大文件分段上传")
-    @DeleteMapping("/objects/multipart/{uploadId}")
+    @DeleteMapping("/commands/abort-multipart-upload")
     public void abortMultipartUpload(
-            @PathVariable("uploadId") @NotBlank(message = "uploadId must not be blank") String uploadId,
+            @RequestParam("uploadId") @NotBlank(message = "uploadId must not be blank") String uploadId,
             @RequestParam("ownerType") @NotBlank(message = "ownerType must not be blank") String ownerType,
             @RequestParam("ownerId") @NotBlank(message = "ownerId must not be blank") String ownerId) {
         storedObjectCommandApplicationService.abortMultipartUpload(
@@ -124,25 +123,25 @@ public class StorageProviderController {
     }
 
     @Operation(summary = "查询存储对象")
-    @GetMapping("/objects/{storedObjectNo}")
+    @GetMapping("/queries/object")
     public StoredObjectResponse getObjectById(
-            @PathVariable("storedObjectNo") @NotBlank(message = "storedObjectNo must not be blank")
+            @RequestParam("storedObjectNo") @NotBlank(message = "storedObjectNo must not be blank")
                     String storedObjectNo) {
         return StoredObjectResponse.from(
                 storedObjectQueryApplicationService.getObjectByNo(StorageInterfaceAssembler.toGetQuery(storedObjectNo)));
     }
 
     @Operation(summary = "分页查询存储对象")
-    @GetMapping("/objects")
+    @GetMapping("/queries/page")
     public StoredObjectPageResponse page(@Valid @ModelAttribute StoredObjectPageProviderRequest request) {
         return StoredObjectPageResponse.from(
                 storedObjectQueryApplicationService.page(StorageInterfaceAssembler.toPageQuery(request)));
     }
 
     @Operation(summary = "建立存储对象引用")
-    @PostMapping("/objects/{storedObjectNo}/references")
+    @PostMapping("/commands/mark-object-referenced")
     public void markObjectReferenced(
-            @PathVariable("storedObjectNo") @NotBlank(message = "storedObjectNo must not be blank")
+            @RequestParam("storedObjectNo") @NotBlank(message = "storedObjectNo must not be blank")
                     String storedObjectNo,
             @RequestParam("ownerType") @NotBlank(message = "ownerType must not be blank") String ownerType,
             @RequestParam("ownerId") @NotBlank(message = "ownerId must not be blank") String ownerId) {
@@ -152,9 +151,9 @@ public class StorageProviderController {
     }
 
     @Operation(summary = "清理存储对象引用")
-    @DeleteMapping("/objects/{storedObjectNo}/references")
+    @DeleteMapping("/commands/clear-object-reference")
     public void clearObjectReference(
-            @PathVariable("storedObjectNo") @NotBlank(message = "storedObjectNo must not be blank")
+            @RequestParam("storedObjectNo") @NotBlank(message = "storedObjectNo must not be blank")
                     String storedObjectNo,
             @RequestParam("ownerType") @NotBlank(message = "ownerType must not be blank") String ownerType,
             @RequestParam("ownerId") @NotBlank(message = "ownerId must not be blank") String ownerId) {
@@ -164,9 +163,9 @@ public class StorageProviderController {
     }
 
     @Operation(summary = "删除存储对象")
-    @DeleteMapping("/objects/{storedObjectNo}")
+    @DeleteMapping("/commands/delete-object")
     public void deleteObject(
-            @PathVariable("storedObjectNo") @NotBlank(message = "storedObjectNo must not be blank")
+            @RequestParam("storedObjectNo") @NotBlank(message = "storedObjectNo must not be blank")
                     String storedObjectNo) {
         storedObjectCommandApplicationService.deleteObject(
                 StorageInterfaceAssembler.toDeleteCommand(storedObjectNo));

@@ -58,7 +58,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectCommandFacade, 
                 .part("file", new NamedInputStreamResource(request.getInputStream(), request.getOriginalFilename()))
                 .contentType(resolveMediaType(request.getContentType()));
         return request(restClient.post())
-                .uri("/providers/storage/objects/upload")
+                .uri("/providers/storage/commands/upload-object")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(bodyBuilder.build())
                 .retrieve()
@@ -69,7 +69,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectCommandFacade, 
     public MultipartUploadSessionFacadeResponse initMultipartUpload(InitMultipartUploadFacadeRequest request) {
         return request(restClient.post())
                 .uri(
-                        "/providers/storage/objects/multipart/init?ownerType={ownerType}&ownerId={ownerId}&category={category}"
+                        "/providers/storage/commands/init-multipart-upload?ownerType={ownerType}&ownerId={ownerId}&category={category}"
                                 + "&originalFilename={originalFilename}&contentType={contentType}&totalSize={totalSize}&partSize={partSize}",
                         request.getOwnerType(),
                         request.getOwnerId(),
@@ -91,7 +91,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectCommandFacade, 
                 .contentType(MediaType.APPLICATION_OCTET_STREAM);
         return request(restClient.post())
                 .uri(
-                        "/providers/storage/objects/multipart/{uploadId}/parts?ownerType={ownerType}&ownerId={ownerId}",
+                        "/providers/storage/commands/upload-multipart-part?uploadId={uploadId}&ownerType={ownerType}&ownerId={ownerId}",
                         request.getUploadId(),
                         request.getOwnerType(),
                         request.getOwnerId())
@@ -105,7 +105,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectCommandFacade, 
     public StoredObjectFacadeResponse completeMultipartUpload(CompleteMultipartUploadFacadeRequest request) {
         return request(restClient.post())
                 .uri(
-                        "/providers/storage/objects/multipart/{uploadId}/complete?ownerType={ownerType}&ownerId={ownerId}",
+                        "/providers/storage/commands/complete-multipart-upload?uploadId={uploadId}&ownerType={ownerType}&ownerId={ownerId}",
                         request.getUploadId(),
                         request.getOwnerType(),
                         request.getOwnerId())
@@ -117,7 +117,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectCommandFacade, 
     public void abortMultipartUpload(AbortMultipartUploadFacadeRequest request) {
         request(restClient.delete())
                 .uri(
-                        "/providers/storage/objects/multipart/{uploadId}?ownerType={ownerType}&ownerId={ownerId}",
+                        "/providers/storage/commands/abort-multipart-upload?uploadId={uploadId}&ownerType={ownerType}&ownerId={ownerId}",
                         request.getUploadId(),
                         request.getOwnerType(),
                         request.getOwnerId())
@@ -128,7 +128,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectCommandFacade, 
     @Override
     public StoredObjectFacadeResponse getObjectByNo(StoredObjectGetFacadeRequest request) {
         return request(restClient.get())
-                .uri("/providers/storage/objects/{storedObjectNo}", request.getStoredObjectNo())
+                .uri("/providers/storage/queries/object?storedObjectNo={storedObjectNo}", request.getStoredObjectNo())
                 .retrieve()
                 .body(StoredObjectFacadeResponse.class);
     }
@@ -137,7 +137,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectCommandFacade, 
     public void markObjectReferenced(StoredObjectReferenceFacadeRequest request) {
         request(restClient.post())
                 .uri(
-                        "/providers/storage/objects/{storedObjectNo}/references?ownerType={ownerType}&ownerId={ownerId}",
+                        "/providers/storage/commands/mark-object-referenced?storedObjectNo={storedObjectNo}&ownerType={ownerType}&ownerId={ownerId}",
                         request.getStoredObjectNo(),
                         request.getOwnerType(),
                         request.getOwnerId())
@@ -149,7 +149,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectCommandFacade, 
     public void clearObjectReference(StoredObjectReferenceFacadeRequest request) {
         request(restClient.delete())
                 .uri(
-                        "/providers/storage/objects/{storedObjectNo}/references?ownerType={ownerType}&ownerId={ownerId}",
+                        "/providers/storage/commands/clear-object-reference?storedObjectNo={storedObjectNo}&ownerType={ownerType}&ownerId={ownerId}",
                         request.getStoredObjectNo(),
                         request.getOwnerType(),
                         request.getOwnerId())
@@ -160,7 +160,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectCommandFacade, 
     @Override
     public void deleteObject(StoredObjectDeleteFacadeRequest request) {
         request(restClient.delete())
-                .uri("/providers/storage/objects/{storedObjectNo}", request.getStoredObjectNo())
+                .uri("/providers/storage/commands/delete-object?storedObjectNo={storedObjectNo}", request.getStoredObjectNo())
                 .retrieve()
                 .toBodilessEntity();
     }

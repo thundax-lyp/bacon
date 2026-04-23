@@ -43,7 +43,7 @@ class StoredObjectFacadeRemoteTest {
 
     @Test
     void shouldCallUploadProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/storage/objects/upload"))
+        server.expect(requestTo(BASE_URL + "/providers/storage/commands/upload-object"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
@@ -62,7 +62,7 @@ class StoredObjectFacadeRemoteTest {
 
     @Test
     void shouldCallMultipartInitProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/storage/objects/multipart/init"
+        server.expect(requestTo(BASE_URL + "/providers/storage/commands/init-multipart-upload"
                         + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1&category=attachment"
                         + "&originalFilename=a.txt&contentType=text%2Fplain&totalSize=1024&partSize=8388608"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
@@ -78,8 +78,8 @@ class StoredObjectFacadeRemoteTest {
 
     @Test
     void shouldCallMultipartPartProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/storage/objects/multipart/1/parts"
-                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
+        server.expect(requestTo(BASE_URL + "/providers/storage/commands/upload-multipart-part?uploadId=1"
+                        + "&ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
@@ -93,8 +93,8 @@ class StoredObjectFacadeRemoteTest {
 
     @Test
     void shouldCallMultipartCompleteProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/storage/objects/multipart/1/complete"
-                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
+        server.expect(requestTo(BASE_URL + "/providers/storage/commands/complete-multipart-upload?uploadId=1"
+                        + "&ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
@@ -108,8 +108,8 @@ class StoredObjectFacadeRemoteTest {
 
     @Test
     void shouldCallMultipartAbortProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/storage/objects/multipart/1"
-                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
+        server.expect(requestTo(BASE_URL + "/providers/storage/commands/abort-multipart-upload?uploadId=1"
+                        + "&ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.DELETE))
                 .andRespond(withSuccess());
@@ -122,7 +122,8 @@ class StoredObjectFacadeRemoteTest {
 
     @Test
     void shouldCallGetObjectProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/storage/objects/storage-20260327100000-000100"))
+        server.expect(requestTo(BASE_URL
+                + "/providers/storage/queries/object?storedObjectNo=storage-20260327100000-000100"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
@@ -135,8 +136,9 @@ class StoredObjectFacadeRemoteTest {
 
     @Test
     void shouldCallMarkReferenceProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/storage/objects/storage-20260327100000-000100/references"
-                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
+        server.expect(requestTo(BASE_URL
+                + "/providers/storage/commands/mark-object-referenced?storedObjectNo=storage-20260327100000-000100"
+                        + "&ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess());
@@ -151,8 +153,9 @@ class StoredObjectFacadeRemoteTest {
 
     @Test
     void shouldCallClearReferenceProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/storage/objects/storage-20260327100000-000100/references"
-                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
+        server.expect(requestTo(BASE_URL
+                + "/providers/storage/commands/clear-object-reference?storedObjectNo=storage-20260327100000-000100"
+                        + "&ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.DELETE))
                 .andRespond(withSuccess());
@@ -167,7 +170,8 @@ class StoredObjectFacadeRemoteTest {
 
     @Test
     void shouldCallDeleteObjectProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/storage/objects/storage-20260327100000-000100"))
+        server.expect(requestTo(BASE_URL
+                + "/providers/storage/commands/delete-object?storedObjectNo=storage-20260327100000-000100"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.DELETE))
                 .andRespond(withSuccess());

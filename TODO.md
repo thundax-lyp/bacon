@@ -80,12 +80,6 @@
   - 验收点：主链路集成测试进入 CI，失败时能定位到订单、库存或支付具体阶段，幂等、重试、补偿规则不会被回退
   - 重要度：10/10
 
-- [ ] `storage-api` / `storage-interfaces.facade` / `storage-infra.facade.remote`：补齐 Storage 跨域 Facade 契约测试
-  - 范围对象：`StoredObjectCommandFacade`、`StoredObjectReadFacade`、Storage Provider Controller、Storage Facade request/response
-  - 处理动作：固定对象上传、分片上传初始化、分片上传、分片完成、分片终止、对象查询、对象引用标记、引用清理和对象删除的本地调用语义、远程调用语义、异常映射和空值语义
-  - 验收点：Storage mono 模式与 micro 模式 Facade 行为一致，Storage 契约变更会被测试阻断
-  - 重要度：9/10
-
 - [ ] `*-interfaces.controller`：补齐 Controller API 回归测试
   - 范围对象：外部 HTTP 接口入参、出参、权限、异常响应
   - 处理动作：覆盖 Bean Validation、权限不足、资源不存在、业务冲突和成功响应

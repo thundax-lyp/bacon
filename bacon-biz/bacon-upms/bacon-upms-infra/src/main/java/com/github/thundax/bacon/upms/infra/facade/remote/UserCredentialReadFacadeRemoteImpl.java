@@ -32,7 +32,7 @@ public class UserCredentialReadFacadeRemoteImpl implements UserCredentialReadFac
         return restClient
                 .get()
                 .uri(
-                        "/providers/upms/user-identities?identityType={identityType}&identityValue={identityValue}",
+                        "/providers/upms/queries/user-identity?identityType={identityType}&identityValue={identityValue}",
                         request.getIdentityType(),
                         request.getIdentityValue())
                 .retrieve()
@@ -45,7 +45,7 @@ public class UserCredentialReadFacadeRemoteImpl implements UserCredentialReadFac
         return restClient
                 .get()
                 .uri(
-                        "/providers/upms/user-credentials?identityType={identityType}&identityValue={identityValue}",
+                        "/providers/upms/queries/user-credential?identityType={identityType}&identityValue={identityValue}",
                         request.getIdentityType(),
                         request.getIdentityValue())
                 .retrieve()

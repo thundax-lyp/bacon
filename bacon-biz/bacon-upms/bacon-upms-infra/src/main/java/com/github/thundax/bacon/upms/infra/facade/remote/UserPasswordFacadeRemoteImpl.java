@@ -28,7 +28,7 @@ public class UserPasswordFacadeRemoteImpl implements UserPasswordFacade {
         // 改密走 provider 命令端点并携带 body，避免把旧密码/新密码暴露在查询参数或日志里。
         restClient
                 .post()
-                .uri("/providers/upms/users/current/passwords/change")
+                .uri("/providers/upms/commands/change-current-user-password")
                 .body(request)
                 .retrieve()
                 .toBodilessEntity();

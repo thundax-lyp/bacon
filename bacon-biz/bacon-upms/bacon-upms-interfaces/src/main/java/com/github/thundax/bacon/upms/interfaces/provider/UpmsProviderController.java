@@ -52,7 +52,7 @@ public class UpmsProviderController {
     }
 
     @Operation(summary = "查询当前用户")
-    @GetMapping("/users/current")
+    @GetMapping("/queries/current-user")
     public CurrentUserResponse getCurrentUser() {
         UserDTO user = userQueryApplicationService.getById(BaconIdContextHelper.requireUserId());
         String departmentCode = user.getDepartmentId() == null
@@ -64,7 +64,7 @@ public class UpmsProviderController {
     }
 
     @Operation(summary = "按身份标识查询用户身份")
-    @GetMapping("/user-identities")
+    @GetMapping("/queries/user-identity")
     public UserIdentityResponse getUserIdentity(
             @RequestParam("identityType") @NotBlank(message = "identityType must not be blank") String identityType,
             @RequestParam("identityValue") @NotBlank(message = "identityValue must not be blank")
@@ -74,7 +74,7 @@ public class UpmsProviderController {
     }
 
     @Operation(summary = "按身份标识查询用户登录凭据")
-    @GetMapping("/user-credentials")
+    @GetMapping("/queries/user-credential")
     public UserCredentialResponse getUserLoginCredential(
             @RequestParam("identityType") @NotBlank(message = "identityType must not be blank") String identityType,
             @RequestParam("identityValue") @NotBlank(message = "identityValue must not be blank")
@@ -85,21 +85,21 @@ public class UpmsProviderController {
     }
 
     @Operation(summary = "当前用户修改密码")
-    @PostMapping("/users/current/passwords/change")
+    @PostMapping("/commands/change-current-user-password")
     public void changePassword(@Valid @RequestBody UserPasswordChangeRequest request) {
         userPasswordApplicationService.changePassword(
                 UserInterfaceAssembler.toPasswordChangeCommand(BaconIdContextHelper.requireUserId(), request));
     }
 
     @Operation(summary = "查询当前租户")
-    @GetMapping("/tenants/current")
+    @GetMapping("/queries/current-tenant")
     public TenantResponse getCurrentTenant() {
         return TenantInterfaceAssembler.toResponse(
                 userQueryApplicationService.getTenantById(BaconIdContextHelper.requireTenantId()));
     }
 
     @Operation(summary = "查询当前用户数据权限范围")
-    @GetMapping("/permissions/current/data-scope")
+    @GetMapping("/queries/current-data-scope")
     public UserDataScopeResponse getCurrentDataScope() {
         var dataScope = permissionQueryService.getUserDataScope(BaconIdContextHelper.requireUserId());
         return new UserDataScopeResponse(

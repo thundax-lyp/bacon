@@ -128,11 +128,35 @@
 
 ## P2 - 持续治理增强
 
-- [ ] `docs/00-governance/how-to`：补齐 HOW-TO 操作说明入口
-  - 范围对象：`HOW-TO-ADD-CONTROLLER-ENDPOINT.md`、`HOW-TO-ADD-CROSS-DOMAIN-FACADE.md`、`HOW-TO-ADD-QUERY-FLOW.md`、`HOW-TO-ADD-REPOSITORY-PERSISTENCE.md`、`HOW-TO-UPDATE-TODO-AND-COMMIT.md`
-  - 处理动作：按 `HOW-TO-HOW-TO.md` 统一结构补齐适用场景、最小闭环步骤、常见错误、验证和提交要求
-  - 验收点：新人和 AI 能按单篇 `HOW-TO` 完成一类高频任务，不需要从多个治理文档自行拼接路径
+- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-ADD-CONTROLLER-ENDPOINT.md`
+  - 范围对象：外部 `Controller` 新增一个端点的最小闭环
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、最小步骤、常见错误、验证和提交要求
+  - 验收点：新人和 AI 能按文档完成一个标准 Controller 入口的新增，不需要自行拼接主链路路径
   - 重要度：7/10
+
+- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-ADD-CROSS-DOMAIN-FACADE.md`
+  - 范围对象：跨域 `api.facade` 契约与本地/远程适配的最小闭环
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、最小步骤、常见错误、验证和提交要求
+  - 验收点：新人和 AI 能按文档完成一个标准跨域 Facade 的新增，不直接依赖对方域实现
+  - 重要度：7/10
+
+- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-ADD-QUERY-FLOW.md`
+  - 范围对象：查询链路从 `interfaces` 到 `application` 再到 `repository` 的最小闭环
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、最小步骤、常见错误、验证和提交要求
+  - 验收点：新人和 AI 能按文档完成一个标准查询流程的新增，不把查询动作写散到错误层次
+  - 重要度：7/10
+
+- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-ADD-REPOSITORY-PERSISTENCE.md`
+  - 范围对象：`Repository`、`RepositoryImpl`、`Mapper`、`DO`、`PersistenceAssembler` 的最小闭环
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、最小步骤、常见错误、验证和提交要求
+  - 验收点：新人和 AI 能按文档完成一个标准持久化闭环的新增，不混淆 `domain` 与 `infra` 职责
+  - 重要度：7/10
+
+- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-UPDATE-TODO-AND-COMMIT.md`
+  - 范围对象：`TODO.md` 生命周期、小步提交和 `commit message` 的最小闭环
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、最小步骤、常见错误、验证和提交要求
+  - 验收点：新人和 AI 能按文档完成 TODO 清理与提交闭环，不遗留半完成任务项或失去语义的提交
+  - 重要度：6/10
 
 - [ ] `docs` / `common-security` / `bacon-app`：补齐安全基线规则
   - 范围对象：敏感配置、内部接口令牌、密钥来源、敏感字段日志、脱敏约束、依赖升级

@@ -128,53 +128,89 @@
 
 ## P2 - 持续治理增强
 
-- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-DISCUSS-NEW-BUSINESS-CAPABILITY.md`
-  - 范围对象：新增一个业务块或一类业务能力前的讨论与收敛
-  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、需求边界、跨域判断、范围外能力、落文档入口和提交要求
-  - 验收点：新人和 AI 能按文档先完成业务能力讨论与范围收敛，不在需求未固定时直接进入实现
-  - 重要度：8/10
+- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-START-A-NEW-BUSINESS-DOMAIN.md`
+  - 范围对象：从“是否应该新增业务域”到“确认进入实现前”这一整段前置判断
+  - 文档必须覆盖：
+    - 如何判断这是新业务域、现有业务域扩展，还是纯治理/部署问题
+    - 如何识别主数据归属、主流程归属、跨域依赖和范围外能力
+    - 如何判断是否必须新建 `10-requirements/*-REQUIREMENTS.md`
+    - 如何判断是否需要新增 `api.facade`、是否需要 mono/micro 装配变更
+    - 需求未固定时不得进入实现的停止条件
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、不适用场景、前置判断问题、最小收敛步骤、落文档入口、常见错误、验证和提交要求
+  - 验收点：新人和 AI 能按文档先完成新业务域讨论、边界收敛和实现前置判断，不在需求未固定时直接搭模块写代码
+  - 重要度：9/10
 
 - [ ] `docs/00-governance/how-to`：起草 `HOW-TO-WRITE-OR-REFINE-REQUIREMENTS.md`
-  - 范围对象：新增或收敛 `10-requirements/*-REQUIREMENTS.md` 的最小闭环
-  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、章节结构、关键口径、常见错误、验证和提交要求
-  - 验收点：新人和 AI 能按文档把需求文档写到可直接指导实现的状态，不遗留关键规则空白
-  - 重要度：8/10
+  - 范围对象：新增或收敛 `10-requirements/*-REQUIREMENTS.md`，把需求写到可直接指导实现
+  - 文档必须覆盖：
+    - 何时新建需求文档，何时只在既有文档中补章节
+    - 如何固定 `Purpose/Scope/Bounded Context/Global Constraints/Key Flows/Open Items`
+    - 如何写主数据、主流程、跨域调用、失败补偿、幂等、缓存、权限、审计等关键口径
+    - 如何避免把关键实现约束散落到其他需求文档
+    - 需求文档达到“可进入实现”的完成标准
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、章节编写顺序、常见遗漏、验证和提交要求
+  - 验收点：新人和 AI 能按文档把需求收敛到稳定、确定、可执行的状态，不遗留关键规则空白
+  - 重要度：9/10
 
-- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-CONFIRM-CROSS-DOMAIN-BOUNDARY.md`
-  - 范围对象：跨域能力归属、调用方向、主数据归属和 `Facade` 必要性的判断
-  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、边界判断问题、最小步骤、常见错误、验证和提交要求
-  - 验收点：新人和 AI 能按文档判断能力属于哪个域、是否需要跨域 Facade，不把局部需求扩展成跨域混乱
-  - 重要度：8/10
+- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-DISTINGUISH-APPLICATION-AND-DOMAIN.md`
+  - 范围对象：`application` 与 `domain` 的职责边界判断，不拆成多篇子 HOW-TO
+  - 文档必须覆盖：
+    - 什么属于用例编排、事务、幂等、跨域协调、状态推进顺序
+    - 什么属于业务不变量、聚合内一致性、状态合法性、对象创建/变更规则
+    - 什么信号说明逻辑放错层了
+    - 如何在不改变外部行为的前提下把逻辑从 `application` 下沉到 `domain` 或反向上提
+    - 如何用测试验证边界是否收敛正确
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草核心判断、层内/层外示例、决策清单、常见错误、重构信号、验证和提交要求
+  - 验收点：新人和 AI 能按文档判断业务规则到底放 `application` 还是 `domain`，减少“大 ApplicationService” 与“Domain 空壳化”
+  - 重要度：9/10
 
 - [ ] `docs/00-governance/how-to`：起草 `HOW-TO-ADD-CONTROLLER-ENDPOINT.md`
   - 范围对象：外部 `Controller` 新增一个端点的最小闭环
-  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、最小步骤、常见错误、验证和提交要求
-  - 验收点：新人和 AI 能按文档完成一个标准 Controller 入口的新增，不需要自行拼接主链路路径
-  - 重要度：7/10
+  - 文档必须覆盖：
+    - 适用前提：需求已经固定、业务域已经明确、是否需要先补需求文档
+    - 从 `interfaces.request/response`、`InterfaceAssembler`、`ApplicationService` 到测试与提交的最小路径
+    - 哪些场景只改 Controller，哪些场景会自然牵动 `application/domain/repository`
+    - 哪些模型不得出现在 Controller 签名里
+    - 常见错误：直接返回 `DTO/DO/domain model`、绕过 assembler、在 Controller 拼业务规则
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、最小步骤、文件类型、常见错误、验证和提交要求
+  - 验收点：新人和 AI 能按文档完成一个标准 Controller 入口新增，并知道何时停止在接口层、何时继续进入后续闭环
+  - 重要度：8/10
+
+- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-ADD-APPLICATION-TO-INFRA-FLOW.md`
+  - 范围对象：从 `application` 到 `domain.repository` 再到 `infra` 的实现主链路，合并查询/命令/持久化的核心落地路径
+  - 文档必须覆盖：
+    - 查询与命令各自的最小闭环，但不拆成两篇独立 HOW-TO
+    - `ApplicationService`、`domain.repository`、`RepositoryImpl`、`Mapper`、`DO`、`PersistenceAssembler` 的职责与衔接
+    - 何时需要 `application.assembler`，何时不需要
+    - 何时需要新增领域对象行为，何时只补仓储查询
+    - 常见错误：`application` 直接拼持久化模型、`infra` 承载业务流程、`domain` 感知技术细节
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、步骤顺序、文件类型、常见错误、验证和提交要求
+  - 验收点：新人和 AI 能按文档完成一条标准应用到持久化主链路的新增，不把查询、命令、仓储和持久化职责写散
+  - 重要度：8/10
 
 - [ ] `docs/00-governance/how-to`：起草 `HOW-TO-ADD-CROSS-DOMAIN-FACADE.md`
-  - 范围对象：跨域 `api.facade` 契约与本地/远程适配的最小闭环
-  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、最小步骤、常见错误、验证和提交要求
-  - 验收点：新人和 AI 能按文档完成一个标准跨域 Facade 的新增，不直接依赖对方域实现
-  - 重要度：7/10
+  - 范围对象：跨域 `api.facade` 契约、本地适配、远程适配和调用侧接入的完整闭环
+  - 文档必须覆盖：
+    - 何时真的需要新增 `Facade`，何时只是本域能力扩展
+    - `api.facade/request/response`、`interfaces.facade.*LocalImpl`、`infra.facade.remote.*RemoteImpl` 各自职责
+    - 调用方如何只依赖稳定契约，不依赖对方实现
+    - 新增 Facade 后通常需要同步哪些测试、文档和装配
+    - 常见错误：直接调对方 `application/infra`、用错 request/response 命名、把本地/远程语义混在一起
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、最小步骤、文件类型、常见错误、验证和提交要求
+  - 验收点：新人和 AI 能按文档完成一个标准跨域 Facade 新增，不直接依赖对方域实现
+  - 重要度：8/10
 
-- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-ADD-QUERY-FLOW.md`
-  - 范围对象：查询链路从 `interfaces` 到 `application` 再到 `repository` 的最小闭环
+- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-CLOSE-A-TASK-WITH-TODO-TESTS-AND-COMMIT.md`
+  - 范围对象：`TODO.md` 生命周期、测试补齐、小步提交和 `commit message` 的收口闭环
+  - 文档必须覆盖：
+    - 何时应该删 `TODO.md` 项，何时应该拆分或收窄
+    - 业务改动至少应检查哪些测试与文档同步点
+    - 如何判断一次改动是否应该拆成多个 commit
+    - `commit message` 如何表达业务域、动作和具体能力变化
+    - 常见错误：任务只做一半就删 TODO、多个不相关改动混一个 commit、提交消息失去语义
   - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、最小步骤、常见错误、验证和提交要求
-  - 验收点：新人和 AI 能按文档完成一个标准查询流程的新增，不把查询动作写散到错误层次
+  - 验收点：新人和 AI 能按文档完成 TODO、测试、文档和提交的收口，不遗留半完成任务项或失去语义的提交
   - 重要度：7/10
-
-- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-ADD-REPOSITORY-PERSISTENCE.md`
-  - 范围对象：`Repository`、`RepositoryImpl`、`Mapper`、`DO`、`PersistenceAssembler` 的最小闭环
-  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、最小步骤、常见错误、验证和提交要求
-  - 验收点：新人和 AI 能按文档完成一个标准持久化闭环的新增，不混淆 `domain` 与 `infra` 职责
-  - 重要度：7/10
-
-- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-UPDATE-TODO-AND-COMMIT.md`
-  - 范围对象：`TODO.md` 生命周期、小步提交和 `commit message` 的最小闭环
-  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、最小步骤、常见错误、验证和提交要求
-  - 验收点：新人和 AI 能按文档完成 TODO 清理与提交闭环，不遗留半完成任务项或失去语义的提交
-  - 重要度：6/10
 
 - [ ] `docs` / `common-security` / `bacon-app`：补齐安全基线规则
   - 范围对象：敏感配置、内部接口令牌、密钥来源、敏感字段日志、脱敏约束、依赖升级

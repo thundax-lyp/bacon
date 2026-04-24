@@ -128,6 +128,12 @@
 
 ## P2 - 持续治理增强
 
+- [ ] `docs/00-governance/how-to`：补齐 HOW-TO 操作说明入口
+  - 范围对象：`HOW-TO-ADD-CONTROLLER-ENDPOINT.md`、`HOW-TO-ADD-CROSS-DOMAIN-FACADE.md`、`HOW-TO-ADD-QUERY-FLOW.md`、`HOW-TO-ADD-REPOSITORY-PERSISTENCE.md`、`HOW-TO-UPDATE-TODO-AND-COMMIT.md`
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 统一结构补齐适用场景、最小闭环步骤、常见错误、验证和提交要求
+  - 验收点：新人和 AI 能按单篇 `HOW-TO` 完成一类高频任务，不需要从多个治理文档自行拼接路径
+  - 重要度：7/10
+
 - [ ] `docs` / `common-security` / `bacon-app`：补齐安全基线规则
   - 范围对象：敏感配置、内部接口令牌、密钥来源、敏感字段日志、脱敏约束、依赖升级
   - 处理动作：固定敏感配置和密钥来源规则；补充敏感字段日志禁止项与脱敏约束；补充依赖升级和安全告警处理流程

@@ -128,6 +128,24 @@
 
 ## P2 - 持续治理增强
 
+- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-DISCUSS-NEW-BUSINESS-CAPABILITY.md`
+  - 范围对象：新增一个业务块或一类业务能力前的讨论与收敛
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、需求边界、跨域判断、范围外能力、落文档入口和提交要求
+  - 验收点：新人和 AI 能按文档先完成业务能力讨论与范围收敛，不在需求未固定时直接进入实现
+  - 重要度：8/10
+
+- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-WRITE-OR-REFINE-REQUIREMENTS.md`
+  - 范围对象：新增或收敛 `10-requirements/*-REQUIREMENTS.md` 的最小闭环
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、章节结构、关键口径、常见错误、验证和提交要求
+  - 验收点：新人和 AI 能按文档把需求文档写到可直接指导实现的状态，不遗留关键规则空白
+  - 重要度：8/10
+
+- [ ] `docs/00-governance/how-to`：起草 `HOW-TO-CONFIRM-CROSS-DOMAIN-BOUNDARY.md`
+  - 范围对象：跨域能力归属、调用方向、主数据归属和 `Facade` 必要性的判断
+  - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、边界判断问题、最小步骤、常见错误、验证和提交要求
+  - 验收点：新人和 AI 能按文档判断能力属于哪个域、是否需要跨域 Facade，不把局部需求扩展成跨域混乱
+  - 重要度：8/10
+
 - [ ] `docs/00-governance/how-to`：起草 `HOW-TO-ADD-CONTROLLER-ENDPOINT.md`
   - 范围对象：外部 `Controller` 新增一个端点的最小闭环
   - 处理动作：按 `HOW-TO-HOW-TO.md` 起草适用场景、前置判断、最小步骤、常见错误、验证和提交要求

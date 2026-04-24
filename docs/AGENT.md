@@ -22,9 +22,6 @@
   读 `ARCHITECTURE.md`，再读对应 `10-requirements/*-REQUIREMENTS.md`
 - 需要解释架构意图、规则冲突、分层取舍或 AI 误改风险：
   读 `00-governance/ARCHITECTURE-INTENT.md`
-- 需要查固定做法、进入路径、新人上手步骤或高频任务操作说明：
-  先读 `00-governance/how-to/HOW-TO-HOW-TO.md`
-  再读对应 `00-governance/how-to/HOW-TO-XXX.md`
 - 新增类、改类名、改目录、判断分层：
   再读 `00-governance/NAMING-AND-PLACEMENT-RULES.md`
 - 数据库、DO、Mapper、持久化查询：
@@ -70,7 +67,6 @@
 ## Directory Map
 
 - `00-governance/`: 全局规则
-- `00-governance/how-to/`: 高频任务操作说明
 - `10-requirements/`: 业务需求
 - `20-database/`: 数据库设计
 - `30-designs/`: 专项设计

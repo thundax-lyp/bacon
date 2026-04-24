@@ -58,6 +58,7 @@
 ## TODO Lifecycle
 
 - 根目录 `TODO.md` 是任务执行队列，不是完成历史。
+- 宏观任务进入 `TODO.md` 后，按 [`00-governance/how-to/HOW-TO-RUN-TODO-COLLABORATION.md`](./00-governance/how-to/HOW-TO-RUN-TODO-COLLABORATION.md) 完成人机讨论、任务拆解、人工审阅和执行关闭。
 - 已完成任务不得在 `TODO.md` 中打勾长期保留，必须直接删除。
 - 删除已完成 TODO 项必须和完成该任务的代码、文档或测试修改放在同一个 commit。
 - 任务只完成一部分时，不得删除整项；必须拆分或收窄为剩余未完成内容。

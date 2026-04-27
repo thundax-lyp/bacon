@@ -8,10 +8,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
-import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.application.dto.TenantDTO;
+import com.github.thundax.bacon.upms.domain.exception.TenantErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
@@ -76,8 +77,9 @@ class TenantCommandApplicationServiceTest {
                         Instant.parse("2099-01-01T00:00:00Z"))));
 
         assertThatThrownBy(() -> service.create(new TenantCreateCommand("Other", TenantCode.of("TENANT_DEMO"), null)))
-                .isInstanceOf(ConflictException.class)
-                .hasMessage("Tenant code already exists: TENANT_DEMO");
+                .isInstanceOf(UpmsDomainException.class)
+                .extracting("code")
+                .isEqualTo(TenantErrorCode.TENANT_CODE_ALREADY_EXISTS.code());
     }
 
     @Test

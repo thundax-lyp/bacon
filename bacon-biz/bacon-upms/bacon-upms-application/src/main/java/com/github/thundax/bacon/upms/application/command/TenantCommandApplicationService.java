@@ -2,13 +2,12 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.auth.api.request.SessionInvalidateTenantFacadeRequest;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
-import com.github.thundax.bacon.common.core.exception.ConflictException;
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.application.assembler.TenantAssembler;
 import com.github.thundax.bacon.upms.application.dto.TenantDTO;
+import com.github.thundax.bacon.upms.domain.exception.TenantErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
@@ -35,11 +34,11 @@ public class TenantCommandApplicationService {
     public TenantDTO create(TenantCreateCommand command) {
         validateRequired(command.name(), "name");
         if (command.code() == null) {
-            throw new BadRequestException("code must not be null");
+            throw new UpmsDomainException(TenantErrorCode.TENANT_CODE_REQUIRED);
         }
         TenantId tenantId = TenantId.of(idGenerator.nextId(TENANT_ID_BIZ_TAG));
         tenantRepository.findByCode(command.code()).ifPresent(tenant -> {
-            throw new ConflictException("Tenant code already exists: " + command.code().value());
+            throw new UpmsDomainException(TenantErrorCode.TENANT_CODE_ALREADY_EXISTS);
         });
         return TenantAssembler.toDto(tenantRepository.insert(Tenant.create(
                 tenantId, command.name().trim(), command.code(), command.expiredAt())));
@@ -49,14 +48,14 @@ public class TenantCommandApplicationService {
     public TenantDTO update(TenantUpdateCommand command) {
         validateRequired(command.name(), "name");
         if (command.code() == null) {
-            throw new BadRequestException("code must not be null");
+            throw new UpmsDomainException(TenantErrorCode.TENANT_CODE_REQUIRED);
         }
         Tenant currentTenant = requireTenant(command.tenantId());
         tenantRepository
                 .findByCode(command.code())
                 .filter(tenant -> !tenant.getId().equals(command.tenantId()))
                 .ifPresent(tenant -> {
-                    throw new ConflictException("Tenant code already exists: " + command.code().value());
+                    throw new UpmsDomainException(TenantErrorCode.TENANT_CODE_ALREADY_EXISTS);
                 });
         currentTenant.rename(command.name().trim());
         currentTenant.recodeAs(command.code());
@@ -71,7 +70,7 @@ public class TenantCommandApplicationService {
     @Transactional
     public TenantDTO updateStatus(TenantStatusUpdateCommand command) {
         if (command.status() == null) {
-            throw new BadRequestException("status must not be null");
+            throw new UpmsDomainException(TenantErrorCode.TENANT_STATUS_REQUIRED);
         }
         Tenant tenant = requireTenant(command.tenantId());
         if (TenantStatus.ACTIVE == command.status()) {
@@ -91,12 +90,12 @@ public class TenantCommandApplicationService {
     private Tenant requireTenant(TenantId tenantId) {
         return tenantRepository
                 .findById(tenantId)
-                .orElseThrow(() -> new NotFoundException("Tenant not found: " + tenantId.value()));
+                .orElseThrow(() -> new UpmsDomainException(TenantErrorCode.TENANT_NOT_FOUND));
     }
 
     private void validateRequired(String value, String fieldName) {
         if (value == null || value.isBlank()) {
-            throw new BadRequestException(fieldName + " must not be blank");
+            throw new UpmsDomainException(TenantErrorCode.TENANT_REQUIRED_FIELD_BLANK);
         }
     }
 }

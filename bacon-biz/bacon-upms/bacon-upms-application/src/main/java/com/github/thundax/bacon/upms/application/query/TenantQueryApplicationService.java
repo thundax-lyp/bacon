@@ -1,10 +1,11 @@
 package com.github.thundax.bacon.upms.application.query;
 
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.application.page.PageResult;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.application.assembler.TenantAssembler;
 import com.github.thundax.bacon.upms.application.dto.TenantDTO;
+import com.github.thundax.bacon.upms.domain.exception.TenantErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,6 @@ public class TenantQueryApplicationService {
     private Tenant requireTenant(TenantId tenantId) {
         return tenantRepository
                 .findById(tenantId)
-                .orElseThrow(() -> new NotFoundException("Tenant not found: " + tenantId.value()));
+                .orElseThrow(() -> new UpmsDomainException(TenantErrorCode.TENANT_NOT_FOUND));
     }
 }

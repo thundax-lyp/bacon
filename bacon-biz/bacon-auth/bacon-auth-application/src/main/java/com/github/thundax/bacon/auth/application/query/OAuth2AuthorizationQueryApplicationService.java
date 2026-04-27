@@ -4,11 +4,12 @@ import com.github.thundax.bacon.auth.application.assembler.OAuth2AuthorizationAs
 import com.github.thundax.bacon.auth.application.dto.OAuth2IntrospectionDTO;
 import com.github.thundax.bacon.auth.application.dto.OAuth2UserinfoDTO;
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
+import com.github.thundax.bacon.auth.domain.exception.AuthDomainException;
+import com.github.thundax.bacon.auth.domain.exception.AuthErrorCode;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import java.time.Instant;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -55,7 +56,7 @@ public class OAuth2AuthorizationQueryApplicationService {
         OAuthAccessToken token = oAuthAuthorizationRepository
                 .findAccessByHash(tokenCodec.sha256(query.accessToken()))
                 .filter(OAuthAccessToken::isActive)
-                .orElseThrow(() -> new BadRequestException("OAuth access token invalid"));
+                .orElseThrow(() -> new AuthDomainException(AuthErrorCode.OAUTH_ACCESS_TOKEN_INVALID));
         Long userId = token.getUserId() == null ? null : token.getUserId().value();
         String name = token.getScopes().contains("profile") ? "demo-user-" + userId : null;
         return OAuth2AuthorizationAssembler.toUserinfoDto(String.valueOf(userId), token.getTenantIdValue(), name);
@@ -65,12 +66,12 @@ public class OAuth2AuthorizationQueryApplicationService {
         OAuthClient client = oAuthClientRepository
                 .findByClientCode(clientId)
                 .filter(OAuthClient::isEnabled)
-                .orElseThrow(() -> new BadRequestException("OAuth client secret invalid"));
+                .orElseThrow(() -> new AuthDomainException(AuthErrorCode.OAUTH_CLIENT_SECRET_INVALID));
         String storedSecret = client.getClientSecret();
         boolean plainSecretMatches = storedSecret.equals(clientSecret);
         boolean hashedSecretMatches = passwordEncoder.matches(clientSecret, storedSecret);
         if (!plainSecretMatches && !hashedSecretMatches) {
-            throw new BadRequestException("OAuth client secret invalid");
+            throw new AuthDomainException(AuthErrorCode.OAUTH_CLIENT_SECRET_INVALID);
         }
         return client;
     }

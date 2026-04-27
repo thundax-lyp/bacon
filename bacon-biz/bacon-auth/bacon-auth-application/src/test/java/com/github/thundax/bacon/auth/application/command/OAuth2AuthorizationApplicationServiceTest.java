@@ -10,14 +10,15 @@ import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.auth.application.dto.OAuth2TokenDTO;
 import com.github.thundax.bacon.auth.application.query.SessionQueryApplicationService;
-import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
-import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
+import com.github.thundax.bacon.auth.domain.exception.AuthDomainException;
+import com.github.thundax.bacon.auth.domain.exception.AuthErrorCode;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
 import com.github.thundax.bacon.auth.domain.model.enums.ClientStatus;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -54,11 +55,11 @@ class OAuth2AuthorizationCommandApplicationServiceTest {
                 tokenCodec("hash-refresh"),
                 passwordEncoder);
 
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
+        AuthDomainException exception = assertThrows(
+                AuthDomainException.class,
                 () -> service.token(new OAuth2TokenCommand(
                         "refresh_token", null, null, "demo-client", "demo-secret", null, "refresh")));
-        assertEquals("OAuth refresh token invalid", exception.getMessage());
+        assertEquals(AuthErrorCode.OAUTH_REFRESH_TOKEN_INVALID.code(), exception.getCode());
     }
 
     @Test
@@ -86,10 +87,11 @@ class OAuth2AuthorizationCommandApplicationServiceTest {
                 mock(com.github.thundax.bacon.auth.application.codec.TokenCodec.class),
                 passwordEncoder);
 
-        assertThrows(
-                BadRequestException.class,
+        AuthDomainException exception = assertThrows(
+                AuthDomainException.class,
                 () -> service.token(new OAuth2TokenCommand(
                         "refresh_token", null, null, "demo-client", "wrong-secret", null, "refresh")));
+        assertEquals(AuthErrorCode.OAUTH_CLIENT_SECRET_INVALID.code(), exception.getCode());
     }
 
     @Test

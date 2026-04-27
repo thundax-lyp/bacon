@@ -22,9 +22,9 @@
 
 ## P0 - 生产级代码与业务功能补齐
 
-- [ ] `auth` / `upms` / `order` / `inventory` / `payment` / `storage`：补齐错误码分段与业务异常映射
+- [ ] `upms` / `order` / `inventory` / `payment` / `storage`：补齐错误码分段与业务异常映射
   - 范围对象：各域 `*DomainException`、`*ErrorCode`、应用层通用异常抛出点
-  - 处理动作：按 `AUTH`、`UPMS`、`ORDER`、`INVENTORY`、`PAYMENT`、`STORAGE` 分段定义稳定错误码；将已稳定的业务错误从通用字符串异常迁移到域错误码；`auth` 已完成 token/session/login/password 错误码，仍需收口 oauth 错误码
+  - 处理动作：按 `UPMS`、`ORDER`、`INVENTORY`、`PAYMENT`、`STORAGE` 分段定义稳定错误码；将已稳定的业务错误从通用字符串异常迁移到域错误码
   - 验收点：业务异常不暴露底层异常信息，各域核心参数错误、资源不存在、业务冲突和领域规则错误有稳定错误码与测试覆盖
   - 重要度：10/10
 

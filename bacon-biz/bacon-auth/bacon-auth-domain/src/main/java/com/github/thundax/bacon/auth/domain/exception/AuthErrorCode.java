@@ -16,7 +16,18 @@ public enum AuthErrorCode implements ErrorCode {
     OLD_PASSWORD_REQUIRED("AUTH-400010", "Old password required", HttpStatus.BAD_REQUEST),
     NEW_PASSWORD_INVALID("AUTH-400011", "New password invalid", HttpStatus.BAD_REQUEST),
     NEW_PASSWORD_SAME_AS_OLD("AUTH-400012", "New password must differ from old password", HttpStatus.BAD_REQUEST),
-    SESSION_NOT_FOUND("AUTH-404001", "Session not found", HttpStatus.NOT_FOUND);
+    OAUTH_REDIRECT_URI_INVALID("AUTH-400013", "Redirect uri invalid", HttpStatus.BAD_REQUEST),
+    OAUTH_SCOPE_INVALID("AUTH-400014", "Scope invalid", HttpStatus.BAD_REQUEST),
+    OAUTH_AUTHORIZATION_REQUEST_INVALID("AUTH-400015", "Authorization request invalid", HttpStatus.BAD_REQUEST),
+    OAUTH_DECISION_INVALID("AUTH-400016", "Decision invalid", HttpStatus.BAD_REQUEST),
+    OAUTH_AUTHORIZATION_CODE_INVALID("AUTH-400017", "Authorization code invalid", HttpStatus.BAD_REQUEST),
+    OAUTH_REFRESH_TOKEN_INVALID("AUTH-400018", "OAuth refresh token invalid", HttpStatus.BAD_REQUEST),
+    OAUTH_GRANT_TYPE_UNSUPPORTED("AUTH-400019", "Grant type unsupported", HttpStatus.BAD_REQUEST),
+    OAUTH_CLIENT_SECRET_INVALID("AUTH-400020", "OAuth client secret invalid", HttpStatus.BAD_REQUEST),
+    OAUTH_ACCESS_TOKEN_INVALID("AUTH-400021", "OAuth access token invalid", HttpStatus.BAD_REQUEST),
+    OAUTH_LOGIN_REQUIRED("AUTH-401001", "Login required before OAuth2 authorization", HttpStatus.UNAUTHORIZED),
+    SESSION_NOT_FOUND("AUTH-404001", "Session not found", HttpStatus.NOT_FOUND),
+    OAUTH_CLIENT_INVALID("AUTH-404002", "OAuth client invalid", HttpStatus.NOT_FOUND);
 
     private final String code;
     private final String message;

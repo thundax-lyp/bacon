@@ -5,15 +5,14 @@ import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.dto.OAuth2TokenDTO;
 import com.github.thundax.bacon.auth.application.query.SessionCurrentQuery;
 import com.github.thundax.bacon.auth.application.query.SessionQueryApplicationService;
+import com.github.thundax.bacon.auth.domain.exception.AuthDomainException;
+import com.github.thundax.bacon.auth.domain.exception.AuthErrorCode;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.common.core.exception.UnauthorizedException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,15 +51,15 @@ public class OAuth2AuthorizationCommandApplicationService {
     public AuthorizationView authorize(OAuth2AuthorizeCommand command) {
         OAuthClient client = loadClient(command.clientId());
         if (!client.getRedirectUris().contains(command.redirectUri())) {
-            throw new BadRequestException("Redirect uri invalid");
+            throw new AuthDomainException(AuthErrorCode.OAUTH_REDIRECT_URI_INVALID);
         }
         Set<String> scopes = splitScopes(command.scope());
         if (!client.getScopes().containsAll(scopes)) {
-            throw new BadRequestException("Scope invalid");
+            throw new AuthDomainException(AuthErrorCode.OAUTH_SCOPE_INVALID);
         }
 
         if (command.accessToken() == null || command.accessToken().isBlank()) {
-            throw new UnauthorizedException("Login required before OAuth2 authorization");
+            throw new AuthDomainException(AuthErrorCode.OAUTH_LOGIN_REQUIRED);
         }
         var currentSession = sessionQueryApplicationService.currentSession(new SessionCurrentQuery(command.accessToken()));
         Long tenantId = currentSession.getTenantId();
@@ -88,9 +87,9 @@ public class OAuth2AuthorizationCommandApplicationService {
                 .findById(command.authorizationRequestId())
                 .filter(request -> !request.isUsed())
                 .filter(request -> request.getExpireAt().isAfter(Instant.now()))
-                .orElseThrow(() -> new BadRequestException("Authorization request invalid"));
+                .orElseThrow(() -> new AuthDomainException(AuthErrorCode.OAUTH_AUTHORIZATION_REQUEST_INVALID));
         if (!"APPROVE".equalsIgnoreCase(command.decision()) && !"REJECT".equalsIgnoreCase(command.decision())) {
-            throw new BadRequestException("Decision invalid");
+            throw new AuthDomainException(AuthErrorCode.OAUTH_DECISION_INVALID);
         }
         authorizationRequest.markUsed();
         oAuthAuthorizationRepository.update(authorizationRequest);
@@ -115,9 +114,9 @@ public class OAuth2AuthorizationCommandApplicationService {
         if ("authorization_code".equals(command.grantType())) {
             OAuthAuthorizationRequest request = oAuthAuthorizationRepository
                     .findByCode(command.code())
-                    .orElseThrow(() -> new BadRequestException("Authorization code invalid"));
+                    .orElseThrow(() -> new AuthDomainException(AuthErrorCode.OAUTH_AUTHORIZATION_CODE_INVALID));
             if (!request.getRedirectUri().equals(command.redirectUri())) {
-                throw new BadRequestException("Redirect uri invalid");
+                throw new AuthDomainException(AuthErrorCode.OAUTH_REDIRECT_URI_INVALID);
             }
             return issueOAuthTokens(
                     client,
@@ -129,7 +128,7 @@ public class OAuth2AuthorizationCommandApplicationService {
             OAuthRefreshToken currentRefreshToken = oAuthAuthorizationRepository
                     .findByHash(tokenCodec.sha256(command.refreshToken()))
                     .filter(token -> "ACTIVE".equals(token.getTokenStatus()))
-                    .orElseThrow(() -> new BadRequestException("OAuth refresh token invalid"));
+                    .orElseThrow(() -> new AuthDomainException(AuthErrorCode.OAUTH_REFRESH_TOKEN_INVALID));
             currentRefreshToken.markUsed();
             oAuthAuthorizationRepository.update(currentRefreshToken);
             Optional<OAuthAccessToken> accessToken =
@@ -143,7 +142,7 @@ public class OAuth2AuthorizationCommandApplicationService {
                             : currentRefreshToken.getUserId().value(),
                     scopes);
         }
-        throw new BadRequestException("Grant type unsupported");
+        throw new AuthDomainException(AuthErrorCode.OAUTH_GRANT_TYPE_UNSUPPORTED);
     }
 
     @Transactional
@@ -203,7 +202,7 @@ public class OAuth2AuthorizationCommandApplicationService {
         return oAuthClientRepository
                 .findByClientCode(clientId)
                 .filter(OAuthClient::isEnabled)
-                .orElseThrow(() -> new NotFoundException("OAuth client invalid"));
+                .orElseThrow(() -> new AuthDomainException(AuthErrorCode.OAUTH_CLIENT_INVALID));
     }
 
     private OAuthClient validateClient(String clientId, String clientSecret) {
@@ -212,7 +211,7 @@ public class OAuth2AuthorizationCommandApplicationService {
         boolean plainSecretMatches = storedSecret.equals(clientSecret);
         boolean hashedSecretMatches = passwordEncoder.matches(clientSecret, storedSecret);
         if (!plainSecretMatches && !hashedSecretMatches) {
-            throw new BadRequestException("OAuth client secret invalid");
+            throw new AuthDomainException(AuthErrorCode.OAUTH_CLIENT_SECRET_INVALID);
         }
         return client;
     }

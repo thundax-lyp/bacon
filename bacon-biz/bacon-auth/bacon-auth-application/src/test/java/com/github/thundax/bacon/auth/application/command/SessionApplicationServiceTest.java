@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.auth.application.command;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -9,10 +10,10 @@ import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
+import com.github.thundax.bacon.auth.domain.exception.AuthDomainException;
+import com.github.thundax.bacon.auth.domain.exception.AuthErrorCode;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,9 @@ class SessionCommandApplicationServiceTest {
         SessionCommandApplicationService service = new SessionCommandApplicationService(
                 authSessionRepository, tokenCodec, authAuditApplicationService);
 
-        assertThrows(BadRequestException.class, () -> service.logout(new SessionLogoutCommand("bad-token")));
+        AuthDomainException exception =
+                assertThrows(AuthDomainException.class, () -> service.logout(new SessionLogoutCommand("bad-token")));
+        assertEquals(AuthErrorCode.INVALID_ACCESS_TOKEN.code(), exception.getCode());
     }
 
     @Test
@@ -41,7 +44,9 @@ class SessionCommandApplicationServiceTest {
         SessionCommandApplicationService service = new SessionCommandApplicationService(
                 authSessionRepository, tokenCodec, authAuditApplicationService);
 
-        assertThrows(NotFoundException.class, () -> service.logout(new SessionLogoutCommand("token")));
+        AuthDomainException exception =
+                assertThrows(AuthDomainException.class, () -> service.logout(new SessionLogoutCommand("token")));
+        assertEquals(AuthErrorCode.SESSION_NOT_FOUND.code(), exception.getCode());
     }
 
     @Test

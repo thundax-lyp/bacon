@@ -2,10 +2,10 @@ package com.github.thundax.bacon.auth.application.command;
 
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
+import com.github.thundax.bacon.auth.domain.exception.AuthDomainException;
+import com.github.thundax.bacon.auth.domain.exception.AuthErrorCode;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -31,10 +31,10 @@ public class SessionCommandApplicationService {
     public void logout(SessionLogoutCommand command) {
         String sessionId = tokenCodec
                 .parseSessionId(command.accessToken())
-                .orElseThrow(() -> new BadRequestException("Access token invalid"));
+                .orElseThrow(() -> new AuthDomainException(AuthErrorCode.INVALID_ACCESS_TOKEN));
         AuthSession authSession = authSessionRepository
                 .findBySessionId(sessionId)
-                .orElseThrow(() -> new NotFoundException("Session not found: " + sessionId));
+                .orElseThrow(() -> new AuthDomainException(AuthErrorCode.SESSION_NOT_FOUND, sessionId));
         authSession.logout(Instant.now());
         authSessionRepository.update(authSession);
         authSessionRepository.markInvalidBySessionId(sessionId);
@@ -68,7 +68,7 @@ public class SessionCommandApplicationService {
     public void invalidateSession(SessionInvalidateCommand command) {
         AuthSession authSession = authSessionRepository
                 .findBySessionId(command.sessionId())
-                .orElseThrow(() -> new NotFoundException("Session not found: " + command.sessionId()));
+                .orElseThrow(() -> new AuthDomainException(AuthErrorCode.SESSION_NOT_FOUND, command.sessionId()));
         authSession.invalidate(command.reason());
         authSessionRepository.update(authSession);
         authSessionRepository.markInvalidBySessionId(command.sessionId());

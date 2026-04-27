@@ -4,10 +4,11 @@ import com.github.thundax.bacon.auth.application.assembler.TokenAssembler;
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.dto.UserTokenRefreshDTO;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
+import com.github.thundax.bacon.auth.domain.exception.AuthDomainException;
+import com.github.thundax.bacon.auth.domain.exception.AuthErrorCode;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import org.springframework.stereotype.Service;
@@ -38,12 +39,12 @@ public class TokenCommandApplicationService {
                 .findByHash(tokenCodec.sha256(command.refreshToken()))
                 .filter(RefreshTokenSession::isActive)
                 .filter(token -> token.getExpireAt().isAfter(Instant.now()))
-                .orElseThrow(() -> new BadRequestException("Refresh token invalid"));
+                .orElseThrow(() -> new AuthDomainException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         AuthSession authSession = authSessionRepository
                 .findBySessionId(refreshTokenSession.getSessionIdValue())
                 .filter(AuthSession::isActive)
-                .orElseThrow(() -> new BadRequestException("Session invalid"));
+                .orElseThrow(() -> new AuthDomainException(AuthErrorCode.INVALID_SESSION));
 
         refreshTokenSession.markUsed(Instant.now());
         authSessionRepository.update(refreshTokenSession);

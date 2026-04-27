@@ -11,9 +11,10 @@ import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
+import com.github.thundax.bacon.auth.domain.exception.AuthDomainException;
+import com.github.thundax.bacon.auth.domain.exception.AuthErrorCode;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,9 @@ class TokenQueryApplicationServiceTest {
         when(authSessionRepository.findBySessionId("session-1")).thenReturn(Optional.empty());
         TokenQueryApplicationService service = new TokenQueryApplicationService(authSessionRepository, tokenCodec);
 
-        assertThrows(NotFoundException.class, () -> service.getSessionContext(new SessionContextQuery("session-1")));
+        AuthDomainException exception = assertThrows(
+                AuthDomainException.class, () -> service.getSessionContext(new SessionContextQuery("session-1")));
+        assertEquals(AuthErrorCode.SESSION_NOT_FOUND.code(), exception.getCode());
     }
 
     @Test

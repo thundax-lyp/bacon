@@ -3,10 +3,10 @@ package com.github.thundax.bacon.auth.application.query;
 import com.github.thundax.bacon.auth.application.assembler.TokenAssembler;
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
+import com.github.thundax.bacon.auth.domain.exception.AuthDomainException;
+import com.github.thundax.bacon.auth.domain.exception.AuthErrorCode;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,14 +23,14 @@ public class SessionQueryApplicationService {
     public CurrentSessionDTO currentSession(SessionCurrentQuery query) {
         String sessionId = tokenCodec
                 .parseSessionId(query.accessToken())
-                .orElseThrow(() -> new BadRequestException("Access token invalid"));
+                .orElseThrow(() -> new AuthDomainException(AuthErrorCode.INVALID_ACCESS_TOKEN));
         return getSessionContext(new SessionContextQuery(sessionId));
     }
 
     public CurrentSessionDTO getSessionContext(SessionContextQuery query) {
         AuthSession authSession = authSessionRepository
                 .findBySessionId(query.sessionId())
-                .orElseThrow(() -> new NotFoundException("Session not found: " + query.sessionId()));
+                .orElseThrow(() -> new AuthDomainException(AuthErrorCode.SESSION_NOT_FOUND, query.sessionId()));
         return TokenAssembler.toCurrentSessionDto(
                 authSession.getSessionId(),
                 authSession.getTenantIdValue(),

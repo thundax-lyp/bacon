@@ -12,10 +12,11 @@ import static org.mockito.Mockito.when;
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.dto.UserTokenRefreshDTO;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
+import com.github.thundax.bacon.auth.domain.exception.AuthDomainException;
+import com.github.thundax.bacon.auth.domain.exception.AuthErrorCode;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,9 @@ class TokenCommandApplicationServiceTest {
         TokenCommandApplicationService service =
                 new TokenCommandApplicationService(authSessionRepository, tokenCodec, authAuditApplicationService);
 
-        assertThrows(BadRequestException.class, () -> service.refresh(new TokenRefreshCommand("refresh-token")));
+        AuthDomainException exception =
+                assertThrows(AuthDomainException.class, () -> service.refresh(new TokenRefreshCommand("refresh-token")));
+        assertEquals(AuthErrorCode.INVALID_REFRESH_TOKEN.code(), exception.getCode());
     }
 
     @Test

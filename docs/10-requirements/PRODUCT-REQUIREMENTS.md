@@ -249,14 +249,14 @@
 
 ## 5.3 Fixed Fields
 
-- `ProductSpu` 至少包含 `spuId`、`tenantId`、`spuCode`、`spuName`、`categoryId`、`description`、`mainImageObjectId`、`productStatus`、`version`、`createdBy`、`createdAt`、`updatedBy`、`updatedAt`
-- `ProductSku` 至少包含 `skuId`、`tenantId`、`spuId`、`skuCode`、`skuName`、`specAttributes`、`salePrice`、`skuStatus`、`createdAt`、`updatedAt`
-- `ProductCategory` 至少包含 `categoryId`、`tenantId`、`parentId`、`categoryCode`、`categoryName`、`sortOrder`、`categoryStatus`、`createdAt`、`updatedAt`
-- `ProductImage` 至少包含 `imageId`、`tenantId`、`spuId`、`skuId`、`objectId`、`imageType`、`sortOrder`、`createdAt`
-- `ProductSnapshot` 至少包含 `snapshotId`、`tenantId`、`orderNo`、`orderItemNo`、`spuId`、`spuCode`、`spuName`、`skuId`、`skuCode`、`skuName`、`categoryId`、`categoryName`、`specAttributes`、`salePrice`、`quantity`、`mainImageObjectId`、`productVersion`、`createdAt`
-- `ProductArchive` 至少包含 `archiveId`、`tenantId`、`spuId`、`productVersion`、`archiveType`、`archiveContent`、`createdAt`
-- `ProductIdempotencyRecord` 至少包含 `idempotencyId`、`tenantId`、`operationType`、`idempotencyKey`、`requestHash`、`resultRefType`、`resultRefId`、`resultPayload`、`idempotencyStatus`、`createdAt`、`updatedAt`
-- `ProductOutbox` 至少包含 `eventId`、`tenantId`、`aggregateId`、`aggregateType`、`eventType`、`productVersion`、`payload`、`outboxStatus`、`retryCount`、`nextRetryAt`、`processingOwner`、`leaseUntil`、`createdAt`、`updatedAt`
+- `ProductSpu` 至少包含 `spuId`、`tenantId`、`spuCode`、`spuName`、`categoryId`、`description`、`mainImageObjectId`、`productStatus`、`version`
+- `ProductSku` 至少包含 `skuId`、`tenantId`、`spuId`、`skuCode`、`skuName`、`specAttributes`、`salePrice`、`skuStatus`
+- `ProductCategory` 至少包含 `categoryId`、`tenantId`、`parentId`、`categoryCode`、`categoryName`、`sortOrder`、`categoryStatus`
+- `ProductImage` 至少包含 `imageId`、`tenantId`、`spuId`、`skuId`、`objectId`、`imageType`、`sortOrder`
+- `ProductSnapshot` 至少包含 `snapshotId`、`tenantId`、`orderNo`、`orderItemNo`、`spuId`、`spuCode`、`spuName`、`skuId`、`skuCode`、`skuName`、`categoryId`、`categoryName`、`specAttributes`、`salePrice`、`quantity`、`mainImageObjectId`、`productVersion`
+- `ProductArchive` 至少包含 `archiveId`、`tenantId`、`spuId`、`productVersion`、`archiveType`、`archiveContent`、`archivedAt`
+- `ProductIdempotencyRecord` 至少包含 `idempotencyId`、`tenantId`、`operationType`、`idempotencyKey`、`requestHash`、`resultRefType`、`resultRefId`、`resultPayload`、`idempotencyStatus`
+- `ProductOutbox` 至少包含 `eventId`、`tenantId`、`aggregateId`、`aggregateType`、`eventType`、`productVersion`、`payload`、`outboxStatus`、`retryCount`、`nextRetryAt`、`processingOwner`、`leaseUntil`
 
 ## 5.4 Fixed Request Contracts
 

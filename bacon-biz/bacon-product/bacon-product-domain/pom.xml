@@ -12,4 +12,17 @@
     </parent>
 
     <artifactId>bacon-product-domain</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-common-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

@@ -9,9 +9,6 @@
 
 ## 当前任务项
 
-- [ ] Product Step 1：落地 `domain`
-  - 手册：`docs/30-designs/PRODUCT-IMPLEMENTATION-RUNBOOK.md#5-step-1---domain`
-
 - [ ] Product Step 2：落地 `application`
   - 手册：`docs/30-designs/PRODUCT-IMPLEMENTATION-RUNBOOK.md#6-step-2---application`
 

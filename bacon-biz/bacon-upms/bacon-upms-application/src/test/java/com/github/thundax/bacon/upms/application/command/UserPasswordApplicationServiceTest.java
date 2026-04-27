@@ -10,11 +10,12 @@ import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
+import com.github.thundax.bacon.upms.domain.exception.UserCredentialErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UserErrorCode;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
@@ -102,8 +103,9 @@ class UserPasswordApplicationServiceTest {
     void shouldThrowNotFoundWhenUserDoesNotExistDuringInitPassword() {
         when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.empty());
 
-        org.junit.jupiter.api.Assertions.assertThrows(
-                NotFoundException.class, () -> service.initPassword(UserId.of(101L)));
+        UpmsDomainException exception = org.junit.jupiter.api.Assertions.assertThrows(
+                UpmsDomainException.class, () -> service.initPassword(UserId.of(101L)));
+        org.junit.jupiter.api.Assertions.assertEquals(UserErrorCode.USER_NOT_FOUND.code(), exception.getCode());
     }
 
     @Test
@@ -111,9 +113,11 @@ class UserPasswordApplicationServiceTest {
         User user = User.reconstruct(UserId.of(101L), "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
         when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
 
-        org.junit.jupiter.api.Assertions.assertThrows(
-                BadRequestException.class,
+        UpmsDomainException exception = org.junit.jupiter.api.Assertions.assertThrows(
+                UpmsDomainException.class,
                 () -> service.resetPassword(new UserPasswordResetCommand(UserId.of(101L), "   ")));
+        org.junit.jupiter.api.Assertions.assertEquals(
+                UserCredentialErrorCode.USER_CREDENTIAL_REQUIRED_FIELD_BLANK.code(), exception.getCode());
     }
 
     @Test
@@ -162,9 +166,11 @@ class UserPasswordApplicationServiceTest {
                 .thenReturn(Optional.of(passwordCredential));
         when(passwordEncoder.matches("old-password", "{noop}identity")).thenReturn(false);
 
-        org.junit.jupiter.api.Assertions.assertThrows(
-                BadRequestException.class,
+        UpmsDomainException exception = org.junit.jupiter.api.Assertions.assertThrows(
+                UpmsDomainException.class,
                 () -> service.changePassword(new UserPasswordChangeCommand(UserId.of(101L), "old-password", "new-password")));
+        org.junit.jupiter.api.Assertions.assertEquals(
+                UserCredentialErrorCode.USER_CREDENTIAL_OLD_PASSWORD_INVALID.code(), exception.getCode());
     }
 
     @Test
@@ -174,8 +180,10 @@ class UserPasswordApplicationServiceTest {
         when(userCredentialRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
                 .thenReturn(Optional.empty());
 
-        org.junit.jupiter.api.Assertions.assertThrows(
-                NotFoundException.class,
+        UpmsDomainException exception = org.junit.jupiter.api.Assertions.assertThrows(
+                UpmsDomainException.class,
                 () -> service.changePassword(new UserPasswordChangeCommand(UserId.of(101L), "old-password", "new-password")));
+        org.junit.jupiter.api.Assertions.assertEquals(
+                UserCredentialErrorCode.USER_CREDENTIAL_PASSWORD_NOT_FOUND.code(), exception.getCode());
     }
 }

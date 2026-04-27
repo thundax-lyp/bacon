@@ -8,6 +8,12 @@ public enum UserCredentialErrorCode implements ErrorCode {
             "UPMS-CREDENTIAL-400001",
             "User credential password change requirement is only supported for password credentials",
             HttpStatus.BAD_REQUEST),
+    USER_CREDENTIAL_REQUIRED_FIELD_BLANK(
+            "UPMS-CREDENTIAL-400002", "User credential required field must not be blank", HttpStatus.BAD_REQUEST),
+    USER_CREDENTIAL_OLD_PASSWORD_INVALID(
+            "UPMS-CREDENTIAL-400003", "Old password invalid", HttpStatus.BAD_REQUEST),
+    USER_CREDENTIAL_PASSWORD_NOT_FOUND(
+            "UPMS-CREDENTIAL-404001", "Password credential not found", HttpStatus.NOT_FOUND),
     USER_CREDENTIAL_NOT_ACTIVE(
             "UPMS-CREDENTIAL-409001", "User credential is not active", HttpStatus.CONFLICT),
     USER_CREDENTIAL_LOCKED(

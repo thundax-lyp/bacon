@@ -4,14 +4,13 @@ import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.auth.api.request.SessionInvalidateUserFacadeRequest;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.application.assembler.UserAssembler;
-import com.github.thundax.bacon.upms.application.command.UserPasswordChangeCommand;
-import com.github.thundax.bacon.upms.application.command.UserPasswordResetCommand;
 import com.github.thundax.bacon.upms.application.dto.UserDTO;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
+import com.github.thundax.bacon.upms.domain.exception.UserCredentialErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UserErrorCode;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
@@ -94,11 +93,11 @@ public class UserPasswordApplicationService {
         requireUser(command.userId());
         UserCredential passwordCredential = userCredentialRepository
                 .findCredentialByUserId(command.userId(), UserCredentialType.PASSWORD)
-                .orElseThrow(() -> new NotFoundException("Password credential not found: " + command.userId()));
+                .orElseThrow(() -> new UpmsDomainException(UserCredentialErrorCode.USER_CREDENTIAL_PASSWORD_NOT_FOUND));
         validateRequired(command.oldPassword(), "oldPassword");
         validateRequired(command.newPassword(), "newPassword");
         if (!passwordEncoder.matches(command.oldPassword(), passwordCredential.getCredentialValue())) {
-            throw new BadRequestException("Old password invalid");
+            throw new UpmsDomainException(UserCredentialErrorCode.USER_CREDENTIAL_OLD_PASSWORD_INVALID);
         }
         userRepository.updatePassword(
                 command.userId(),
@@ -112,7 +111,7 @@ public class UserPasswordApplicationService {
     private User requireUser(UserId userId) {
         return userRepository
                 .findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found: " + userId));
+                .orElseThrow(() -> new UpmsDomainException(UserErrorCode.USER_NOT_FOUND));
     }
 
     private UserDTO toUserDto(User user) {
@@ -132,7 +131,7 @@ public class UserPasswordApplicationService {
 
     private void validateRequired(String value, String fieldName) {
         if (value == null || value.isBlank()) {
-            throw new BadRequestException(fieldName + " must not be blank");
+            throw new UpmsDomainException(UserCredentialErrorCode.USER_CREDENTIAL_REQUIRED_FIELD_BLANK);
         }
     }
 

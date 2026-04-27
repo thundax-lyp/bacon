@@ -12,4 +12,15 @@
     </parent>
 
     <artifactId>bacon-product-api</artifactId>
+
+    <properties>
+        <jacoco.skip>true</jacoco.skip>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+    </dependencies>
 </project>

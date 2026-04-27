@@ -9,9 +9,6 @@
 
 ## 当前任务项
 
-- [ ] Product Step 5：落地 `infra`
-  - 手册：`docs/30-designs/PRODUCT-IMPLEMENTATION-RUNBOOK.md#9-step-5---infra`
-
 - [ ] Product Step 6：接入装配与验证
   - 手册：`docs/30-designs/PRODUCT-IMPLEMENTATION-RUNBOOK.md#10-step-6---assembly-and-verification`
 

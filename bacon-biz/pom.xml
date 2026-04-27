@@ -26,6 +26,7 @@
     <modules>
         <module>bacon-auth</module>
         <module>bacon-order</module>
+        <module>bacon-product</module>
         <module>bacon-upms</module>
         <module>bacon-inventory</module>
         <module>bacon-storage</module>

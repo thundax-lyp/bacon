@@ -9,9 +9,6 @@
 
 ## 当前任务项
 
-- [ ] Product Step 0：搭建 `bacon-product` Maven 骨架
-  - 手册：`docs/30-designs/PRODUCT-IMPLEMENTATION-RUNBOOK.md#4-step-0---skeleton`
-
 - [ ] Product Step 1：落地 `domain`
   - 手册：`docs/30-designs/PRODUCT-IMPLEMENTATION-RUNBOOK.md#5-step-1---domain`
 

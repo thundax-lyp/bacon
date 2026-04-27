@@ -9,9 +9,6 @@
 
 ## 当前任务项
 
-- [ ] Product Step 4：落地 `interfaces`
-  - 手册：`docs/30-designs/PRODUCT-IMPLEMENTATION-RUNBOOK.md#8-step-4---interfaces`
-
 - [ ] Product Step 5：落地 `infra`
   - 手册：`docs/30-designs/PRODUCT-IMPLEMENTATION-RUNBOOK.md#9-step-5---infra`
 

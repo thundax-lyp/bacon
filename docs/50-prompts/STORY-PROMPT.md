@@ -202,6 +202,6 @@
 ======
 
 * Markdown 格式
-* 文件名：docs/STORY.md
+* 文件名：docs/60-human/STORY.md
 * 覆盖写入
 * 不输出任何额外解释

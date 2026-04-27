@@ -5,15 +5,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.upms.application.dto.MenuTreeDTO;
+import com.github.thundax.bacon.upms.domain.exception.MenuErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.enums.MenuType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,8 +44,9 @@ class MenuCommandApplicationServiceTest {
 
         assertThatThrownBy(() -> service.create(new MenuCreateCommand(
                         MenuType.CATALOG, "Catalog", parentId, null, null, null, null)))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("Parent menu not found: " + parentId);
+                .isInstanceOf(UpmsDomainException.class)
+                .extracting("code")
+                .isEqualTo(MenuErrorCode.PARENT_MENU_NOT_FOUND.code());
     }
 
     @Test
@@ -76,7 +78,8 @@ class MenuCommandApplicationServiceTest {
         when(menuRepository.existsChild(menuId)).thenReturn(true);
 
         assertThatThrownBy(() -> service.delete(menuId))
-                .isInstanceOf(com.github.thundax.bacon.common.core.exception.ConflictException.class)
-                .hasMessage("Menu has child menus: " + menuId);
+                .isInstanceOf(UpmsDomainException.class)
+                .extracting("code")
+                .isEqualTo(MenuErrorCode.MENU_HAS_CHILDREN.code());
     }
 }

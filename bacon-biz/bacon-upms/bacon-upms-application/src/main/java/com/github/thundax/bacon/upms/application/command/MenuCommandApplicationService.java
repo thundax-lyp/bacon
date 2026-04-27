@@ -1,12 +1,11 @@
 package com.github.thundax.bacon.upms.application.command;
 
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
-import com.github.thundax.bacon.common.core.exception.ConflictException;
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.upms.application.assembler.MenuAssembler;
 import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
 import com.github.thundax.bacon.upms.application.dto.MenuTreeDTO;
+import com.github.thundax.bacon.upms.domain.exception.MenuErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
@@ -63,7 +62,7 @@ public class MenuCommandApplicationService {
     public void delete(MenuId menuId) {
         requireMenu(menuId);
         if (menuRepository.existsChild(menuId)) {
-            throw new ConflictException("Menu has child menus: " + menuId);
+            throw new UpmsDomainException(MenuErrorCode.MENU_HAS_CHILDREN);
         }
         menuRepository.delete(menuId);
     }
@@ -71,7 +70,7 @@ public class MenuCommandApplicationService {
     @Transactional
     public MenuTreeDTO updateSort(MenuSortUpdateCommand command) {
         if (command.sort() == null) {
-            throw new BadRequestException("sort must not be null");
+            throw new UpmsDomainException(MenuErrorCode.MENU_SORT_REQUIRED);
         }
         Menu currentMenu = requireMenu(command.menuId());
         currentMenu.sort(command.sort());
@@ -85,7 +84,7 @@ public class MenuCommandApplicationService {
     private Menu requireMenu(MenuId menuId) {
         return menuRepository
                 .findById(menuId)
-                .orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
+                .orElseThrow(() -> new UpmsDomainException(MenuErrorCode.MENU_NOT_FOUND));
     }
 
     private void validateParent(MenuId parentId) {
@@ -95,12 +94,12 @@ public class MenuCommandApplicationService {
         }
         menuRepository
                 .findById(parentId)
-                .orElseThrow(() -> new NotFoundException("Parent menu not found: " + parentId));
+                .orElseThrow(() -> new UpmsDomainException(MenuErrorCode.PARENT_MENU_NOT_FOUND));
     }
 
     private void validateRequired(String value, String fieldName) {
         if (value == null || value.isBlank()) {
-            throw new BadRequestException(fieldName + " must not be blank");
+            throw new UpmsDomainException(MenuErrorCode.MENU_REQUIRED_FIELD_BLANK);
         }
     }
 }

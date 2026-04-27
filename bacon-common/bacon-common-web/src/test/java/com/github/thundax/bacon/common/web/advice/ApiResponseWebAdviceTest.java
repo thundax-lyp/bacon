@@ -8,12 +8,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.exception.BizException;
+import com.github.thundax.bacon.common.core.exception.ConflictException;
+import com.github.thundax.bacon.common.core.exception.ErrorCode;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -41,11 +46,13 @@ class ApiResponseWebAdviceTest {
 
     @Test
     void shouldWrapAnnotatedControllerResponse() throws Exception {
-        mockMvc.perform(get("/wrapped/value"))
+        mockMvc.perform(get("/wrapped/value").header("X-Request-Id", "req-success"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data").value("value"))
-                .andExpect(jsonPath("$.message").value("success"));
+                .andExpect(jsonPath("$.message").value("success"))
+                .andExpect(jsonPath("$.requestId").value("req-success"))
+                .andExpect(jsonPath("$.timestamp").exists());
     }
 
     @Test
@@ -67,10 +74,52 @@ class ApiResponseWebAdviceTest {
 
     @Test
     void shouldConvertAnnotatedControllerExceptionToApiResponse() throws Exception {
-        mockMvc.perform(get("/wrapped/bad-request"))
+        mockMvc.perform(get("/wrapped/bad-request").header("X-Request-Id", "req-bad"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("bad request"));
+                .andExpect(jsonPath("$.message").value("bad request"))
+                .andExpect(jsonPath("$.requestId").value("req-bad"))
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void shouldConvertNotFoundExceptionToApiResponse() throws Exception {
+        mockMvc.perform(get("/wrapped/not-found"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("missing resource"))
+                .andExpect(jsonPath("$.requestId").exists())
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void shouldConvertConflictExceptionToApiResponse() throws Exception {
+        mockMvc.perform(get("/wrapped/conflict"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFLICT"))
+                .andExpect(jsonPath("$.message").value("resource conflict"))
+                .andExpect(jsonPath("$.requestId").exists())
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void shouldConvertDomainExceptionToApiResponse() throws Exception {
+        mockMvc.perform(get("/wrapped/domain-error"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("TST-409001"))
+                .andExpect(jsonPath("$.message").value("Test domain conflict"))
+                .andExpect(jsonPath("$.requestId").exists())
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void shouldHideUnexpectedExceptionDetail() throws Exception {
+        mockMvc.perform(get("/wrapped/system-error"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value("Internal server error"))
+                .andExpect(jsonPath("$.requestId").exists())
+                .andExpect(jsonPath("$.timestamp").exists());
     }
 
     @Test
@@ -127,6 +176,26 @@ class ApiResponseWebAdviceTest {
             throw new BadRequestException("bad request");
         }
 
+        @GetMapping("/wrapped/not-found")
+        String notFound() {
+            throw new NotFoundException("missing resource");
+        }
+
+        @GetMapping("/wrapped/conflict")
+        String conflict() {
+            throw new ConflictException("resource conflict");
+        }
+
+        @GetMapping("/wrapped/domain-error")
+        String domainError() {
+            throw new BizException(TestErrorCode.TEST_DOMAIN_CONFLICT);
+        }
+
+        @GetMapping("/wrapped/system-error")
+        String systemError() {
+            throw new IllegalStateException("database password leaked");
+        }
+
         @GetMapping("/wrapped/missing-param")
         String missingParam(@RequestParam("requiredParam") String requiredParam) {
             return requiredParam;
@@ -163,4 +232,33 @@ class ApiResponseWebAdviceTest {
     }
 
     record RequestBodyValue(@NotBlank String value) {}
+
+    enum TestErrorCode implements ErrorCode {
+        TEST_DOMAIN_CONFLICT("TST-409001", "Test domain conflict", HttpStatus.CONFLICT);
+
+        private final String code;
+        private final String message;
+        private final HttpStatus httpStatus;
+
+        TestErrorCode(String code, String message, HttpStatus httpStatus) {
+            this.code = code;
+            this.message = message;
+            this.httpStatus = httpStatus;
+        }
+
+        @Override
+        public String code() {
+            return code;
+        }
+
+        @Override
+        public String message() {
+            return message;
+        }
+
+        @Override
+        public HttpStatus httpStatus() {
+            return httpStatus;
+        }
+    }
 }

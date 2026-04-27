@@ -22,10 +22,10 @@
 
 ## P0 - 生产级代码与业务功能补齐
 
-- [ ] `common-web` / `common-core`：统一错误码与错误响应模型
-  - 范围对象：`BadRequestException`、`NotFoundException`、`ConflictException`、各域 `*DomainException`、全局异常处理
-  - 处理动作：固定错误响应字段 `code`、`message`、`requestId`、`timestamp`；按 `AUTH`、`UPMS`、`ORDER`、`INVENTORY`、`PAYMENT`、`STORAGE` 分段定义错误码
-  - 验收点：Controller 异常响应结构统一，业务异常不暴露底层异常信息，测试覆盖参数错误、资源不存在、业务冲突和领域规则错误
+- [ ] `auth` / `upms` / `order` / `inventory` / `payment` / `storage`：补齐错误码分段与业务异常映射
+  - 范围对象：各域 `*DomainException`、`*ErrorCode`、应用层通用异常抛出点
+  - 处理动作：按 `AUTH`、`UPMS`、`ORDER`、`INVENTORY`、`PAYMENT`、`STORAGE` 分段定义稳定错误码；将已稳定的业务错误从通用字符串异常迁移到域错误码
+  - 验收点：业务异常不暴露底层异常信息，各域核心参数错误、资源不存在、业务冲突和领域规则错误有稳定错误码与测试覆盖
   - 重要度：10/10
 
 - [ ] `order` / `inventory` / `payment`：补齐主链路状态机治理

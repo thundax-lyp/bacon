@@ -9,9 +9,6 @@
 
 ## 当前任务项
 
-- [ ] Product Step 2：落地 `application`
-  - 手册：`docs/30-designs/PRODUCT-IMPLEMENTATION-RUNBOOK.md#6-step-2---application`
-
 - [ ] Product Step 3：落地 `api`
   - 手册：`docs/30-designs/PRODUCT-IMPLEMENTATION-RUNBOOK.md#7-step-3---api`
 

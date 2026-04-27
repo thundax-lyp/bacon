@@ -1,8 +1,9 @@
 package com.github.thundax.bacon.auth.application.command;
 
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.auth.application.query.SessionCurrentQuery;
 import com.github.thundax.bacon.auth.application.query.SessionQueryApplicationService;
+import com.github.thundax.bacon.auth.domain.exception.AuthDomainException;
+import com.github.thundax.bacon.auth.domain.exception.AuthErrorCode;
 import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
 import com.github.thundax.bacon.upms.api.request.UserPasswordChangeFacadeRequest;
 import java.util.regex.Pattern;
@@ -28,13 +29,13 @@ public class PasswordCommandApplicationService {
 
     public void changePassword(PasswordChangeCommand command) {
         if (command.oldPassword() == null || command.oldPassword().isBlank()) {
-            throw new BadRequestException("Old password required");
+            throw new AuthDomainException(AuthErrorCode.OLD_PASSWORD_REQUIRED);
         }
         if (command.newPassword() == null || !PASSWORD_PATTERN.matcher(command.newPassword()).matches()) {
-            throw new BadRequestException("New password invalid");
+            throw new AuthDomainException(AuthErrorCode.NEW_PASSWORD_INVALID);
         }
         if (command.newPassword().equals(command.oldPassword())) {
-            throw new BadRequestException("New password must differ from old password");
+            throw new AuthDomainException(AuthErrorCode.NEW_PASSWORD_SAME_AS_OLD);
         }
         var currentSession = sessionQueryApplicationService.currentSession(new SessionCurrentQuery(command.accessToken()));
         userPasswordFacade.changePassword(new UserPasswordChangeFacadeRequest(command.oldPassword(), command.newPassword()));

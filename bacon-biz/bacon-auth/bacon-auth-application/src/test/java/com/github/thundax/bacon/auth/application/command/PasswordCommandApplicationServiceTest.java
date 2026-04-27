@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.auth.application.command;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -9,11 +10,12 @@ import static org.mockito.Mockito.when;
 import com.github.thundax.bacon.auth.application.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.application.query.SessionCurrentQuery;
 import com.github.thundax.bacon.auth.application.query.SessionQueryApplicationService;
+import com.github.thundax.bacon.auth.domain.exception.AuthDomainException;
+import com.github.thundax.bacon.auth.domain.exception.AuthErrorCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -44,23 +46,26 @@ class PasswordCommandApplicationServiceTest {
 
     @Test
     void shouldThrowBadRequestWhenOldPasswordIsBlank() {
-        assertThrows(
-                BadRequestException.class,
+        AuthDomainException exception = assertThrows(
+                AuthDomainException.class,
                 () -> service.changePassword(new PasswordChangeCommand("access-token", " ", "NewPass123")));
+        assertEquals(AuthErrorCode.OLD_PASSWORD_REQUIRED.code(), exception.getCode());
     }
 
     @Test
     void shouldThrowBadRequestWhenNewPasswordIsInvalid() {
-        assertThrows(
-                BadRequestException.class,
+        AuthDomainException exception = assertThrows(
+                AuthDomainException.class,
                 () -> service.changePassword(new PasswordChangeCommand("access-token", "OldPass123", "short")));
+        assertEquals(AuthErrorCode.NEW_PASSWORD_INVALID.code(), exception.getCode());
     }
 
     @Test
     void shouldThrowBadRequestWhenNewPasswordMatchesOldPassword() {
-        assertThrows(
-                BadRequestException.class,
+        AuthDomainException exception = assertThrows(
+                AuthDomainException.class,
                 () -> service.changePassword(new PasswordChangeCommand("access-token", "SamePass123", "SamePass123")));
+        assertEquals(AuthErrorCode.NEW_PASSWORD_SAME_AS_OLD.code(), exception.getCode());
     }
 
     @Test

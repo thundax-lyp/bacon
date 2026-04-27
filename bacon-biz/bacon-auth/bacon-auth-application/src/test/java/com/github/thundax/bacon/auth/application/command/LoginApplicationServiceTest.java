@@ -12,10 +12,11 @@ import com.github.thundax.bacon.auth.application.dto.UserLoginDTO;
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
 import com.github.thundax.bacon.auth.application.support.LoginSecurityApplicationService;
+import com.github.thundax.bacon.auth.domain.exception.AuthDomainException;
+import com.github.thundax.bacon.auth.domain.exception.AuthErrorCode;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.upms.api.facade.UserCredentialReadFacade;
 import com.github.thundax.bacon.upms.api.response.UserCredentialFacadeResponse;
 import java.time.Instant;
@@ -129,9 +130,10 @@ class LoginApplicationServiceTest {
                 userCredentialReadFacade,
                 passwordEncoder);
 
-        assertThrows(
-                BadRequestException.class,
+        AuthDomainException exception = assertThrows(
+                AuthDomainException.class,
                 () -> service.loginByPassword(
                         new PasswordLoginCommand(1001L, "demo", "cipher-password", "rsa-key", "captcha-key", "captcha-code")));
+        assertEquals(AuthErrorCode.CREDENTIAL_EXPIRED.code(), exception.getCode());
     }
 }

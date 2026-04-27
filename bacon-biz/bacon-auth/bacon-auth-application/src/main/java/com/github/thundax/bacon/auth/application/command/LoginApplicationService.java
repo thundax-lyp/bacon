@@ -6,11 +6,12 @@ import com.github.thundax.bacon.auth.application.assembler.LoginAssembler;
 import com.github.thundax.bacon.auth.application.result.PasswordLoginChallengeResult;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
 import com.github.thundax.bacon.auth.application.support.LoginSecurityApplicationService;
+import com.github.thundax.bacon.auth.domain.exception.AuthDomainException;
+import com.github.thundax.bacon.auth.domain.exception.AuthErrorCode;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.facade.UserCredentialReadFacade;
 import com.github.thundax.bacon.upms.api.request.UserCredentialGetFacadeRequest;
@@ -97,23 +98,23 @@ public class LoginApplicationService {
     private UserCredentialFacadeResponse validatePasswordLoginCredential(
             UserCredentialFacadeResponse credential, String plainPassword) {
         if (credential == null) {
-            throw new BadRequestException("Invalid account or password");
+            throw new AuthDomainException(AuthErrorCode.INVALID_LOGIN_CREDENTIAL);
         }
         if (!ACTIVE_STATUS.equals(credential.identityStatus())) {
-            throw new BadRequestException("Current account is disabled");
+            throw new AuthDomainException(AuthErrorCode.ACCOUNT_DISABLED);
         }
         if (!ACTIVE_STATUS.equals(credential.status())) {
-            throw new BadRequestException("Current user is not enabled");
+            throw new AuthDomainException(AuthErrorCode.USER_DISABLED);
         }
         if (!ACTIVE_STATUS.equals(credential.credentialStatus())) {
-            throw new BadRequestException("Current credential is not active");
+            throw new AuthDomainException(AuthErrorCode.CREDENTIAL_INACTIVE);
         }
         if (credential.credentialExpiresAt() != null
                 && credential.credentialExpiresAt().isBefore(Instant.now())) {
-            throw new BadRequestException("Current credential has expired");
+            throw new AuthDomainException(AuthErrorCode.CREDENTIAL_EXPIRED);
         }
         if (!passwordEncoder.matches(plainPassword, credential.passwordHash())) {
-            throw new BadRequestException("Invalid account or password");
+            throw new AuthDomainException(AuthErrorCode.INVALID_LOGIN_CREDENTIAL);
         }
         return credential;
     }
@@ -163,7 +164,7 @@ public class LoginApplicationService {
 
     private TenantId normalizeTenantId(Long tenantId) {
         if (tenantId == null) {
-            throw new BadRequestException("tenantId must not be null");
+            throw new AuthDomainException(AuthErrorCode.TENANT_ID_REQUIRED);
         }
         return TenantId.of(tenantId);
     }

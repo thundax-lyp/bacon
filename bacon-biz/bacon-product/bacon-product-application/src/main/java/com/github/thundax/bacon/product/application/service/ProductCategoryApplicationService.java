@@ -3,7 +3,9 @@ package com.github.thundax.bacon.product.application.service;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.product.domain.model.entity.ProductCategory;
 import com.github.thundax.bacon.product.domain.repository.ProductCategoryRepository;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ProductCategoryApplicationService {
 
     private static final String CATEGORY_ID_BIZ_TAG = "product-category-id";

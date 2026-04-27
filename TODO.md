@@ -9,8 +9,5 @@
 
 ## 当前任务项
 
-- [ ] Product Step 6：接入装配与验证
-  - 手册：`docs/30-designs/PRODUCT-IMPLEMENTATION-RUNBOOK.md#10-step-6---assembly-and-verification`
-
 - [ ] Product Step 7：清理现场并关闭任务
   - 手册：`docs/30-designs/PRODUCT-IMPLEMENTATION-RUNBOOK.md#11-step-7---site-cleanup`

@@ -166,6 +166,31 @@
         </dependency>
         <dependency>
             <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-product-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-product-interfaces</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-product-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-product-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-product-infra</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
             <artifactId>bacon-common-swagger</artifactId>
             <version>${project.version}</version>
         </dependency>

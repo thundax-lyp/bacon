@@ -21,7 +21,9 @@ import com.github.thundax.bacon.product.domain.repository.ProductSpuRepository;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ProductManagementApplicationService {
 
     private static final String PRODUCT_ID_BIZ_TAG = "product-spu-id";

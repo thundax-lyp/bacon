@@ -15,7 +15,9 @@ import com.github.thundax.bacon.product.domain.repository.ProductSkuRepository;
 import com.github.thundax.bacon.product.domain.repository.ProductSnapshotRepository;
 import com.github.thundax.bacon.product.domain.repository.ProductSpuRepository;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ProductSnapshotApplicationService {
 
     private static final String SNAPSHOT_ID_BIZ_TAG = "product-snapshot-id";

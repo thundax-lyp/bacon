@@ -16,7 +16,9 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ProductIndexSyncApplicationService {
 
     private final ProductOutboxRepository productOutboxRepository;

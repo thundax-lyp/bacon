@@ -7,7 +7,9 @@ import com.github.thundax.bacon.product.domain.model.entity.ProductSpu;
 import com.github.thundax.bacon.product.domain.repository.ProductCategoryRepository;
 import com.github.thundax.bacon.product.domain.repository.ProductSkuRepository;
 import com.github.thundax.bacon.product.domain.repository.ProductSpuRepository;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ProductSearchApplicationService {
 
     private final ProductSpuRepository productSpuRepository;

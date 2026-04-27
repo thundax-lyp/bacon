@@ -7,7 +7,9 @@ import com.github.thundax.bacon.product.domain.repository.ProductIdempotencyReco
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ProductIdempotencyExecutor {
 
     private static final String IDEMPOTENCY_ID_BIZ_TAG = "product-idempotency-id";

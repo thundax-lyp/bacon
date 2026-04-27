@@ -1,10 +1,11 @@
 package com.github.thundax.bacon.upms.application.query;
 
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.upms.application.assembler.DepartmentAssembler;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.application.dto.DepartmentTreeDTO;
+import com.github.thundax.bacon.upms.domain.exception.DepartmentErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
@@ -30,13 +31,13 @@ public class DepartmentQueryApplicationService {
     public DepartmentDTO getById(DepartmentId departmentId) {
         return DepartmentAssembler.toDto(departmentRepository
                 .findById(departmentId)
-                .orElseThrow(() -> new NotFoundException("Department not found: " + departmentId)));
+                .orElseThrow(() -> new UpmsDomainException(DepartmentErrorCode.DEPARTMENT_NOT_FOUND)));
     }
 
     public DepartmentDTO getByCode(DepartmentCode departmentCode) {
         return DepartmentAssembler.toDto(departmentRepository
                 .findByCode(departmentCode)
-                .orElseThrow(() -> new NotFoundException("Department not found: " + departmentCode.value())));
+                .orElseThrow(() -> new UpmsDomainException(DepartmentErrorCode.DEPARTMENT_NOT_FOUND)));
     }
 
     public List<DepartmentDTO> listByCodes(Set<DepartmentCode> codes) {

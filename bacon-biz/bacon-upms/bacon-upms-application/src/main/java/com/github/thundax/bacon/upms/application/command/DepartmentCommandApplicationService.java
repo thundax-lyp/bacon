@@ -1,13 +1,13 @@
 package com.github.thundax.bacon.upms.application.command;
 
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
-import com.github.thundax.bacon.common.core.exception.ConflictException;
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.application.assembler.DepartmentAssembler;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.dto.DepartmentDTO;
+import com.github.thundax.bacon.upms.domain.exception.DepartmentErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
+import com.github.thundax.bacon.upms.domain.exception.UserErrorCode;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
@@ -61,7 +61,7 @@ public class DepartmentCommandApplicationService {
     @Transactional
     public DepartmentDTO updateSort(DepartmentSortUpdateCommand command) {
         if (command.sort() == null) {
-            throw new BadRequestException("sort must not be null");
+            throw new UpmsDomainException(DepartmentErrorCode.DEPARTMENT_SORT_REQUIRED);
         }
         Department currentDepartment = requireDepartment(command.departmentId());
         currentDepartment.sort(command.sort());
@@ -72,10 +72,10 @@ public class DepartmentCommandApplicationService {
     public void delete(DepartmentId departmentId) {
         requireDepartment(departmentId);
         if (departmentRepository.existsChild(departmentId)) {
-            throw new ConflictException("Department has child departments: " + departmentId);
+            throw new UpmsDomainException(DepartmentErrorCode.DEPARTMENT_HAS_CHILDREN);
         }
         if (departmentRepository.existsUser(departmentId)) {
-            throw new ConflictException("Department has assigned users: " + departmentId);
+            throw new UpmsDomainException(DepartmentErrorCode.DEPARTMENT_HAS_ASSIGNED_USERS);
         }
         departmentRepository.delete(departmentId);
     }
@@ -83,7 +83,7 @@ public class DepartmentCommandApplicationService {
     private Department requireDepartment(DepartmentId departmentId) {
         return departmentRepository
                 .findById(departmentId)
-                .orElseThrow(() -> new NotFoundException("Department not found: " + departmentId));
+                .orElseThrow(() -> new UpmsDomainException(DepartmentErrorCode.DEPARTMENT_NOT_FOUND));
     }
 
     private void validateParent(DepartmentId parentId) {
@@ -92,7 +92,7 @@ public class DepartmentCommandApplicationService {
         }
         departmentRepository
                 .findById(parentId)
-                .orElseThrow(() -> new NotFoundException("Parent department not found: " + parentId));
+                .orElseThrow(() -> new UpmsDomainException(DepartmentErrorCode.PARENT_DEPARTMENT_NOT_FOUND));
     }
 
     private void validateLeaderUser(UserId leaderUserId) {
@@ -101,6 +101,6 @@ public class DepartmentCommandApplicationService {
         }
         userRepository
                 .findById(leaderUserId)
-                .orElseThrow(() -> new NotFoundException("Leader user not found: " + leaderUserId.value()));
+                .orElseThrow(() -> new UpmsDomainException(UserErrorCode.USER_NOT_FOUND));
     }
 }

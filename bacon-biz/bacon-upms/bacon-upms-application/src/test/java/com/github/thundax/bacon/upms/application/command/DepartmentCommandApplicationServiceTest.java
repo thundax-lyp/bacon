@@ -7,12 +7,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.exception.DepartmentErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
+import com.github.thundax.bacon.upms.domain.exception.UserErrorCode;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
+import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
@@ -52,8 +53,9 @@ class DepartmentCommandApplicationServiceTest {
 
         assertThatThrownBy(
                         () -> service.create(new DepartmentCreateCommand(DepartmentCode.of("OPS"), "Operations", parentId, null)))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("Parent department not found: " + parentId);
+                .isInstanceOf(UpmsDomainException.class)
+                .extracting("code")
+                .isEqualTo(DepartmentErrorCode.PARENT_DEPARTMENT_NOT_FOUND.code());
         verifyNoInteractions(userRepository);
     }
 
@@ -64,8 +66,9 @@ class DepartmentCommandApplicationServiceTest {
         assertThatThrownBy(() ->
                         service.create(new DepartmentCreateCommand(
                                 DepartmentCode.of("OPS"), "Operations", null, UserId.of(2001L))))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("Leader user not found: 2001");
+                .isInstanceOf(UpmsDomainException.class)
+                .extracting("code")
+                .isEqualTo(UserErrorCode.USER_NOT_FOUND.code());
     }
 
     @Test
@@ -77,8 +80,9 @@ class DepartmentCommandApplicationServiceTest {
 
         assertThatThrownBy(() -> service.update(new DepartmentUpdateCommand(
                         departmentId, DepartmentCode.of("OPS"), "Operations", null, UserId.of(2002L), 2)))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("Leader user not found: 2002");
+                .isInstanceOf(UpmsDomainException.class)
+                .extracting("code")
+                .isEqualTo(UserErrorCode.USER_NOT_FOUND.code());
     }
 
     @Test
@@ -112,8 +116,9 @@ class DepartmentCommandApplicationServiceTest {
     void shouldRejectNullSortWhenUpdatingDepartmentSort() {
         DepartmentId departmentId = DepartmentId.of(101L);
         assertThatThrownBy(() -> service.updateSort(new DepartmentSortUpdateCommand(departmentId, null)))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("sort must not be null");
+                .isInstanceOf(UpmsDomainException.class)
+                .extracting("code")
+                .isEqualTo(DepartmentErrorCode.DEPARTMENT_SORT_REQUIRED.code());
     }
 
     @Test

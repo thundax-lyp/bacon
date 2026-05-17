@@ -11,14 +11,6 @@
 
 ## 待审阅任务项
 
-- [ ] `ArchUnit-path-rules`：对齐 Path hard rules 与实际检测粒度
-  - 任务类型：执行任务
-  - 依据文档：`docs/00-governance/NAMING-AND-PLACEMENT-RULES.md`
-  - 范围对象：`PathArchitectureRuleSupport`、`NamingAndPlacementRuleSupport`、`NAMING-AND-PLACEMENT-RULES.md`
-  - 处理动作：收敛或拆分 `PATH_CONTROLLER_PREFIX`、`PATH_CONTROLLER_RESOURCE_PATH`、`PATH_CONTROLLER_NO_PROVIDERS`、`PATH_DOMAIN_CANONICAL` 的文档与 ArchUnit 实现粒度
-  - 验收点：每个 Path hard rule 要么有独立可追踪 ArchUnit 检测，要么在文档中合并为单一规则
-  - 重要度：7/10
-
 - [ ] `ArchUnit-layer-overlap`：标注 Layer 白名单与专项规则关系
   - 任务类型：执行任务
   - 依据文档：`docs/00-governance/NAMING-AND-PLACEMENT-RULES.md`

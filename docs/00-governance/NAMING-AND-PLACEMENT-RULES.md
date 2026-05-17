@@ -41,12 +41,9 @@
 
 ### Path
 
-- `PATH_CONTROLLER_PREFIX`：`interfaces.controller` 类级路径必须以 `/{domain}` 开头
-- `PATH_CONTROLLER_RESOURCE_PATH`：`interfaces.controller` 类级路径固定为 `/{domain}/{resources}` 起步；`{resources}` 表达外部资源集合，使用稳定英文资源名，不使用 `/providers/**`
+- `PATH_CONTROLLER_RESOURCE_PATH`：`interfaces.controller` 类级路径固定为 `/{domain}/{resources}` 起步；`{domain}` 固定与业务域目录名一致；`{resources}` 表达外部资源集合，使用稳定英文资源名；不使用 `/providers/**`
 - `PATH_PROVIDER_PREFIX`：`interfaces.provider` 类级路径必须以 `/providers/{domain}` 开头
 - `PATH_PROVIDER_COMMAND_QUERY_PATH`：`interfaces.provider` 完整路径固定为 `/providers/{domain}/queries/{query-name}` 或 `/providers/{domain}/commands/{command-name}`
-- `PATH_CONTROLLER_NO_PROVIDERS`：`interfaces.controller` 不得使用 `/providers/**` 前缀
-- `PATH_DOMAIN_CANONICAL`：`{domain}` 固定与业务域目录名一致，不混用别名
 - `PATH_APPLICATION_PAGE_CONTRACT`：`PageQuery` / `PageResult` 必须位于 `com.github.thundax.bacon.common.application.page..`
 
 ### Layer

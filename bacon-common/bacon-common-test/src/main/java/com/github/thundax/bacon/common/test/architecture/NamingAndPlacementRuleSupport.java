@@ -512,10 +512,7 @@ public final class NamingAndPlacementRuleSupport {
                 .haveSimpleNameEndingWith("Controller")
                 .should(new ControllerDomainResourcePathCondition(domain))
                 .allowEmptyShould(true)
-                .because(
-                        "RULE PATH_CONTROLLER_PREFIX / RULE PATH_CONTROLLER_RESOURCE_PATH / "
-                                + "RULE PATH_CONTROLLER_NO_PROVIDERS / RULE PATH_DOMAIN_CANONICAL: "
-                                + "Controller path must use /{domain}/{resources}");
+                .because("RULE PATH_CONTROLLER_RESOURCE_PATH: Controller path must use /{domain}/{resources}");
     }
 
     public static ArchRule providerControllerRequestMappingShouldUseDomainPrefix(String basePackage) {

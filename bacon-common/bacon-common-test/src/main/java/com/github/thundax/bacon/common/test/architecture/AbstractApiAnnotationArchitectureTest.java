@@ -76,12 +76,6 @@ public abstract class AbstractApiAnnotationArchitectureTest {
     }
 
     @Test
-    void shouldEnforceAnnoProviderPathPrefixRequired() {
-        ApiAnnotationArchitectureRuleSupport.providerPathPrefixRequired(basePackage())
-                .check(classes());
-    }
-
-    @Test
     void shouldEnforceAnnoProviderMethodOperationRequired() {
         ApiAnnotationArchitectureRuleSupport.providerOperationRequired(basePackage())
                 .check(classes());

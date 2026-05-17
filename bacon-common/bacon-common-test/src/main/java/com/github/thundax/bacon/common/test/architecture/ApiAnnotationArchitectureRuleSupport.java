@@ -282,11 +282,6 @@ public final class ApiAnnotationArchitectureRuleSupport {
                 "SysLog");
     }
 
-    public static ArchRule providerPathPrefixRequired(String basePackage) {
-        return NamingAndPlacementRuleSupport.providerControllerRequestMappingShouldUseDomainPrefix(basePackage)
-                .because("RULE ANNO_PROVIDER_PATH_PREFIX_REQUIRED");
-    }
-
     public static ArchRule providerOperationRequired(String basePackage) {
         return ArchRuleDefinition.classes()
                 .that()

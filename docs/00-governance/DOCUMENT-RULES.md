@@ -11,6 +11,11 @@
 - 文件名可使用 `-` 连接单词
 - 文件名不得使用中文
 - 文件名不得使用空格
+- 治理文档固定放在 `docs/00-governance/`
+- `HOW-TO` 文档固定放在 `docs/00-governance/how-to/`
+- `HOW-TO` 文档命名固定为 `HOW-TO-XXX.md`
+- `RUNBOOK` 文档固定放在 `docs/30-designs/`
+- `RUNBOOK` 文档命名固定为 `*-RUNBOOK.md`
 
 ## 3. Language Rules
 
@@ -40,6 +45,10 @@
 - 文档不得过度简化
 - 文档不得保留模糊口径
 - 同一规则不得在多处重复且表述不一致
+- `TODO.md` 的任务格式、协作、删除、测试检查和提交收口规则固定由 `TODO-RULES.md` 承载
+- `HOW-TO` 只承载高频操作步骤，不承载 `TODO.md` 治理规则
+- `RUNBOOK` 只承载一次性复杂任务的执行编排，不沉淀为长期通用规则
+- 临时讨论结论进入 `TODO.md` 或 `RUNBOOK`；稳定后再收敛到治理文档，完成后从临时材料中清理
 - 面向测试与治理规则时，`@DisplayName` 负责给人阅读，ArchUnit 的 `.because()` 负责给 AI 排查；默认同时保留 `@DisplayName` 与简洁的 `.because()`，其中 `.because()` 必须短、稳、直接表达规则意图，不得写成长段解释
 
 ## 5. Requirement Style

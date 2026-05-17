@@ -334,6 +334,8 @@ public final class NamingAndPlacementRuleSupport {
                 .that()
                 .haveSimpleNameEndingWith("Assembler")
                 .and()
+                .resideInAPackage(basePackage + ".application..")
+                .and()
                 .haveNameNotMatching(".*InterfaceAssembler$")
                 .and()
                 .haveNameNotMatching(".*PersistenceAssembler$")

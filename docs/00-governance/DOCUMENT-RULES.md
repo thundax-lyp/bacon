@@ -17,7 +17,25 @@
 - `RUNBOOK` 文档固定放在 `docs/30-designs/`
 - `RUNBOOK` 文档命名固定为 `RUNBOOK-XXX.md`
 
-## 3. Language Rules
+## 3. Governance Entry Map
+
+治理文档固定入口：
+
+- 架构、模块边界、分层职责：[`ARCHITECTURE.md`](./ARCHITECTURE.md)
+- 架构意图、规则冲突、AI 误改风险：[`ARCHITECTURE-INTENT.md`](./ARCHITECTURE-INTENT.md)
+- 目录树与装配参考：[`ARCHITECTURE-REFERENCE.md`](./ARCHITECTURE-REFERENCE.md)
+- 命名、目录、类归属：[`NAMING-AND-PLACEMENT-RULES.md`](./NAMING-AND-PLACEMENT-RULES.md)
+- 数据库、DO、Mapper、SQL、持久化对象：[`DATABASE-RULES.md`](./DATABASE-RULES.md)
+- 领域标识、数据库主键和业务编号边界：[`UNIFIED-ID-DESIGN.md`](./UNIFIED-ID-DESIGN.md)
+- HTTP API 注解、统一响应和异常入口：[`API-ANNOTATION-MATRIX.md`](./API-ANNOTATION-MATRIX.md)
+- 当前用户、当前主体和线程上下文透传：[`BACON-CONTEXT-PROPAGATION-RULES.md`](./BACON-CONTEXT-PROPAGATION-RULES.md)
+- TODO 格式、协作、删除、测试检查和提交收口规则：[`TODO-RULES.md`](./TODO-RULES.md)
+- 文档写作、路由和提交口径：本文档
+- 部署单元、运行入口、流量边界：[`DEPLOYMENT-AND-TRAFFIC-BOUNDARY-RULES.md`](./DEPLOYMENT-AND-TRAFFIC-BOUNDARY-RULES.md)
+
+新增稳定治理规则时，必须放入对应入口文档。临时执行步骤只放入 `TODO.md` 或 `docs/30-designs/RUNBOOK-*.md`，不得混入长期架构红线。
+
+## 4. Language Rules
 
 - 文档说明内容使用中文
 - 代码定义相关名称使用英文
@@ -36,7 +54,7 @@
 - 不为了“纯中文”而翻译代码概念
 - 不为了“纯英文”而把业务说明改成英文
 
-## 4. Content Principles
+## 5. Content Principles
 
 - 文档必须清晰、明确、可执行
 - 文档必须适合 AI 读取
@@ -45,13 +63,18 @@
 - 文档不得过度简化
 - 文档不得保留模糊口径
 - 同一规则不得在多处重复且表述不一致
+- 文档必须保持 Bacon 项目独立口径
+- 文档不得引用外部项目作为正式规则来源
+- 治理文档只沉淀稳定规则，不记录完成清单
 - `TODO.md` 的任务格式、协作、删除、测试检查和提交收口规则固定由 `TODO-RULES.md` 承载
 - `HOW-TO` 只承载高频操作步骤，不承载 `TODO.md` 治理规则
 - `RUNBOOK` 只承载一次性复杂任务的执行编排，不沉淀为长期通用规则
 - 临时讨论结论进入 `TODO.md` 或 `RUNBOOK`；稳定后再收敛到治理文档，完成后从临时材料中清理
+- `docs/50-prompts/` 只保存人工明确触发的生成提示词，不承载工程规则、业务需求或完成清单
+- `docs/60-human/` 只保存人类阅读材料、项目叙事和非实现约束材料，不承载 AI 默认执行规则
 - 面向测试与治理规则时，`@DisplayName` 负责给人阅读，ArchUnit 的 `.because()` 负责给 AI 排查；默认同时保留 `@DisplayName` 与简洁的 `.because()`，其中 `.because()` 必须短、稳、直接表达规则意图，不得写成长段解释
 
-## 5. RUNBOOK And HOW-TO Boundary
+## 6. RUNBOOK And HOW-TO Boundary
 
 `RUNBOOK` 和 `HOW-TO` 固定按用途区分。
 
@@ -73,7 +96,7 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 
 当任务目标是执行某个复杂清理、迁移或改造时，固定优先使用 `RUNBOOK-*`。当任务目标是沉淀长期通用流程，并且用户明确准许新增 `HOW-TO-*` 时，才使用 `HOW-TO-*`。
 
-## 6. Requirement Style
+## 7. Requirement Style
 
 - 使用确定性表达
 - 不使用“建议”“可考虑”“视情况”“后续再看”“如有需要”等不确定措辞
@@ -81,7 +104,7 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 - 需要固定的内容必须明确写成“固定”
 - `Open Items` 为空时明确写 `无`
 
-## 7. Structure Requirements
+## 8. Structure Requirements
 
 文档优先采用以下结构：
 
@@ -126,7 +149,7 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 - 如果某一小节不适用，可以省略，但不得把其规则分散写到多个不相关章节
 - `Fixed Fields`、`Fixed Request Contracts`、`Fixed Response Contracts`、`Uniqueness And Index Rules` 的命名应在同一批文档中保持一致
 
-## 8. Scope Writing Rules
+## 9. Scope Writing Rules
 
 - 当前范围与不在范围内必须明确分开
 - 当前范围内全部功能如果同批交付，必须明确写明
@@ -135,7 +158,7 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 - 范围内项目必须在后续正文中有对应定义
 - 范围中出现的能力，必须能在功能需求或规则中找到落点
 
-## 9. Boundary Writing Rules
+## 10. Boundary Writing Rules
 
 - 明确模块归属
 - 明确职责边界
@@ -148,7 +171,7 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 - 跨域依赖的关键 `Facade` 入口、关键枚举、关键原因值、关键状态映射、关键调用前置条件，必须在本文件中重述
 - 不允许把实现所需的关键口径仅写在另一份需求文档里
 
-## 10. Naming Rules
+## 11. Naming Rules
 
 - 统一术语
 - 同一概念在文档中只使用一种主名称
@@ -180,7 +203,7 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 - 缓存键必须写出完整格式
 - 枚举值必须逐项列出
 
-## 11. Rule Writing Rules
+## 12. Rule Writing Rules
 
 - 全局规则写在 `Global Constraints`
 - 对象特有规则写在对应功能章节
@@ -191,7 +214,7 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 - 所有认证相关规则必须明确归属和会话失效行为
 - 跨域编排规则必须明确调用前置条件、失败补偿、重试触发条件、幂等键、对象不存在时的返回语义
 
-## 12. Functional Requirement Rules
+## 13. Functional Requirement Rules
 
 每个功能章节至少包含：
 
@@ -211,7 +234,7 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 - 缓存影响
 - 如果功能属于跨域编排，还必须写清调用顺序、失败补偿、重试策略和幂等键
 
-## 13. Data And Model Rules
+## 14. Data And Model Rules
 
 - 核心领域对象必须单独列出
 - 需要落库的关键对象必须能在文档中找到名称
@@ -222,7 +245,7 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 - 状态字段如存在跨域映射，必须明确映射规则
 - 成功与失败场景下的重要空值语义必须明确
 
-## 14. API And Facade Rules
+## 15. API And Facade Rules
 
 - 对外 `Facade` 必须单独列出
 - 重要 `Facade` 必须明确固定方法名、固定入参、固定返回结构
@@ -233,7 +256,7 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 - 分页返回模型必须使用稳定命名
 - 如一个接口返回列表，列表元素模型也必须命名
 
-## 15. Cache Rules
+## 16. Cache Rules
 
 - 缓存必须单独成节
 - 缓存键必须完整列出
@@ -243,7 +266,7 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 - 必须明确 `TTL` 是主策略还是兜底策略
 - 不允许只写“使用缓存”而不说明缓存形式
 
-## 16. Security Rules
+## 17. Security Rules
 
 - 密码规则必须明确：
   - 哈希算法
@@ -259,7 +282,7 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
   - 租户停用
 - 登录方式如果有多种，必须说明统一用户主体与身份标识模型的关系
 
-## 17. Audit Rules
+## 18. Audit Rules
 
 - 审计日志必须单独定义
 - 审计日志必须明确记录对象
@@ -268,7 +291,7 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 - 审计日志必须明确查询维度
 - 审计日志必须明确失败处理策略
 
-## 18. Import And Export Rules
+## 19. Import And Export Rules
 
 - 导入导出如果在范围内，必须单独成节
 - 必须明确支持的对象
@@ -278,13 +301,13 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 - 必须明确回执内容
 - 必须明确是否支持更新、覆盖、合并
 
-## 19. Open Item Rules
+## 20. Open Item Rules
 
 - 未确认内容必须集中写在 `Open Items`
 - 已确认内容不得继续保留在 `Open Items`
 - `Open Items` 为空时写 `无`
 
-## 20. Output Quality Standard
+## 21. Output Quality Standard
 
 文档应满足以下标准：
 
@@ -296,7 +319,19 @@ AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO
 - 文档内部不存在重复但不一致的描述
 - 单独阅读任意一份业务需求文档时，不需要同时打开其他需求文档才能理解关键实现约束
 
-## 21. Source Code Object Comment Rules
+## 22. Cross-Document Linking Rules
+
+- `AGENTS.md` 只写仓库级入口规则。
+- `docs/AGENT.md` 负责 AI 文档加载路由。
+- `00-governance/ARCHITECTURE.md` 是实现、修改、评审代码前的强制入口。
+- 具体任务只继续读取当前文档明确引用的下一级文档。
+- 不得把 `docs/` 当作默认全量上下文。
+- `docs/50-prompts/` 和 `docs/60-human/` 固定不进入 AI 默认读取路径；只有用户明确要求使用其中某个文件时才读取。
+- 新增稳定规则时，必须同步对应入口文档中的导航关系。
+- 文档之间只链接直接下一级必读入口，不用索引式罗列无关文档。
+- 新增或调整稳定文档路由时，必须检查 `docs/60-human/DOCUMENT-ROUTING-MAP.md` 是否需要同步。
+
+## 23. Source Code Object Comment Rules
 
 适用于 `domain.model.entity`、`api.dto`、`interfaces.response` 等稳定对象模型。
 

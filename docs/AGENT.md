@@ -30,6 +30,18 @@
   再读对应 `20-database/*-DATABASE-DESIGN.md`
 - 统一 ID、发号、ID 落库：
   再读 `00-governance/UNIFIED-ID-DESIGN.md`
+- 静态资源、API 文档、HTTP API 注解、统一响应或响应包装：
+  先读 `ARCHITECTURE.md`
+  再读 `00-governance/API-ANNOTATION-MATRIX.md`
+- 异常分层、统一异常响应、`BadRequestException`、`NotFoundException`、`ConflictException` 或 error code：
+  先读 `ARCHITECTURE.md`
+  再读 `00-governance/API-ANNOTATION-MATRIX.md`
+- 登录态、当前用户、当前主体、线程上下文或异步身份透传：
+  先读 `ARCHITECTURE.md`
+  再读 `00-governance/BACON-CONTEXT-PROPAGATION-RULES.md`
+- 架构参考、目录树、模块装配示例：
+  先读 `ARCHITECTURE.md`
+  再读 `00-governance/ARCHITECTURE-REFERENCE.md`
 - 改文档：
   再读 `00-governance/DOCUMENT-RULES.md`
 - TODO 协作、任务拆解、人机审阅、任务列表重写：
@@ -53,6 +65,7 @@
 - `Order` -> [`10-requirements/ORDER-REQUIREMENTS.md`](./10-requirements/ORDER-REQUIREMENTS.md)
 - `Inventory` -> [`10-requirements/INVENTORY-REQUIREMENTS.md`](./10-requirements/INVENTORY-REQUIREMENTS.md)
 - `Payment` -> [`10-requirements/PAYMENT-REQUIREMENTS.md`](./10-requirements/PAYMENT-REQUIREMENTS.md)
+- `Product` -> [`10-requirements/PRODUCT-REQUIREMENTS.md`](./10-requirements/PRODUCT-REQUIREMENTS.md)
 - `Storage` -> [`10-requirements/STORAGE-REQUIREMENTS.md`](./10-requirements/STORAGE-REQUIREMENTS.md)
 
 ## Load Limits

@@ -124,6 +124,18 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     }
 
     @Test
+    void shouldEnforceNameInterfaceAssemblerPlacement() {
+        NamingAndPlacementRuleSupport.interfaceAssemblerShouldUseInterfaceAssemblerNameAndPackage(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    void shouldEnforceNameApplicationAssemblerPlacement() {
+        NamingAndPlacementRuleSupport.applicationAssemblerShouldUseAssemblerNameAndPackage(basePackage())
+                .check(classes());
+    }
+
+    @Test
     void shouldEnforceNameFacadePlacement() {
         NamingAndPlacementRuleSupport.facadeShouldUseFacadeNameAndPackage(basePackage())
                 .check(classes());

@@ -429,7 +429,7 @@ public final class LayerArchitectureRuleSupport {
                 basePackage + ".interfaces..",
                 basePackage + ".interfaces.assembler..",
                 "interfaces.*InterfaceAssembler",
-                "RULE NAME_INTERFACE_ASSEMBLER_CALL_BOUNDARY: interfaces.*InterfaceAssembler 只能被 interfaces 调用");
+                "RULE LAYER_ASSEMBLER_CALL_BOUNDARY: interfaces.*InterfaceAssembler 只能被 interfaces 调用");
     }
 
     public static ArchRule applicationAssemblersShouldOnlyBeCalledByApplication(String basePackage) {
@@ -437,7 +437,7 @@ public final class LayerArchitectureRuleSupport {
                 basePackage + ".application..",
                 basePackage + ".application.assembler..",
                 "application.*Assembler",
-                "RULE NAME_APPLICATION_ASSEMBLER_CALL_BOUNDARY: application.*Assembler 只能被 application 调用");
+                "RULE LAYER_ASSEMBLER_CALL_BOUNDARY: application.*Assembler 只能被 application 调用");
     }
 
     public static ArchRule persistenceAssemblersShouldOnlyBeCalledByInfra(String basePackage) {
@@ -445,7 +445,7 @@ public final class LayerArchitectureRuleSupport {
                 basePackage + ".infra..",
                 basePackage + ".infra.persistence.assembler..",
                 "infra.*PersistenceAssembler",
-                "RULE NAME_PERSISTENCE_ASSEMBLER_CALL_BOUNDARY: infra.*PersistenceAssembler 只能被 infra 调用");
+                "RULE LAYER_ASSEMBLER_CALL_BOUNDARY: infra.*PersistenceAssembler 只能被 infra 调用");
     }
 
     public static ArchRule applicationAndInfraRepositoryShouldNotUseIllegalArgumentException(String basePackage) {
@@ -548,8 +548,8 @@ public final class LayerArchitectureRuleSupport {
                 .allowEmptyShould(true)
                 .because(
                         "RULE LAYER_PROTOCOL_MODEL_INTERFACES_REQUEST_CLASS_LOMBOK_EXACT_ANNOTATIONS / "
-                                + "LAYER_PROTOCOL_MODEL_API_REQUEST_CLASS_LOMBOK_EXACT_ANNOTATIONS / "
-                                + "LAYER_PROTOCOL_MODEL_RESPONSE_CLASS_LOMBOK_EXACT_ANNOTATIONS: interfaces.request "
+                                + "RULE LAYER_PROTOCOL_MODEL_API_REQUEST_CLASS_LOMBOK_EXACT_ANNOTATIONS / "
+                                + "RULE LAYER_PROTOCOL_MODEL_RESPONSE_CLASS_LOMBOK_EXACT_ANNOTATIONS: interfaces.request "
                                 + "class protocol models must use exactly @Getter, @Setter, @NoArgsConstructor and "
                                 + "@AllArgsConstructor; api.request and response class protocol models must use "
                                 + "exactly @Getter, @NoArgsConstructor and @AllArgsConstructor");

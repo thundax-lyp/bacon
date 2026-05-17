@@ -64,7 +64,7 @@ public final class NamingAndPlacementRuleSupport {
                 .should()
                 .resideInAPackage(basePackage + ".interfaces.controller..")
                 .allowEmptyShould(true)
-                .because("Controller -> interfaces.controller");
+                .because("RULE NAME_CONTROLLER: Controller must reside in interfaces.controller");
     }
 
     public static ArchRule providerControllerShouldUseProviderControllerNameAndPackage(String basePackage) {
@@ -74,7 +74,7 @@ public final class NamingAndPlacementRuleSupport {
                 .should()
                 .resideInAPackage(basePackage + ".interfaces.provider..")
                 .allowEmptyShould(true)
-                .because("ProviderController -> interfaces.provider");
+                .because("RULE NAME_PROVIDER_CONTROLLER: ProviderController must reside in interfaces.provider");
     }
 
     public static ArchRule resolverShouldUseResolverNameAndPackage(String basePackage) {
@@ -84,7 +84,7 @@ public final class NamingAndPlacementRuleSupport {
                 .should()
                 .resideInAPackage(basePackage + ".interfaces.resolver..")
                 .allowEmptyShould(true)
-                .because("Resolver -> interfaces.resolver");
+                .because("RULE NAME_RESOLVER: Resolver must reside in interfaces.resolver");
     }
 
     public static ArchRule applicationServiceShouldUseApplicationServiceNameAndPackage(String basePackage) {
@@ -99,7 +99,8 @@ public final class NamingAndPlacementRuleSupport {
                         basePackage + ".application.support..")
                 .allowEmptyShould(true)
                 .because(
-                        "ApplicationService -> application.command/query/audit, temporarily allows application.support");
+                        "RULE NAME_APPLICATION_SERVICE: ApplicationService must reside in "
+                                + "application.command/query/audit/support");
     }
 
     public static ArchRule domainServiceShouldUseDomainServiceNameAndPackage(String basePackage) {
@@ -109,7 +110,7 @@ public final class NamingAndPlacementRuleSupport {
                 .should()
                 .resideInAPackage(basePackage + ".domain.service..")
                 .allowEmptyShould(true)
-                .because("DomainService -> domain.service");
+                .because("RULE NAME_DOMAIN_SERVICE: DomainService must reside in domain.service");
     }
 
     public static ArchRule repositoryShouldUseRepositoryNameAndPackage(String basePackage) {
@@ -119,7 +120,7 @@ public final class NamingAndPlacementRuleSupport {
                 .should()
                 .resideInAPackage(basePackage + ".domain.repository..")
                 .allowEmptyShould(true)
-                .because("Repository -> domain.repository");
+                .because("RULE NAME_REPOSITORY: Repository must reside in domain.repository");
     }
 
     public static ArchRule repositoryImplShouldUseRepositoryImplNameAndPackage(String basePackage) {
@@ -129,7 +130,7 @@ public final class NamingAndPlacementRuleSupport {
                 .should()
                 .resideInAPackage(basePackage + ".infra.repository.impl..")
                 .allowEmptyShould(true)
-                .because("RepositoryImpl -> infra.repository.impl");
+                .because("RULE NAME_REPOSITORY_IMPL: RepositoryImpl must reside in infra.repository.impl");
     }
 
     public static ArchRule repositoryImplShouldNotDependOnOtherRepositoryImpl(String basePackage) {
@@ -264,7 +265,7 @@ public final class NamingAndPlacementRuleSupport {
                 .should()
                 .resideInAPackage(basePackage + ".infra.persistence.mapper..")
                 .allowEmptyShould(true)
-                .because("Mapper -> infra.persistence.mapper");
+                .because("RULE NAME_MAPPER: Mapper must reside in infra.persistence.mapper");
     }
 
     public static ArchRule dataObjectShouldUseDONameAndPackage(String basePackage) {
@@ -274,7 +275,7 @@ public final class NamingAndPlacementRuleSupport {
                 .should()
                 .resideInAPackage(basePackage + ".infra.persistence.dataobject..")
                 .allowEmptyShould(true)
-                .because("DO -> infra.persistence.dataobject");
+                .because("RULE NAME_DO: DO must reside in infra.persistence.dataobject");
     }
 
     public static ArchRule shouldNotUseDataObjectSuffix(String basePackage) {
@@ -303,7 +304,7 @@ public final class NamingAndPlacementRuleSupport {
                 .should()
                 .resideInAPackage(basePackage + ".application.codec..")
                 .allowEmptyShould(true)
-                .because("Codec -> application.codec");
+                .because("RULE NAME_CODEC: Codec must reside in application.codec");
     }
 
     public static ArchRule persistenceAssemblerShouldUsePersistenceAssemblerNameAndPackage(String basePackage) {
@@ -313,7 +314,33 @@ public final class NamingAndPlacementRuleSupport {
                 .should()
                 .resideInAPackage(basePackage + ".infra.persistence.assembler..")
                 .allowEmptyShould(true)
-                .because("RULE LAYER_PERSISTENCE_ASSEMBLER_PLACEMENT: PersistenceAssembler must reside in infra.persistence.assembler");
+                .because(
+                        "RULE NAME_PERSISTENCE_ASSEMBLER / RULE LAYER_PERSISTENCE_ASSEMBLER_PLACEMENT: "
+                                + "PersistenceAssembler must reside in infra.persistence.assembler");
+    }
+
+    public static ArchRule interfaceAssemblerShouldUseInterfaceAssemblerNameAndPackage(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .haveSimpleNameEndingWith("InterfaceAssembler")
+                .should()
+                .resideInAPackage(basePackage + ".interfaces.assembler..")
+                .allowEmptyShould(true)
+                .because("RULE NAME_INTERFACE_ASSEMBLER: InterfaceAssembler must reside in interfaces.assembler");
+    }
+
+    public static ArchRule applicationAssemblerShouldUseAssemblerNameAndPackage(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .haveSimpleNameEndingWith("Assembler")
+                .and()
+                .haveNameNotMatching(".*InterfaceAssembler$")
+                .and()
+                .haveNameNotMatching(".*PersistenceAssembler$")
+                .should()
+                .resideInAPackage(basePackage + ".application.assembler..")
+                .allowEmptyShould(true)
+                .because("RULE NAME_APPLICATION_ASSEMBLER: application Assembler must reside in application.assembler");
     }
 
     public static ArchRule persistenceAssemblerPublicMethodsShouldUseToDomainAndToDataObject(String basePackage) {
@@ -351,7 +378,7 @@ public final class NamingAndPlacementRuleSupport {
                 .should()
                 .resideInAPackage(basePackage + ".api.facade..")
                 .allowEmptyShould(true)
-                .because("Facade -> api.facade");
+                .because("RULE NAME_FACADE: Facade must reside in api.facade");
     }
 
     public static ArchRule facadeRequestShouldUseFacadeRequestNameAndPackage(String basePackage) {
@@ -418,7 +445,7 @@ public final class NamingAndPlacementRuleSupport {
                     }
                 })
                 .allowEmptyShould(true)
-                .because("Facade methods must use zero-or-one FacadeRequest parameter");
+                .because("RULE LAYER_FACADE_SINGLE_REQUEST: Facade methods must use zero-or-one FacadeRequest parameter");
     }
 
     public static ArchRule facadeMethodShouldUseFacadeResponse(String basePackage) {
@@ -449,7 +476,7 @@ public final class NamingAndPlacementRuleSupport {
                     }
                 })
                 .allowEmptyShould(true)
-                .because("Facade methods must return FacadeResponse or void");
+                .because("RULE LAYER_FACADE_RESPONSE_ONLY: Facade methods must return FacadeResponse or void");
     }
 
     public static ArchRule facadeLocalImplShouldUseFacadeLocalImplNameAndPackage(String basePackage) {
@@ -459,7 +486,7 @@ public final class NamingAndPlacementRuleSupport {
                 .should()
                 .resideInAPackage(basePackage + ".interfaces.facade..")
                 .allowEmptyShould(true)
-                .because("FacadeLocalImpl -> interfaces.facade");
+                .because("RULE NAME_FACADE_LOCAL_IMPL: FacadeLocalImpl must reside in interfaces.facade");
     }
 
     public static ArchRule facadeRemoteImplShouldUseFacadeRemoteImplNameAndPackage(String basePackage) {
@@ -469,7 +496,7 @@ public final class NamingAndPlacementRuleSupport {
                 .should()
                 .resideInAPackage(basePackage + ".infra.facade.remote..")
                 .allowEmptyShould(true)
-                .because("FacadeRemoteImpl -> infra.facade.remote");
+                .because("RULE NAME_FACADE_REMOTE_IMPL: FacadeRemoteImpl must reside in infra.facade.remote");
     }
 
     public static ArchRule controllerRequestMappingShouldUseDomainPrefix(String basePackage) {
@@ -485,7 +512,10 @@ public final class NamingAndPlacementRuleSupport {
                 .haveSimpleNameEndingWith("Controller")
                 .should(new ControllerDomainResourcePathCondition(domain))
                 .allowEmptyShould(true)
-                .because("RULE PATH_CONTROLLER_RESOURCE_PATH: Controller path must use /{domain}/{resources}");
+                .because(
+                        "RULE PATH_CONTROLLER_PREFIX / RULE PATH_CONTROLLER_RESOURCE_PATH / "
+                                + "RULE PATH_CONTROLLER_NO_PROVIDERS / RULE PATH_DOMAIN_CANONICAL: "
+                                + "Controller path must use /{domain}/{resources}");
     }
 
     public static ArchRule providerControllerRequestMappingShouldUseDomainPrefix(String basePackage) {
@@ -498,7 +528,7 @@ public final class NamingAndPlacementRuleSupport {
                 .haveSimpleNameEndingWith("ProviderController")
                 .should(new RequestMappingPathPrefixCondition(prefix, "ProviderController"))
                 .allowEmptyShould(true)
-                .because("ProviderController path must use /providers/{domain}/**");
+                .because("RULE PATH_PROVIDER_PREFIX: ProviderController path must use /providers/{domain}/**");
     }
 
     public static ArchRule providerControllerRequestMappingShouldUseCommandOrQueryPath(String basePackage) {
@@ -609,9 +639,9 @@ public final class NamingAndPlacementRuleSupport {
                                                 + ".findFirst().orElseThrow(...)";
                                 events.add(new SimpleConditionEvent(item, satisfied, detail));
                             }
-                        })
+                })
                 .allowEmptyShould(true)
-                .because("configured simple enums must expose value() -> name() and from(String)");
+                .because("RULE NAME_SIMPLE_ENUM_CONVENTION: simple enums must expose value() -> name() and from(String)");
     }
 
     private static boolean matchesClassNamePattern(String pattern, String fullName) {

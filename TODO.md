@@ -11,14 +11,6 @@
 
 ## 待审阅任务项
 
-- [ ] `ArchUnit-rule-id`：统一 hard rule 失败信息编号
-  - 任务类型：执行任务
-  - 依据文档：`docs/00-governance/DOCUMENT-RULES.md`
-  - 范围对象：`bacon-common/bacon-common-test/src/main/java/com/github/thundax/bacon/common/test/architecture`
-  - 处理动作：把 Naming、Layer、Path 相关 ArchUnit `.because()` 文案统一补齐稳定 `RULE <RuleID>` 编号
-  - 验收点：Hard Rules 文档中的规则编号能从对应 ArchUnit 失败信息中稳定追踪
-  - 重要度：8/10
-
 - [ ] `ArchUnit-assembler-boundary`：对齐 Assembler 调用边界规则编号
   - 任务类型：执行任务
   - 依据文档：`docs/00-governance/NAMING-AND-PLACEMENT-RULES.md`

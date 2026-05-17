@@ -15,7 +15,7 @@
 - `HOW-TO` 文档固定放在 `docs/00-governance/how-to/`
 - `HOW-TO` 文档命名固定为 `HOW-TO-XXX.md`
 - `RUNBOOK` 文档固定放在 `docs/30-designs/`
-- `RUNBOOK` 文档命名固定为 `*-RUNBOOK.md`
+- `RUNBOOK` 文档命名固定为 `RUNBOOK-XXX.md`
 
 ## 3. Language Rules
 
@@ -51,7 +51,29 @@
 - 临时讨论结论进入 `TODO.md` 或 `RUNBOOK`；稳定后再收敛到治理文档，完成后从临时材料中清理
 - 面向测试与治理规则时，`@DisplayName` 负责给人阅读，ArchUnit 的 `.because()` 负责给 AI 排查；默认同时保留 `@DisplayName` 与简洁的 `.because()`，其中 `.because()` 必须短、稳、直接表达规则意图，不得写成长段解释
 
-## 5. Requirement Style
+## 5. RUNBOOK And HOW-TO Boundary
+
+`RUNBOOK` 和 `HOW-TO` 固定按用途区分。
+
+`RUNBOOK` 是一次性临时执行手册，用于某一个复杂任务的执行编排。`RUNBOOK` 固定服务于具体任务，不沉淀为长期通用流程。
+
+`RUNBOOK` 通常与一组 `TODO.md` 任务一起出现。伴随 `RUNBOOK` 出现的 `TODO.md` 任务必须固定放在 `待审阅任务项`，经人工审阅后再执行。
+
+`RUNBOOK` 最后必须被清理。清理 `RUNBOOK` 通常作为伴随 `TODO.md` 任务的最后一项，和残留引用扫描、测试验证、文档收口、工作区状态检查一起完成。
+
+`RUNBOOK` 适用场景：
+
+- 跨模块删除、迁移或重构
+- 涉及代码、测试、文档和收口验证的一次性任务
+- 需要先固定执行顺序、范围边界和验收命令的复杂任务
+
+`HOW-TO` 是长期复用的操作手册，用于沉淀稳定、通用、可反复执行的方法。
+
+AI 不得自行新增 `HOW-TO-*` 文档。只有用户明确准许新增 `HOW-TO-*` 时，AI 才能创建或扩展 `HOW-TO` 文档。
+
+当任务目标是执行某个复杂清理、迁移或改造时，固定优先使用 `RUNBOOK-*`。当任务目标是沉淀长期通用流程，并且用户明确准许新增 `HOW-TO-*` 时，才使用 `HOW-TO-*`。
+
+## 6. Requirement Style
 
 - 使用确定性表达
 - 不使用“建议”“可考虑”“视情况”“后续再看”“如有需要”等不确定措辞
@@ -59,7 +81,7 @@
 - 需要固定的内容必须明确写成“固定”
 - `Open Items` 为空时明确写 `无`
 
-## 6. Structure Requirements
+## 7. Structure Requirements
 
 文档优先采用以下结构：
 
@@ -73,6 +95,14 @@
 8. `Key Flows`
 9. `Non-Functional Requirements`
 10. `Open Items`
+
+`RUNBOOK` 文档至少说明：
+
+- `Purpose`
+- `Scope`
+- `Execution Order`
+- `Verification`
+- `Open Items`
 
 总体要求：
 
@@ -96,7 +126,7 @@
 - 如果某一小节不适用，可以省略，但不得把其规则分散写到多个不相关章节
 - `Fixed Fields`、`Fixed Request Contracts`、`Fixed Response Contracts`、`Uniqueness And Index Rules` 的命名应在同一批文档中保持一致
 
-## 7. Scope Writing Rules
+## 8. Scope Writing Rules
 
 - 当前范围与不在范围内必须明确分开
 - 当前范围内全部功能如果同批交付，必须明确写明
@@ -105,7 +135,7 @@
 - 范围内项目必须在后续正文中有对应定义
 - 范围中出现的能力，必须能在功能需求或规则中找到落点
 
-## 8. Boundary Writing Rules
+## 9. Boundary Writing Rules
 
 - 明确模块归属
 - 明确职责边界
@@ -118,7 +148,7 @@
 - 跨域依赖的关键 `Facade` 入口、关键枚举、关键原因值、关键状态映射、关键调用前置条件，必须在本文件中重述
 - 不允许把实现所需的关键口径仅写在另一份需求文档里
 
-## 9. Naming Rules
+## 10. Naming Rules
 
 - 统一术语
 - 同一概念在文档中只使用一种主名称
@@ -150,7 +180,7 @@
 - 缓存键必须写出完整格式
 - 枚举值必须逐项列出
 
-## 10. Rule Writing Rules
+## 11. Rule Writing Rules
 
 - 全局规则写在 `Global Constraints`
 - 对象特有规则写在对应功能章节
@@ -161,7 +191,7 @@
 - 所有认证相关规则必须明确归属和会话失效行为
 - 跨域编排规则必须明确调用前置条件、失败补偿、重试触发条件、幂等键、对象不存在时的返回语义
 
-## 11. Functional Requirement Rules
+## 12. Functional Requirement Rules
 
 每个功能章节至少包含：
 
@@ -181,7 +211,7 @@
 - 缓存影响
 - 如果功能属于跨域编排，还必须写清调用顺序、失败补偿、重试策略和幂等键
 
-## 12. Data And Model Rules
+## 13. Data And Model Rules
 
 - 核心领域对象必须单独列出
 - 需要落库的关键对象必须能在文档中找到名称
@@ -192,7 +222,7 @@
 - 状态字段如存在跨域映射，必须明确映射规则
 - 成功与失败场景下的重要空值语义必须明确
 
-## 13. API And Facade Rules
+## 14. API And Facade Rules
 
 - 对外 `Facade` 必须单独列出
 - 重要 `Facade` 必须明确固定方法名、固定入参、固定返回结构
@@ -203,7 +233,7 @@
 - 分页返回模型必须使用稳定命名
 - 如一个接口返回列表，列表元素模型也必须命名
 
-## 14. Cache Rules
+## 15. Cache Rules
 
 - 缓存必须单独成节
 - 缓存键必须完整列出
@@ -213,7 +243,7 @@
 - 必须明确 `TTL` 是主策略还是兜底策略
 - 不允许只写“使用缓存”而不说明缓存形式
 
-## 15. Security Rules
+## 16. Security Rules
 
 - 密码规则必须明确：
   - 哈希算法
@@ -229,7 +259,7 @@
   - 租户停用
 - 登录方式如果有多种，必须说明统一用户主体与身份标识模型的关系
 
-## 16. Audit Rules
+## 17. Audit Rules
 
 - 审计日志必须单独定义
 - 审计日志必须明确记录对象
@@ -238,7 +268,7 @@
 - 审计日志必须明确查询维度
 - 审计日志必须明确失败处理策略
 
-## 17. Import And Export Rules
+## 18. Import And Export Rules
 
 - 导入导出如果在范围内，必须单独成节
 - 必须明确支持的对象
@@ -248,13 +278,13 @@
 - 必须明确回执内容
 - 必须明确是否支持更新、覆盖、合并
 
-## 18. Open Item Rules
+## 19. Open Item Rules
 
 - 未确认内容必须集中写在 `Open Items`
 - 已确认内容不得继续保留在 `Open Items`
 - `Open Items` 为空时写 `无`
 
-## 19. Output Quality Standard
+## 20. Output Quality Standard
 
 文档应满足以下标准：
 
@@ -266,7 +296,7 @@
 - 文档内部不存在重复但不一致的描述
 - 单独阅读任意一份业务需求文档时，不需要同时打开其他需求文档才能理解关键实现约束
 
-## 20. Source Code Object Comment Rules
+## 21. Source Code Object Comment Rules
 
 适用于 `domain.model.entity`、`api.dto`、`interfaces.response` 等稳定对象模型。
 

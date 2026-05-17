@@ -36,6 +36,10 @@
   读 `00-governance/TODO-RULES.md`
 - 任务收口、测试检查、文档同步、小步提交：
   读 `00-governance/TODO-RULES.md`
+- 一次性复杂任务执行手册、跨模块清理、迁移、删除、重构 RUNBOOK：
+  读 `00-governance/DOCUMENT-RULES.md`
+  再读 `00-governance/TODO-RULES.md`
+  产物固定使用 `docs/30-designs/RUNBOOK-*.md` 和 `TODO.md` 待审阅任务，最后一项通常清理 RUNBOOK 和现场
 - 上线准备、运维、发布：
   先读 `00-governance/DEPLOYMENT-AND-TRAFFIC-BOUNDARY-RULES.md`
   读 `40-readiness/`

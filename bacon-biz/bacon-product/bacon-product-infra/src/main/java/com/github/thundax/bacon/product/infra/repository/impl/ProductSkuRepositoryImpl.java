@@ -25,7 +25,7 @@ public class ProductSkuRepositoryImpl implements ProductSkuRepository {
     }
 
     @Override
-    public ProductSku save(ProductSku sku) {
+    public ProductSku insert(ProductSku sku) {
         mapper.insert(assembler.toDataObject(sku, Instant.now()));
         return sku;
     }
@@ -40,7 +40,7 @@ public class ProductSkuRepositoryImpl implements ProductSkuRepository {
 
     @Override
     public Optional<ProductSku> findById(Long skuId) {
-        return Optional.ofNullable(mapper.selectById(skuId)).map(assembler::toSku);
+        return Optional.ofNullable(mapper.selectById(skuId)).map(assembler::toDomain);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class ProductSkuRepositoryImpl implements ProductSkuRepository {
         return Optional.ofNullable(mapper.selectOne(new LambdaQueryWrapper<ProductSkuDO>()
                         .eq(ProductSkuDO::getSkuCode, skuCode)
                         .eq(ProductSkuDO::getDeleted, false)))
-                .map(assembler::toSku);
+                .map(assembler::toDomain);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class ProductSkuRepositoryImpl implements ProductSkuRepository {
                         .eq(ProductSkuDO::getSpuId, spuId)
                         .eq(ProductSkuDO::getDeleted, false))
                 .stream()
-                .map(assembler::toSku)
+                .map(assembler::toDomain)
                 .toList();
     }
 }

@@ -1,6 +1,6 @@
-package com.github.thundax.bacon.product.application.port;
+package com.github.thundax.bacon.product.domain.gateway;
 
-import com.github.thundax.bacon.product.application.document.ProductSearchDocument;
+import com.github.thundax.bacon.product.domain.model.search.ProductSearchDocument;
 import java.util.Optional;
 
 public interface ProductSearchDocumentGateway {

@@ -24,7 +24,7 @@ public class ProductSnapshotRepositoryImpl implements ProductSnapshotRepository 
     }
 
     @Override
-    public ProductSnapshot save(ProductSnapshot snapshot) {
+    public ProductSnapshot insert(ProductSnapshot snapshot) {
         mapper.insert(assembler.toDataObject(snapshot, Instant.now()));
         return snapshot;
     }
@@ -34,6 +34,6 @@ public class ProductSnapshotRepositoryImpl implements ProductSnapshotRepository 
         return Optional.ofNullable(mapper.selectOne(new LambdaQueryWrapper<ProductSnapshotDO>()
                         .eq(ProductSnapshotDO::getOrderNo, orderNo)
                         .eq(ProductSnapshotDO::getOrderItemNo, orderItemNo)))
-                .map(assembler::toSnapshot);
+                .map(assembler::toDomain);
     }
 }

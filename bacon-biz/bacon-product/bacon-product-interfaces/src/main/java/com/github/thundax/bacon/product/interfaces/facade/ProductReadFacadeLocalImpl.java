@@ -1,8 +1,9 @@
 package com.github.thundax.bacon.product.interfaces.facade;
 
-import com.github.thundax.bacon.product.api.dto.ProductSkuSaleInfoDTO;
 import com.github.thundax.bacon.product.api.facade.ProductReadFacade;
-import com.github.thundax.bacon.product.application.service.ProductSearchApplicationService;
+import com.github.thundax.bacon.product.api.request.ProductSkuSaleInfoFacadeRequest;
+import com.github.thundax.bacon.product.api.response.ProductSkuSaleInfoFacadeResponse;
+import com.github.thundax.bacon.product.application.query.ProductSearchApplicationService;
 import com.github.thundax.bacon.product.interfaces.assembler.ProductInterfaceAssembler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -18,7 +19,8 @@ public class ProductReadFacadeLocalImpl implements ProductReadFacade {
     }
 
     @Override
-    public ProductSkuSaleInfoDTO getSkuSaleInfo(Long tenantId, Long skuId) {
-        return ProductInterfaceAssembler.toSkuSaleInfoDTO(productSearchApplicationService.getSkuSaleInfo(skuId));
+    public ProductSkuSaleInfoFacadeResponse getSkuSaleInfo(ProductSkuSaleInfoFacadeRequest request) {
+        return new ProductSkuSaleInfoFacadeResponse(
+                ProductInterfaceAssembler.toSkuSaleInfoDTO(productSearchApplicationService.getSkuSaleInfo(request.skuId())));
     }
 }

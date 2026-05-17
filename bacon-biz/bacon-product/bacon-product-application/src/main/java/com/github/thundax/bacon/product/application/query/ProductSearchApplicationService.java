@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.product.application.service;
+package com.github.thundax.bacon.product.application.query;
 
 import com.github.thundax.bacon.product.application.result.ProductSkuSaleInfoResult;
 import com.github.thundax.bacon.product.domain.model.entity.ProductCategory;

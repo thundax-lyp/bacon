@@ -3,6 +3,8 @@ package com.github.thundax.bacon.product.infra.facade.remote;
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.product.api.dto.ProductSnapshotDTO;
 import com.github.thundax.bacon.product.api.facade.ProductCommandFacade;
+import com.github.thundax.bacon.product.api.request.ProductOrderSnapshotCreateFacadeRequest;
+import com.github.thundax.bacon.product.api.response.ProductOrderSnapshotCreateFacadeResponse;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -25,13 +27,18 @@ public class ProductCommandFacadeRemoteImpl implements ProductCommandFacade {
     }
 
     @Override
-    public ProductSnapshotDTO createOrderProductSnapshot(
-            Long tenantId, String orderNo, String orderItemNo, Long skuId, Integer quantity) {
-        return restClient
+    public ProductOrderSnapshotCreateFacadeResponse createOrderProductSnapshot(
+            ProductOrderSnapshotCreateFacadeRequest request) {
+        ProductSnapshotDTO snapshot = restClient
                 .post()
-                .uri("/providers/products/snapshots/order-items?tenantId={tenantId}", tenantId)
-                .body(Map.of("orderNo", orderNo, "orderItemNo", orderItemNo, "skuId", skuId, "quantity", quantity))
+                .uri("/providers/product/commands/create-order-product-snapshot?tenantId={tenantId}", request.tenantId())
+                .body(Map.of(
+                        "orderNo", request.orderNo(),
+                        "orderItemNo", request.orderItemNo(),
+                        "skuId", request.skuId(),
+                        "quantity", request.quantity()))
                 .retrieve()
                 .body(ProductSnapshotDTO.class);
+        return new ProductOrderSnapshotCreateFacadeResponse(snapshot);
     }
 }

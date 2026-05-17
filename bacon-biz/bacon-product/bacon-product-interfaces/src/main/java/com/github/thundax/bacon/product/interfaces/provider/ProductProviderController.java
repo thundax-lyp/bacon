@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.product.interfaces.provider;
 
 import com.github.thundax.bacon.product.application.command.CreateOrderProductSnapshotCommand;
-import com.github.thundax.bacon.product.application.service.ProductSearchApplicationService;
-import com.github.thundax.bacon.product.application.service.ProductSnapshotApplicationService;
+import com.github.thundax.bacon.product.application.query.ProductSearchApplicationService;
+import com.github.thundax.bacon.product.application.command.ProductSnapshotApplicationService;
 import com.github.thundax.bacon.product.interfaces.assembler.ProductInterfaceAssembler;
 import com.github.thundax.bacon.product.interfaces.request.CreateOrderProductSnapshotRequest;
 import com.github.thundax.bacon.product.interfaces.response.ProductSkuSaleInfoResponse;
@@ -13,7 +13,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Validated
-@RequestMapping("/providers/products")
+@RequestMapping("/providers/product")
 @Tag(name = "Inner-Product-Management", description = "Product 域内部 Provider 接口")
 public class ProductProviderController {
 
@@ -37,14 +36,14 @@ public class ProductProviderController {
     }
 
     @Operation(summary = "查询 SKU 销售信息")
-    @GetMapping("/skus/{skuId}/sale-info")
+    @GetMapping("/queries/sku-sale-info")
     public ProductSkuSaleInfoResponse getSkuSaleInfo(
-            @RequestParam("tenantId") @NotNull Long tenantId, @PathVariable("skuId") Long skuId) {
+            @RequestParam("tenantId") @NotNull Long tenantId, @RequestParam("skuId") @NotNull Long skuId) {
         return ProductInterfaceAssembler.toSkuSaleInfoResponse(productSearchApplicationService.getSkuSaleInfo(skuId));
     }
 
     @Operation(summary = "创建订单商品快照")
-    @PostMapping("/snapshots/order-items")
+    @PostMapping("/commands/create-order-product-snapshot")
     public ProductSnapshotResponse createOrderProductSnapshot(
             @RequestParam("tenantId") @NotNull Long tenantId,
             @Valid @RequestBody CreateOrderProductSnapshotRequest request) {

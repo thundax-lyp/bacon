@@ -1,9 +1,10 @@
 package com.github.thundax.bacon.product.interfaces.facade;
 
-import com.github.thundax.bacon.product.api.dto.ProductSnapshotDTO;
 import com.github.thundax.bacon.product.api.facade.ProductCommandFacade;
+import com.github.thundax.bacon.product.api.request.ProductOrderSnapshotCreateFacadeRequest;
+import com.github.thundax.bacon.product.api.response.ProductOrderSnapshotCreateFacadeResponse;
 import com.github.thundax.bacon.product.application.command.CreateOrderProductSnapshotCommand;
-import com.github.thundax.bacon.product.application.service.ProductSnapshotApplicationService;
+import com.github.thundax.bacon.product.application.command.ProductSnapshotApplicationService;
 import com.github.thundax.bacon.product.interfaces.assembler.ProductInterfaceAssembler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -19,10 +20,14 @@ public class ProductCommandFacadeLocalImpl implements ProductCommandFacade {
     }
 
     @Override
-    public ProductSnapshotDTO createOrderProductSnapshot(
-            Long tenantId, String orderNo, String orderItemNo, Long skuId, Integer quantity) {
-        return ProductInterfaceAssembler.toSnapshotDTO(
-                productSnapshotApplicationService.createOrderProductSnapshot(
-                        new CreateOrderProductSnapshotCommand(tenantId, orderNo, orderItemNo, skuId, quantity)));
+    public ProductOrderSnapshotCreateFacadeResponse createOrderProductSnapshot(
+            ProductOrderSnapshotCreateFacadeRequest request) {
+        return new ProductOrderSnapshotCreateFacadeResponse(ProductInterfaceAssembler.toSnapshotDTO(
+                productSnapshotApplicationService.createOrderProductSnapshot(new CreateOrderProductSnapshotCommand(
+                        request.tenantId(),
+                        request.orderNo(),
+                        request.orderItemNo(),
+                        request.skuId(),
+                        request.quantity()))));
     }
 }

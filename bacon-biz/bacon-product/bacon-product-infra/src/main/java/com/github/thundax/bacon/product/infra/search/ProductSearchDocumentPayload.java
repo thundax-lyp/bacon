@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.product.infra.search;
 
-import com.github.thundax.bacon.product.application.document.ProductSearchDocument;
+import com.github.thundax.bacon.product.domain.model.search.ProductSearchDocument;
 import java.math.BigDecimal;
 import java.time.Instant;
 

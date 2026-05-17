@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface ProductSpuRepository {
 
-    ProductSpu save(ProductSpu spu);
+    ProductSpu insert(ProductSpu spu);
 
     ProductSpu update(ProductSpu spu);
 

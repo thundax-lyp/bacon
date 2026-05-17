@@ -1,7 +1,7 @@
-package com.github.thundax.bacon.product.application.service;
+package com.github.thundax.bacon.product.application.support;
 
-import com.github.thundax.bacon.product.application.document.ProductSearchDocument;
-import com.github.thundax.bacon.product.application.port.ProductSearchDocumentGateway;
+import com.github.thundax.bacon.product.domain.model.search.ProductSearchDocument;
+import com.github.thundax.bacon.product.domain.gateway.ProductSearchDocumentGateway;
 import com.github.thundax.bacon.product.domain.exception.ProductDomainException;
 import com.github.thundax.bacon.product.domain.exception.ProductErrorCode;
 import com.github.thundax.bacon.product.domain.model.entity.ProductCategory;

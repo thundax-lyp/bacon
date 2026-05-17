@@ -27,7 +27,7 @@ public class ProductOutboxRepositoryImpl implements ProductOutboxRepository {
     }
 
     @Override
-    public ProductOutbox save(ProductOutbox outbox) {
+    public ProductOutbox insert(ProductOutbox outbox) {
         mapper.insert(assembler.toDataObject(outbox, Instant.now()));
         return outbox;
     }
@@ -42,7 +42,7 @@ public class ProductOutboxRepositoryImpl implements ProductOutboxRepository {
 
     @Override
     public Optional<ProductOutbox> findById(Long eventId) {
-        return Optional.ofNullable(mapper.selectById(eventId)).map(assembler::toOutbox);
+        return Optional.ofNullable(mapper.selectById(eventId)).map(assembler::toDomain);
     }
 
     public List<ProductOutbox> claimDue(Long tenantId, Instant now, int limit, String owner, Instant leaseUntil) {
@@ -57,7 +57,7 @@ public class ProductOutboxRepositoryImpl implements ProductOutboxRepository {
         return dueEvents.stream()
                 .filter(event -> claimOne(event.getId(), owner, leaseUntil, now))
                 .map(event -> mapper.selectById(event.getId()))
-                .map(assembler::toOutbox)
+                .map(assembler::toDomain)
                 .toList();
     }
 

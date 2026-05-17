@@ -2,7 +2,7 @@ package com.github.thundax.bacon.product.infra.search;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.github.thundax.bacon.product.application.document.ProductSearchDocument;
+import com.github.thundax.bacon.product.domain.model.search.ProductSearchDocument;
 import com.github.thundax.bacon.product.domain.model.enums.ProductStatus;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;

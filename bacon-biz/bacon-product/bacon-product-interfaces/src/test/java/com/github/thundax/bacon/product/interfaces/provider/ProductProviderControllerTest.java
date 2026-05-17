@@ -5,10 +5,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.thundax.bacon.product.application.command.ProductSnapshotApplicationService;
+import com.github.thundax.bacon.product.application.query.ProductSearchApplicationService;
 import com.github.thundax.bacon.product.application.result.ProductSkuSaleInfoResult;
 import com.github.thundax.bacon.product.application.result.ProductSnapshotResult;
-import com.github.thundax.bacon.product.application.service.ProductSearchApplicationService;
-import com.github.thundax.bacon.product.application.service.ProductSnapshotApplicationService;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -47,7 +47,9 @@ class ProductProviderControllerTest {
                 .standaloneSetup(new ProductProviderController(searchApplicationService, snapshotApplicationService))
                 .build();
 
-        mockMvc.perform(get("/providers/products/skus/{skuId}/sale-info", 200L).param("tenantId", "10"))
+        mockMvc.perform(get("/providers/product/queries/sku-sale-info")
+                        .param("tenantId", "10")
+                        .param("skuId", "200"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.skuId").value(200))
                 .andExpect(jsonPath("$.saleable").value(true));
@@ -65,7 +67,7 @@ class ProductProviderControllerTest {
                 .standaloneSetup(new ProductProviderController(searchApplicationService, snapshotApplicationService))
                 .build();
 
-        mockMvc.perform(post("/providers/products/snapshots/order-items")
+        mockMvc.perform(post("/providers/product/commands/create-order-product-snapshot")
                         .param("tenantId", "10")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"orderNo\":\"ORD-1\",\"orderItemNo\":\"ITEM-1\",\"skuId\":200,\"quantity\":2}"))

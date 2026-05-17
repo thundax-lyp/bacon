@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.product.application.service;
+package com.github.thundax.bacon.product.application.command;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.product.application.command.CreateOrderProductSnapshotCommand;
@@ -86,7 +86,7 @@ public class ProductSnapshotApplicationService {
                 sku,
                 category.getCategoryName(),
                 command.quantity());
-        return toResult(productSnapshotRepository.save(snapshot));
+        return toResult(productSnapshotRepository.insert(snapshot));
     }
 
     private ProductSnapshotResult toResult(ProductSnapshot snapshot) {

@@ -11,14 +11,6 @@
 
 ## 待审阅任务项
 
-- [ ] `ArchUnit-product`：补齐 Product 域架构规则覆盖
-  - 任务类型：执行任务
-  - 依据文档：`docs/00-governance/NAMING-AND-PLACEMENT-RULES.md`
-  - 范围对象：`bacon-biz/bacon-product`、`bacon-common/bacon-common-test/src/main/java/com/github/thundax/bacon/common/test/architecture/LayerArchitectureRuleSupport.java`
-  - 处理动作：为 Product 域补齐通用 ArchUnit architecture tests，并把 `product` 纳入跨域业务域识别
-  - 验收点：Product 域接入 `ApiAnnotation`、`Layer`、`NamingAndPlacement`、`Path` 架构测试，跨域业务域集合包含 `product`
-  - 重要度：9/10
-
 - [ ] `ArchUnit-facade-signature`：收敛 Facade 签名重复规则
   - 任务类型：执行任务
   - 依据文档：`docs/00-governance/NAMING-AND-PLACEMENT-RULES.md`

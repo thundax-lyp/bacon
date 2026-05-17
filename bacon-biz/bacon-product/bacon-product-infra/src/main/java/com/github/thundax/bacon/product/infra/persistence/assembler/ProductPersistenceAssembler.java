@@ -48,7 +48,7 @@ public class ProductPersistenceAssembler {
                 now);
     }
 
-    public ProductSpu toSpu(ProductSpuDO dataObject) {
+    public ProductSpu toDomain(ProductSpuDO dataObject) {
         return ProductSpu.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId(),
@@ -78,7 +78,7 @@ public class ProductPersistenceAssembler {
                 now);
     }
 
-    public ProductSku toSku(ProductSkuDO dataObject) {
+    public ProductSku toDomain(ProductSkuDO dataObject) {
         return ProductSku.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId(),
@@ -106,7 +106,7 @@ public class ProductPersistenceAssembler {
                 now);
     }
 
-    public ProductCategory toCategory(ProductCategoryDO dataObject) {
+    public ProductCategory toDomain(ProductCategoryDO dataObject) {
         return ProductCategory.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId(),
@@ -133,7 +133,7 @@ public class ProductPersistenceAssembler {
                 now);
     }
 
-    public ProductImage toImage(ProductImageDO dataObject) {
+    public ProductImage toDomain(ProductImageDO dataObject) {
         return ProductImage.create(
                 dataObject.getId(),
                 dataObject.getTenantId(),
@@ -166,7 +166,7 @@ public class ProductPersistenceAssembler {
                 now);
     }
 
-    public ProductSnapshot toSnapshot(ProductSnapshotDO dataObject) {
+    public ProductSnapshot toDomain(ProductSnapshotDO dataObject) {
         return new ProductSnapshot(
                 dataObject.getId(),
                 dataObject.getTenantId(),
@@ -198,7 +198,7 @@ public class ProductPersistenceAssembler {
                 archive.archivedAt());
     }
 
-    public ProductArchive toArchive(ProductArchiveDO dataObject) {
+    public ProductArchive toDomain(ProductArchiveDO dataObject) {
         return new ProductArchive(
                 dataObject.getId(),
                 dataObject.getTenantId(),
@@ -225,7 +225,7 @@ public class ProductPersistenceAssembler {
                 now);
     }
 
-    public ProductIdempotencyRecord toIdempotencyRecord(ProductIdempotencyRecordDO dataObject) {
+    public ProductIdempotencyRecord toDomain(ProductIdempotencyRecordDO dataObject) {
         return ProductIdempotencyRecord.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId(),
@@ -257,7 +257,7 @@ public class ProductPersistenceAssembler {
                 now);
     }
 
-    public ProductOutbox toOutbox(ProductOutboxDO dataObject) {
+    public ProductOutbox toDomain(ProductOutboxDO dataObject) {
         return ProductOutbox.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId(),

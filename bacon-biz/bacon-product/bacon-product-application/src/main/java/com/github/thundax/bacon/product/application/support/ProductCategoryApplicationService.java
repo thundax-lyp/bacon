@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.product.application.service;
+package com.github.thundax.bacon.product.application.support;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.product.domain.model.entity.ProductCategory;
@@ -19,7 +19,7 @@ public class ProductCategoryApplicationService {
     }
 
     public ProductCategory createCategory(Long tenantId, Long parentId, String categoryCode, String categoryName, Integer sortOrder) {
-        return productCategoryRepository.save(ProductCategory.create(
+        return productCategoryRepository.insert(ProductCategory.create(
                 idGenerator.nextId(CATEGORY_ID_BIZ_TAG), tenantId, parentId, categoryCode, categoryName, sortOrder));
     }
 }

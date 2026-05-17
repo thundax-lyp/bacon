@@ -1,8 +1,9 @@
 package com.github.thundax.bacon.product.api.facade;
 
-import com.github.thundax.bacon.product.api.dto.ProductSkuSaleInfoDTO;
+import com.github.thundax.bacon.product.api.request.ProductSkuSaleInfoFacadeRequest;
+import com.github.thundax.bacon.product.api.response.ProductSkuSaleInfoFacadeResponse;
 
 public interface ProductReadFacade {
 
-    ProductSkuSaleInfoDTO getSkuSaleInfo(Long tenantId, Long skuId);
+    ProductSkuSaleInfoFacadeResponse getSkuSaleInfo(ProductSkuSaleInfoFacadeRequest request);
 }

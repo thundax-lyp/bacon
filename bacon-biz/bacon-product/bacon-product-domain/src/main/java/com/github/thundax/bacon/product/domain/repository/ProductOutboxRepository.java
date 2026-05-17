@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface ProductOutboxRepository {
 
-    ProductOutbox save(ProductOutbox outbox);
+    ProductOutbox insert(ProductOutbox outbox);
 
     ProductOutbox update(ProductOutbox outbox);
 

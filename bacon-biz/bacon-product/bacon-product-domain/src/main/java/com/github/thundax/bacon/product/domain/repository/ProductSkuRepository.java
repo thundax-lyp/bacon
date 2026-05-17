@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface ProductSkuRepository {
 
-    ProductSku save(ProductSku sku);
+    ProductSku insert(ProductSku sku);
 
     ProductSku update(ProductSku sku);
 

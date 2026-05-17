@@ -5,12 +5,14 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.github.thundax.bacon.product.api.dto.ProductSkuSaleInfoDTO;
-import com.github.thundax.bacon.product.api.dto.ProductSnapshotDTO;
+import com.github.thundax.bacon.product.api.response.ProductSkuSaleInfoFacadeResponse;
+import com.github.thundax.bacon.product.api.response.ProductOrderSnapshotCreateFacadeResponse;
+import com.github.thundax.bacon.product.api.request.ProductSkuSaleInfoFacadeRequest;
+import com.github.thundax.bacon.product.api.request.ProductOrderSnapshotCreateFacadeRequest;
+import com.github.thundax.bacon.product.application.command.ProductSnapshotApplicationService;
+import com.github.thundax.bacon.product.application.query.ProductSearchApplicationService;
 import com.github.thundax.bacon.product.application.result.ProductSkuSaleInfoResult;
 import com.github.thundax.bacon.product.application.result.ProductSnapshotResult;
-import com.github.thundax.bacon.product.application.service.ProductSearchApplicationService;
-import com.github.thundax.bacon.product.application.service.ProductSnapshotApplicationService;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
@@ -40,10 +42,10 @@ class ProductFacadeLocalContractTest {
                 null));
         ProductReadFacadeLocalImpl facade = new ProductReadFacadeLocalImpl(searchApplicationService);
 
-        ProductSkuSaleInfoDTO response = facade.getSkuSaleInfo(10L, 200L);
+        ProductSkuSaleInfoFacadeResponse response = facade.getSkuSaleInfo(new ProductSkuSaleInfoFacadeRequest(10L, 200L));
 
-        assertEquals(200L, response.skuId());
-        assertEquals("ON_SALE", response.productStatus());
+        assertEquals(200L, response.skuSaleInfo().skuId());
+        assertEquals("ON_SALE", response.skuSaleInfo().productStatus());
         verify(searchApplicationService).getSkuSaleInfo(200L);
     }
 
@@ -56,10 +58,11 @@ class ProductFacadeLocalContractTest {
                 .thenReturn(snapshotResult());
         ProductCommandFacadeLocalImpl facade = new ProductCommandFacadeLocalImpl(snapshotApplicationService);
 
-        ProductSnapshotDTO response = facade.createOrderProductSnapshot(10L, "ORD-1", "ITEM-1", 200L, 2);
+        ProductOrderSnapshotCreateFacadeResponse response = facade.createOrderProductSnapshot(
+                new ProductOrderSnapshotCreateFacadeRequest(10L, "ORD-1", "ITEM-1", 200L, 2));
 
-        assertEquals(300L, response.snapshotId());
-        assertEquals("ITEM-1", response.orderItemNo());
+        assertEquals(300L, response.snapshot().snapshotId());
+        assertEquals("ITEM-1", response.snapshot().orderItemNo());
     }
 
     private ProductSnapshotResult snapshotResult() {

@@ -24,7 +24,7 @@ public class ProductSpuRepositoryImpl implements ProductSpuRepository {
     }
 
     @Override
-    public ProductSpu save(ProductSpu spu) {
+    public ProductSpu insert(ProductSpu spu) {
         mapper.insert(assembler.toDataObject(spu, Instant.now()));
         return spu;
     }
@@ -39,7 +39,7 @@ public class ProductSpuRepositoryImpl implements ProductSpuRepository {
 
     @Override
     public Optional<ProductSpu> findById(Long spuId) {
-        return Optional.ofNullable(mapper.selectById(spuId)).map(assembler::toSpu);
+        return Optional.ofNullable(mapper.selectById(spuId)).map(assembler::toDomain);
     }
 
     @Override
@@ -47,6 +47,6 @@ public class ProductSpuRepositoryImpl implements ProductSpuRepository {
         return Optional.ofNullable(mapper.selectOne(new LambdaQueryWrapper<ProductSpuDO>()
                         .eq(ProductSpuDO::getSpuCode, spuCode)
                         .eq(ProductSpuDO::getDeleted, false)))
-                .map(assembler::toSpu);
+                .map(assembler::toDomain);
     }
 }

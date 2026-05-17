@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface ProductSnapshotRepository {
 
-    ProductSnapshot save(ProductSnapshot snapshot);
+    ProductSnapshot insert(ProductSnapshot snapshot);
 
     Optional<ProductSnapshot> findByOrderItem(String orderNo, String orderItemNo);
 }

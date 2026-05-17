@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.product.application.document;
+package com.github.thundax.bacon.product.domain.model.search;
 
 import com.github.thundax.bacon.product.domain.model.enums.ProductStatus;
 import java.math.BigDecimal;

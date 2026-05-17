@@ -1,9 +1,10 @@
 package com.github.thundax.bacon.product.api.facade;
 
-import com.github.thundax.bacon.product.api.dto.ProductSnapshotDTO;
+import com.github.thundax.bacon.product.api.request.ProductOrderSnapshotCreateFacadeRequest;
+import com.github.thundax.bacon.product.api.response.ProductOrderSnapshotCreateFacadeResponse;
 
 public interface ProductCommandFacade {
 
-    ProductSnapshotDTO createOrderProductSnapshot(
-            Long tenantId, String orderNo, String orderItemNo, Long skuId, Integer quantity);
+    ProductOrderSnapshotCreateFacadeResponse createOrderProductSnapshot(
+            ProductOrderSnapshotCreateFacadeRequest request);
 }

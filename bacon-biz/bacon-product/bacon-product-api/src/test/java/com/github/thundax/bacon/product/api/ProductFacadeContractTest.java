@@ -7,6 +7,10 @@ import com.github.thundax.bacon.product.api.dto.ProductSkuSaleInfoDTO;
 import com.github.thundax.bacon.product.api.dto.ProductSnapshotDTO;
 import com.github.thundax.bacon.product.api.facade.ProductCommandFacade;
 import com.github.thundax.bacon.product.api.facade.ProductReadFacade;
+import com.github.thundax.bacon.product.api.request.ProductOrderSnapshotCreateFacadeRequest;
+import com.github.thundax.bacon.product.api.request.ProductSkuSaleInfoFacadeRequest;
+import com.github.thundax.bacon.product.api.response.ProductOrderSnapshotCreateFacadeResponse;
+import com.github.thundax.bacon.product.api.response.ProductSkuSaleInfoFacadeResponse;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -104,12 +108,11 @@ class ProductFacadeContractTest {
 
     @Test
     void shouldKeepFacadeMethodContracts() throws Exception {
-        assertEquals(ProductSkuSaleInfoDTO.class,
-                ProductReadFacade.class.getMethod("getSkuSaleInfo", Long.class, Long.class).getReturnType());
-        assertEquals(ProductSnapshotDTO.class,
+        assertEquals(ProductSkuSaleInfoFacadeResponse.class,
+                ProductReadFacade.class.getMethod("getSkuSaleInfo", ProductSkuSaleInfoFacadeRequest.class).getReturnType());
+        assertEquals(ProductOrderSnapshotCreateFacadeResponse.class,
                 ProductCommandFacade.class
-                        .getMethod("createOrderProductSnapshot", Long.class, String.class, String.class, Long.class,
-                                Integer.class)
+                        .getMethod("createOrderProductSnapshot", ProductOrderSnapshotCreateFacadeRequest.class)
                         .getReturnType());
     }
 

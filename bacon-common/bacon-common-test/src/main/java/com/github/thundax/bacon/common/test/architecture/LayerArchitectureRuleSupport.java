@@ -42,7 +42,7 @@ public final class LayerArchitectureRuleSupport {
     private static final List<String> TRANSACTIONAL_ANNOTATIONS =
             List.of("org.springframework.transaction.annotation.Transactional", "jakarta.transaction.Transactional");
     private static final Set<String> BUSINESS_DOMAINS =
-            Set.of("auth", "inventory", "order", "payment", "storage", "upms");
+            Set.of("auth", "inventory", "order", "payment", "product", "storage", "upms");
     private static final Set<String> BUSINESS_LAYERS = Set.of("api", "interfaces", "application", "domain", "infra");
     private static final Set<String> PROTOCOL_MAPPING_METHOD_PREFIXES = Set.of("to", "from", "of");
     private static final Set<String> REQUIRED_PROTOCOL_REQUEST_MODEL_LOMBOK_ANNOTATIONS =

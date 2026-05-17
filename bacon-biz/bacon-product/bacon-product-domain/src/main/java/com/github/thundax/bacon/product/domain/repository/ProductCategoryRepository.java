@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface ProductCategoryRepository {
 
-    ProductCategory save(ProductCategory category);
+    ProductCategory insert(ProductCategory category);
 
     ProductCategory update(ProductCategory category);
 

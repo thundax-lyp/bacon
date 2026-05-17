@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface ProductImageRepository {
 
-    ProductImage save(ProductImage image);
+    ProductImage insert(ProductImage image);
 
     List<ProductImage> listBySpuId(Long spuId);
 }

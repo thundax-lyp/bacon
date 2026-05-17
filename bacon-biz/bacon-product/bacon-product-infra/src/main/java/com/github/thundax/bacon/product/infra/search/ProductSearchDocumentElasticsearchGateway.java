@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.product.infra.search;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
-import com.github.thundax.bacon.product.application.document.ProductSearchDocument;
-import com.github.thundax.bacon.product.application.port.ProductSearchDocumentGateway;
+import com.github.thundax.bacon.product.domain.model.search.ProductSearchDocument;
+import com.github.thundax.bacon.product.domain.gateway.ProductSearchDocumentGateway;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;

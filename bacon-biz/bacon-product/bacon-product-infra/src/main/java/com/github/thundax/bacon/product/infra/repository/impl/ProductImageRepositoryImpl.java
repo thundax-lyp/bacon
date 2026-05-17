@@ -24,7 +24,7 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
     }
 
     @Override
-    public ProductImage save(ProductImage image) {
+    public ProductImage insert(ProductImage image) {
         mapper.insert(assembler.toDataObject(image, Instant.now()));
         return image;
     }
@@ -36,7 +36,7 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
                         .eq(ProductImageDO::getDeleted, false)
                         .orderByAsc(ProductImageDO::getSortOrder))
                 .stream()
-                .map(assembler::toImage)
+                .map(assembler::toDomain)
                 .toList();
     }
 }

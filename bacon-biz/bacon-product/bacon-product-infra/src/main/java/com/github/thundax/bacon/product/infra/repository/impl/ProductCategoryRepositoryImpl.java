@@ -25,7 +25,7 @@ public class ProductCategoryRepositoryImpl implements ProductCategoryRepository 
     }
 
     @Override
-    public ProductCategory save(ProductCategory category) {
+    public ProductCategory insert(ProductCategory category) {
         mapper.insert(assembler.toDataObject(category, Instant.now()));
         return category;
     }
@@ -40,7 +40,7 @@ public class ProductCategoryRepositoryImpl implements ProductCategoryRepository 
 
     @Override
     public Optional<ProductCategory> findById(Long categoryId) {
-        return Optional.ofNullable(mapper.selectById(categoryId)).map(assembler::toCategory);
+        return Optional.ofNullable(mapper.selectById(categoryId)).map(assembler::toDomain);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class ProductCategoryRepositoryImpl implements ProductCategoryRepository 
         return Optional.ofNullable(mapper.selectOne(new LambdaQueryWrapper<ProductCategoryDO>()
                         .eq(ProductCategoryDO::getCategoryCode, categoryCode)
                         .eq(ProductCategoryDO::getDeleted, false)))
-                .map(assembler::toCategory);
+                .map(assembler::toDomain);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class ProductCategoryRepositoryImpl implements ProductCategoryRepository 
                         .eq(ProductCategoryDO::getDeleted, false)
                         .orderByAsc(ProductCategoryDO::getSortOrder))
                 .stream()
-                .map(assembler::toCategory)
+                .map(assembler::toDomain)
                 .toList();
     }
 }

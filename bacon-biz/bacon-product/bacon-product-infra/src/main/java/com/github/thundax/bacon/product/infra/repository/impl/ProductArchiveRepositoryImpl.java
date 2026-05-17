@@ -23,7 +23,7 @@ public class ProductArchiveRepositoryImpl implements ProductArchiveRepository {
     }
 
     @Override
-    public ProductArchive save(ProductArchive archive) {
+    public ProductArchive insert(ProductArchive archive) {
         mapper.insert(assembler.toDataObject(archive));
         return archive;
     }
@@ -33,6 +33,6 @@ public class ProductArchiveRepositoryImpl implements ProductArchiveRepository {
         return Optional.ofNullable(mapper.selectOne(new LambdaQueryWrapper<ProductArchiveDO>()
                         .eq(ProductArchiveDO::getSpuId, spuId)
                         .eq(ProductArchiveDO::getProductVersion, productVersion)))
-                .map(assembler::toArchive);
+                .map(assembler::toDomain);
     }
 }

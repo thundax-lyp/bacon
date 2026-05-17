@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.product.application.service;
+package com.github.thundax.bacon.product.application.command;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.product.application.command.ChangeProductStatusCommand;
@@ -119,8 +119,8 @@ public class ProductManagementApplicationService {
                 command.categoryId(),
                 command.description(),
                 command.mainImageObjectId());
-        ProductSpu saved = productSpuRepository.save(spu);
-        normalizeSkus(command.skus()).forEach(skuCommand -> productSkuRepository.save(ProductSku.create(
+        ProductSpu saved = productSpuRepository.insert(spu);
+        normalizeSkus(command.skus()).forEach(skuCommand -> productSkuRepository.insert(ProductSku.create(
                 idGenerator.nextId(PRODUCT_SKU_ID_BIZ_TAG),
                 command.tenantId(),
                 saved.getSpuId(),
@@ -162,7 +162,7 @@ public class ProductManagementApplicationService {
     }
 
     private void saveOutbox(ProductSpu spu, OutboxEventType eventType) {
-        productOutboxRepository.save(ProductOutbox.create(
+        productOutboxRepository.insert(ProductOutbox.create(
                 idGenerator.nextId(PRODUCT_OUTBOX_ID_BIZ_TAG), spu, eventType,
                 "{\"spuId\":" + spu.getSpuId() + ",\"productVersion\":" + spu.getVersion() + "}"));
     }

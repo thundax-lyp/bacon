@@ -9,14 +9,14 @@ import com.github.thundax.bacon.product.application.command.CreateOrderProductSn
 import com.github.thundax.bacon.product.application.command.CreateProductCommand;
 import com.github.thundax.bacon.product.application.command.CreateProductSkuCommand;
 import com.github.thundax.bacon.product.application.command.UpdateProductCommand;
-import com.github.thundax.bacon.product.application.document.ProductSearchDocument;
+import com.github.thundax.bacon.product.domain.model.search.ProductSearchDocument;
 import com.github.thundax.bacon.product.application.executor.ProductIdempotencyExecutor;
-import com.github.thundax.bacon.product.application.port.ProductSearchDocumentGateway;
+import com.github.thundax.bacon.product.domain.gateway.ProductSearchDocumentGateway;
 import com.github.thundax.bacon.product.application.result.ProductCommandResult;
 import com.github.thundax.bacon.product.application.result.ProductSnapshotResult;
-import com.github.thundax.bacon.product.application.service.ProductIndexSyncApplicationService;
-import com.github.thundax.bacon.product.application.service.ProductManagementApplicationService;
-import com.github.thundax.bacon.product.application.service.ProductSnapshotApplicationService;
+import com.github.thundax.bacon.product.application.support.ProductIndexSyncApplicationService;
+import com.github.thundax.bacon.product.application.command.ProductManagementApplicationService;
+import com.github.thundax.bacon.product.application.command.ProductSnapshotApplicationService;
 import com.github.thundax.bacon.product.domain.exception.ProductDomainException;
 import com.github.thundax.bacon.product.domain.model.entity.ProductCategory;
 import com.github.thundax.bacon.product.domain.model.entity.ProductIdempotencyRecord;
@@ -82,7 +82,7 @@ class ProductApplicationServiceTest {
                 idGenerator);
         indexSyncService = new ProductIndexSyncApplicationService(
                 outboxRepository, spuRepository, skuRepository, categoryRepository, searchDocumentGateway);
-        categoryRepository.save(ProductCategory.reconstruct(20L, 10L, null, "CAT-1", "digital", 0, CategoryStatus.ENABLED));
+        categoryRepository.insert(ProductCategory.reconstruct(20L, 10L, null, "CAT-1", "digital", 0, CategoryStatus.ENABLED));
     }
 
     @Test
@@ -148,7 +148,7 @@ class ProductApplicationServiceTest {
                 null,
                 null,
                 null);
-        outboxRepository.save(outbox);
+        outboxRepository.insert(outbox);
         searchDocumentGateway.currentVersion = 2L;
 
         indexSyncService.syncEvent(900L);
@@ -173,7 +173,7 @@ class ProductApplicationServiceTest {
                 null,
                 null,
                 null);
-        outboxRepository.save(outbox);
+        outboxRepository.insert(outbox);
 
         indexSyncService.syncEvent(900L);
 
@@ -209,7 +209,7 @@ class ProductApplicationServiceTest {
         private final Map<Long, ProductSpu> storage = new HashMap<>();
 
         @Override
-        public ProductSpu save(ProductSpu spu) {
+        public ProductSpu insert(ProductSpu spu) {
             storage.put(spu.getSpuId(), spu);
             return spu;
         }
@@ -236,7 +236,7 @@ class ProductApplicationServiceTest {
         private final Map<Long, ProductSku> storage = new HashMap<>();
 
         @Override
-        public ProductSku save(ProductSku sku) {
+        public ProductSku insert(ProductSku sku) {
             storage.put(sku.getSkuId(), sku);
             return sku;
         }
@@ -268,7 +268,7 @@ class ProductApplicationServiceTest {
         private final Map<Long, ProductCategory> storage = new HashMap<>();
 
         @Override
-        public ProductCategory save(ProductCategory category) {
+        public ProductCategory insert(ProductCategory category) {
             storage.put(category.getCategoryId(), category);
             return category;
         }
@@ -304,7 +304,7 @@ class ProductApplicationServiceTest {
         private final Map<String, ProductSnapshot> storage = new HashMap<>();
 
         @Override
-        public ProductSnapshot save(ProductSnapshot snapshot) {
+        public ProductSnapshot insert(ProductSnapshot snapshot) {
             storage.put(snapshot.orderNo() + ":" + snapshot.orderItemNo(), snapshot);
             return snapshot;
         }
@@ -342,7 +342,7 @@ class ProductApplicationServiceTest {
         private final Map<Long, ProductOutbox> storage = new HashMap<>();
 
         @Override
-        public ProductOutbox save(ProductOutbox outbox) {
+        public ProductOutbox insert(ProductOutbox outbox) {
             storage.put(outbox.getEventId(), outbox);
             return outbox;
         }

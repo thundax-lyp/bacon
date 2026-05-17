@@ -3,6 +3,8 @@ package com.github.thundax.bacon.product.infra.facade.remote;
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.product.api.dto.ProductSkuSaleInfoDTO;
 import com.github.thundax.bacon.product.api.facade.ProductReadFacade;
+import com.github.thundax.bacon.product.api.request.ProductSkuSaleInfoFacadeRequest;
+import com.github.thundax.bacon.product.api.response.ProductSkuSaleInfoFacadeResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -24,14 +26,15 @@ public class ProductReadFacadeRemoteImpl implements ProductReadFacade {
     }
 
     @Override
-    public ProductSkuSaleInfoDTO getSkuSaleInfo(Long tenantId, Long skuId) {
-        return restClient
+    public ProductSkuSaleInfoFacadeResponse getSkuSaleInfo(ProductSkuSaleInfoFacadeRequest request) {
+        ProductSkuSaleInfoDTO skuSaleInfo = restClient
                 .get()
                 .uri(
-                        "/providers/products/skus/{skuId}/sale-info?tenantId={tenantId}",
-                        skuId,
-                        tenantId)
+                        "/providers/product/queries/sku-sale-info?tenantId={tenantId}&skuId={skuId}",
+                        request.tenantId(),
+                        request.skuId())
                 .retrieve()
                 .body(ProductSkuSaleInfoDTO.class);
+        return new ProductSkuSaleInfoFacadeResponse(skuSaleInfo);
     }
 }

@@ -24,7 +24,7 @@ class ProductPersistenceAssemblerTest {
         ProductSpu spu = ProductSpu.create(1L, 100L, "SPU-1", "Coffee", 10L, "desc", "obj-1");
 
         ProductSpuDO dataObject = assembler.toDataObject(spu, Instant.parse("2026-04-28T00:00:00Z"));
-        ProductSpu restored = assembler.toSpu(dataObject);
+        ProductSpu restored = assembler.toDomain(dataObject);
 
         assertThat(dataObject.getTenantId()).isEqualTo(100L);
         assertThat(dataObject.getProductStatus()).isEqualTo("DRAFT");
@@ -37,7 +37,7 @@ class ProductPersistenceAssemblerTest {
         ProductSku sku = ProductSku.create(2L, 100L, 1L, "SKU-1", "Latte", "{\"size\":\"M\"}", BigDecimal.TEN);
 
         ProductSkuDO dataObject = assembler.toDataObject(sku, Instant.parse("2026-04-28T00:00:00Z"));
-        ProductSku restored = assembler.toSku(dataObject);
+        ProductSku restored = assembler.toDomain(dataObject);
 
         assertThat(dataObject.getSalePrice()).isEqualByComparingTo("10");
         assertThat(restored.getSpecAttributes()).isEqualTo("{\"size\":\"M\"}");
@@ -52,7 +52,7 @@ class ProductPersistenceAssemblerTest {
         outbox.fail(Instant.parse("2026-04-28T00:10:00Z"));
 
         ProductOutboxDO dataObject = assembler.toDataObject(outbox, Instant.parse("2026-04-28T00:00:00Z"));
-        ProductOutbox restored = assembler.toOutbox(dataObject);
+        ProductOutbox restored = assembler.toDomain(dataObject);
 
         assertThat(dataObject.getOutboxStatus()).isEqualTo(OutboxStatus.FAILED.value());
         assertThat(restored.getRetryCount()).isEqualTo(1);

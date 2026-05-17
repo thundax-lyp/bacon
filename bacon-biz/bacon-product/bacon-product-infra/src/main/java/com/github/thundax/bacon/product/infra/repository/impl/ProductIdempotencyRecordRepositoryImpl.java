@@ -44,6 +44,6 @@ public class ProductIdempotencyRecordRepositoryImpl implements ProductIdempotenc
         return Optional.ofNullable(mapper.selectOne(new LambdaQueryWrapper<ProductIdempotencyRecordDO>()
                         .eq(ProductIdempotencyRecordDO::getOperationType, operationType)
                         .eq(ProductIdempotencyRecordDO::getIdempotencyKey, idempotencyKey)))
-                .map(assembler::toIdempotencyRecord);
+                .map(assembler::toDomain);
     }
 }

@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface ProductArchiveRepository {
 
-    ProductArchive save(ProductArchive archive);
+    ProductArchive insert(ProductArchive archive);
 
     Optional<ProductArchive> findBySpuIdAndVersion(Long spuId, Long productVersion);
 }

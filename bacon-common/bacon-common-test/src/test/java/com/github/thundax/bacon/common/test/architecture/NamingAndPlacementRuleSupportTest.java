@@ -70,32 +70,46 @@ class NamingAndPlacementRuleSupportTest {
 
     @Test
     void facadeContractShouldAcceptFacadeRequestAndFacadeResponse() {
-        EvaluationResult result = evaluateFacadeContract(
+        EvaluationResult requestResult = evaluateFacadeRequestContract(
+                ValidFixtureFacade.class, ValidFixtureFacadeRequest.class, ValidFixtureFacadeResponse.class);
+        EvaluationResult responseResult = evaluateFacadeResponseContract(
                 ValidFixtureFacade.class, ValidFixtureFacadeRequest.class, ValidFixtureFacadeResponse.class);
 
-        assertThat(result.hasViolation()).isFalse();
+        assertThat(requestResult.hasViolation()).isFalse();
+        assertThat(responseResult.hasViolation()).isFalse();
     }
 
     @Test
     void facadeContractShouldAcceptVoidReturnAndNoParameter() {
-        EvaluationResult result = evaluateFacadeContract(VoidFixtureFacade.class);
+        EvaluationResult requestResult = evaluateFacadeRequestContract(VoidFixtureFacade.class);
+        EvaluationResult responseResult = evaluateFacadeResponseContract(VoidFixtureFacade.class);
 
-        assertThat(result.hasViolation()).isFalse();
+        assertThat(requestResult.hasViolation()).isFalse();
+        assertThat(responseResult.hasViolation()).isFalse();
     }
 
     @Test
-    void facadeContractShouldRejectNonFacadeRequestAndResponse() {
-        EvaluationResult result =
-                evaluateFacadeContract(InvalidFixtureFacade.class, ValidFixtureFacadeRequest.class, InvalidFixtureDTO.class);
+    void facadeRequestContractShouldRejectNonFacadeRequest() {
+        EvaluationResult result = evaluateFacadeRequestContract(
+                InvalidFixtureFacade.class, ValidFixtureFacadeRequest.class, InvalidFixtureDTO.class);
+
+        assertThat(result.hasViolation()).isTrue();
+        assertThat(result.getFailureReport().getDetails())
+                .anyMatch(detail -> detail.contains("InvalidFixtureFacade#listByKeyword(String)")
+                        && detail.contains("parameters must be empty or use a single")
+                        && detail.contains(".api.request.*FacadeRequest"));
+    }
+
+    @Test
+    void facadeResponseContractShouldRejectNonFacadeResponse() {
+        EvaluationResult result = evaluateFacadeResponseContract(
+                InvalidFixtureFacade.class, ValidFixtureFacadeRequest.class, InvalidFixtureDTO.class);
 
         assertThat(result.hasViolation()).isTrue();
         assertThat(result.getFailureReport().getDetails())
                 .anyMatch(detail -> detail.contains("InvalidFixtureFacade#queryById(ValidFixtureFacadeRequest)")
                         && detail.contains("return type must be void or use")
                         && detail.contains(".api.response.*FacadeResponse"))
-                .anyMatch(detail -> detail.contains("InvalidFixtureFacade#listByKeyword(String)")
-                        && detail.contains("parameters must be empty or use a single")
-                        && detail.contains(".api.request.*FacadeRequest"))
                 .anyMatch(detail -> detail.contains("InvalidFixtureFacade#listByKeyword(String)")
                         && detail.contains("return type must be void or use")
                         && detail.contains(".api.response.*FacadeResponse"));
@@ -123,9 +137,15 @@ class NamingAndPlacementRuleSupportTest {
                 .evaluate(new ClassFileImporter().importPackages(targetClass.getPackageName()));
     }
 
-    private static EvaluationResult evaluateFacadeContract(Class<?>... targetClasses) {
+    private static EvaluationResult evaluateFacadeRequestContract(Class<?>... targetClasses) {
         String basePackage = "com.github.thundax.bacon.common.test.architecture.fixture.facade";
-        return NamingAndPlacementRuleSupport.facadeMethodShouldUseFacadeRequestAndResponse(basePackage)
+        return NamingAndPlacementRuleSupport.facadeMethodShouldUseSingleFacadeRequest(basePackage)
+                .evaluate(new ClassFileImporter().importClasses(targetClasses));
+    }
+
+    private static EvaluationResult evaluateFacadeResponseContract(Class<?>... targetClasses) {
+        String basePackage = "com.github.thundax.bacon.common.test.architecture.fixture.facade";
+        return NamingAndPlacementRuleSupport.facadeMethodShouldUseFacadeResponse(basePackage)
                 .evaluate(new ClassFileImporter().importClasses(targetClasses));
     }
 

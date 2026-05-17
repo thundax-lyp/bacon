@@ -50,12 +50,6 @@ public abstract class AbstractLayerArchitectureTest {
     }
 
     @Test
-    void shouldEnforceLayerFacadeSignatureModel() {
-        NamingAndPlacementRuleSupport.facadeMethodShouldUseFacadeRequestAndResponse(basePackage())
-                .check(classes());
-    }
-
-    @Test
     void shouldEnforceLayerFacadeSingleRequest() {
         NamingAndPlacementRuleSupport.facadeMethodShouldUseSingleFacadeRequest(basePackage())
                 .check(classes());

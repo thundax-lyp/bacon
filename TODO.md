@@ -11,14 +11,6 @@
 
 ## 待审阅任务项
 
-- [ ] `ArchUnit-facade-signature`：收敛 Facade 签名重复规则
-  - 任务类型：执行任务
-  - 依据文档：`docs/00-governance/NAMING-AND-PLACEMENT-RULES.md`
-  - 范围对象：`AbstractLayerArchitectureTest`、`NamingAndPlacementRuleSupport`
-  - 处理动作：保留细粒度 Facade 入参与返回值规则，移除或降级重复的 composite 签名规则
-  - 验收点：Facade 签名违规不会同时触发 composite 与细粒度重复失败，文档 hard rule 口径同步
-  - 重要度：8/10
-
 - [ ] `ArchUnit-rule-id`：统一 hard rule 失败信息编号
   - 任务类型：执行任务
   - 依据文档：`docs/00-governance/DOCUMENT-RULES.md`

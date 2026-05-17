@@ -386,56 +386,6 @@ public final class NamingAndPlacementRuleSupport {
                 .because("RULE PATH_APPLICATION_PAGE_CONTRACT: PageQuery/PageResult belong to common.application.page");
     }
 
-    public static ArchRule facadeMethodShouldUseFacadeRequestAndResponse(String basePackage) {
-        return ArchRuleDefinition.classes()
-                .that()
-                .resideInAPackage(basePackage + ".api.facade..")
-                .and()
-                .areInterfaces()
-                .should(new ArchCondition<>("declare Facade methods using FacadeRequest and FacadeResponse") {
-                    @Override
-                    public void check(JavaClass item, ConditionEvents events) {
-                        item.getMethods().stream()
-                                .filter(method -> method.getOwner().equals(item))
-                                .filter(method -> !method.getModifiers().contains(JavaModifier.STATIC))
-                                .forEach(method -> {
-                                    List<String> violations = new ArrayList<>();
-                                    boolean requestMatched = method.getRawParameterTypes().isEmpty()
-                                            || (method.getRawParameterTypes().size() == 1
-                                                    && method.getRawParameterTypes().stream()
-                                                            .allMatch(parameterType -> parameterType.getSimpleName()
-                                                                            .endsWith("FacadeRequest")
-                                                                    && parameterType.getPackageName()
-                                                                            .startsWith(basePackage + ".api.request")));
-                                    if (!requestMatched) {
-                                        violations.add(
-                                                "parameters must be empty or use a single "
-                                                        + basePackage
-                                                        + ".api.request.*FacadeRequest");
-                                    }
-                                    JavaClass returnType = method.getRawReturnType();
-                                    boolean responseMatched = returnType.isEquivalentTo(void.class)
-                                            || (returnType.getSimpleName().endsWith("FacadeResponse")
-                                                    && returnType.getPackageName().startsWith(basePackage + ".api.response"));
-                                    if (!responseMatched) {
-                                        violations.add(
-                                                "return type must be void or use "
-                                                        + basePackage
-                                                        + ".api.response.*FacadeResponse");
-                                    }
-
-                                    boolean satisfied = violations.isEmpty();
-                                    String detail = satisfied
-                                            ? formatMethod(item, method) + " uses FacadeRequest/FacadeResponse"
-                                            : formatMethod(item, method) + " violation: " + String.join("; ", violations);
-                                    events.add(new SimpleConditionEvent(method, satisfied, detail));
-                                });
-                    }
-                })
-                .allowEmptyShould(true)
-                .because("Facade methods must use zero-or-one FacadeRequest and optional FacadeResponse");
-    }
-
     public static ArchRule facadeMethodShouldUseSingleFacadeRequest(String basePackage) {
         return ArchRuleDefinition.classes()
                 .that()

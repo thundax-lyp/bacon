@@ -11,4 +11,52 @@
 
 ## 待审阅任务项
 
+- [ ] `ArchUnit-product`：补齐 Product 域架构规则覆盖
+  - 任务类型：执行任务
+  - 依据文档：`docs/00-governance/NAMING-AND-PLACEMENT-RULES.md`
+  - 范围对象：`bacon-biz/bacon-product`、`bacon-common/bacon-common-test/src/main/java/com/github/thundax/bacon/common/test/architecture/LayerArchitectureRuleSupport.java`
+  - 处理动作：为 Product 域补齐通用 ArchUnit architecture tests，并把 `product` 纳入跨域业务域识别
+  - 验收点：Product 域接入 `ApiAnnotation`、`Layer`、`NamingAndPlacement`、`Path` 架构测试，跨域业务域集合包含 `product`
+  - 重要度：9/10
+
+- [ ] `ArchUnit-facade-signature`：收敛 Facade 签名重复规则
+  - 任务类型：执行任务
+  - 依据文档：`docs/00-governance/NAMING-AND-PLACEMENT-RULES.md`
+  - 范围对象：`AbstractLayerArchitectureTest`、`NamingAndPlacementRuleSupport`
+  - 处理动作：保留细粒度 Facade 入参与返回值规则，移除或降级重复的 composite 签名规则
+  - 验收点：Facade 签名违规不会同时触发 composite 与细粒度重复失败，文档 hard rule 口径同步
+  - 重要度：8/10
+
+- [ ] `ArchUnit-rule-id`：统一 hard rule 失败信息编号
+  - 任务类型：执行任务
+  - 依据文档：`docs/00-governance/DOCUMENT-RULES.md`
+  - 范围对象：`bacon-common/bacon-common-test/src/main/java/com/github/thundax/bacon/common/test/architecture`
+  - 处理动作：把 Naming、Layer、Path 相关 ArchUnit `.because()` 文案统一补齐稳定 `RULE <RuleID>` 编号
+  - 验收点：Hard Rules 文档中的规则编号能从对应 ArchUnit 失败信息中稳定追踪
+  - 重要度：8/10
+
+- [ ] `ArchUnit-assembler-boundary`：对齐 Assembler 调用边界规则编号
+  - 任务类型：执行任务
+  - 依据文档：`docs/00-governance/NAMING-AND-PLACEMENT-RULES.md`
+  - 范围对象：`LayerArchitectureRuleSupport`、`NAMING-AND-PLACEMENT-RULES.md`
+  - 处理动作：统一 `LAYER_ASSEMBLER_CALL_BOUNDARY` 与实际三个 assembler boundary ArchUnit 规则的编号口径
+  - 验收点：文档 rule ID 与 ArchUnit `.because()` 使用同一套编号，不再出现文档和代码账目不一致
+  - 重要度：7/10
+
+- [ ] `ArchUnit-path-rules`：对齐 Path hard rules 与实际检测粒度
+  - 任务类型：执行任务
+  - 依据文档：`docs/00-governance/NAMING-AND-PLACEMENT-RULES.md`
+  - 范围对象：`PathArchitectureRuleSupport`、`NamingAndPlacementRuleSupport`、`NAMING-AND-PLACEMENT-RULES.md`
+  - 处理动作：收敛或拆分 `PATH_CONTROLLER_PREFIX`、`PATH_CONTROLLER_RESOURCE_PATH`、`PATH_CONTROLLER_NO_PROVIDERS`、`PATH_DOMAIN_CANONICAL` 的文档与 ArchUnit 实现粒度
+  - 验收点：每个 Path hard rule 要么有独立可追踪 ArchUnit 检测，要么在文档中合并为单一规则
+  - 重要度：7/10
+
+- [ ] `ArchUnit-layer-overlap`：标注 Layer 白名单与专项规则关系
+  - 任务类型：执行任务
+  - 依据文档：`docs/00-governance/NAMING-AND-PLACEMENT-RULES.md`
+  - 范围对象：`LAYER_INTERFACES_DEPENDENCY_WHITELIST` 及相关专项 ArchUnit 规则
+  - 处理动作：明确 Layer 白名单规则与接口依赖专项规则的诊断增强关系
+  - 验收点：文档能说明专项规则为何保留，且 ArchUnit rule ID 不表现为互相竞争的重复定义
+  - 重要度：6/10
+
 ## 待讨论项

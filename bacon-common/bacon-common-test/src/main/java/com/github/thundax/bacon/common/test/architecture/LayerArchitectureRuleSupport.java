@@ -151,7 +151,8 @@ public final class LayerArchitectureRuleSupport {
                 basePackage + ".interfaces..",
                 packageName -> packageName.startsWith(basePackage + ".infra.persistence.mapper."),
                 "infra.persistence.mapper",
-                "interfaces 不得直接依赖 infra.persistence.mapper");
+                "Diagnostic detail for LAYER_INTERFACES_DEPENDENCY_WHITELIST: "
+                        + "interfaces must not depend on infra.persistence.mapper");
     }
 
     public static ArchRule interfacesShouldNotDependOnOtherDomainInfra(String basePackage) {
@@ -161,7 +162,8 @@ public final class LayerArchitectureRuleSupport {
                         && packageName.contains(".infra.")
                         && !packageName.startsWith(basePackage + "."),
                 "其他业务域的 infra",
-                "interfaces 不得直接依赖其他业务域的 infra");
+                "Diagnostic detail for LAYER_INTERFACES_DEPENDENCY_WHITELIST: "
+                        + "interfaces must not depend on other-domain infra");
     }
 
     public static ArchRule interfacesShouldOnlyDependOnWhitelistedPackages(String basePackage) {

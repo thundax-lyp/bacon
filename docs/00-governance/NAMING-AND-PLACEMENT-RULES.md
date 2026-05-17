@@ -50,6 +50,7 @@
 
 - `LAYER_CROSS_DOMAIN_FACADE_ONLY`：跨域调用统一依赖对方域 `api.facade`，不直接依赖对方域 `application`、`infra`
 - `LAYER_INTERFACES_DEPENDENCY_WHITELIST`：`interfaces` 依赖固定白名单为本域 `application`、本域 `domain.model`、本域 `interfaces`、`api.facade`、`bacon-common`；禁止依赖 `domain.repository`、`infra.persistence.mapper`、外域散包
+  - `interfaces` 依赖白名单是主规则；`infra.persistence.mapper` 与外域 `infra` 专项检测只提供更明确的失败诊断，不定义新的 hard rule ID
 - `LAYER_FACADE_SINGLE_REQUEST`：`Facade` 方法入参固定为“无入参或单个 `XxxFacadeRequest`”
 - `LAYER_FACADE_RESPONSE_ONLY`：`Facade` 方法返回固定为 `XxxFacadeResponse` 或 `void`
 - `LAYER_CONTROLLER_SIGNATURE_REQUEST_RESPONSE`：`interfaces.controller` 公开方法入参固定为“无业务入参、单个 `interfaces.request.*Request`，或带 Web 绑定注解的稳定基础类型参数”；返回固定为 `interfaces.response.*Response`、`List/Set<...Response>`、`ResponseEntity<...Response|Void>` 或 `void`

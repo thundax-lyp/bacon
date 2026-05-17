@@ -62,6 +62,7 @@
 - `LAYER_APPLICATION_INFRA_NO_ILLEGAL_ARGUMENT`：`application` 与 `infra.repository.impl/support` 禁止把 `IllegalArgumentException` 作为业务异常出口
 - `LAYER_APPLICATION_ASSEMBLER_EXCLUSIVE_MAPPING`：`application.command/query/audit/support` 禁止直接构造业务 `*DTO/*Response`；`Domain <-> DTO/Result` 装配固定收敛到 `application.assembler`
 - `LAYER_ASSEMBLER_CALL_BOUNDARY`：`interfaces.*InterfaceAssembler` 只能被 `interfaces` 调用，`application.*Assembler` 只能被 `application` 调用，`infra.*PersistenceAssembler` 只能被 `infra` 调用
+  - 该规则由三条 ArchUnit 条件分别检测 `interfaces`、`application`、`infra` 的 assembler 调用边界，失败信息固定使用同一个 `RULE LAYER_ASSEMBLER_CALL_BOUNDARY` 编号
 - `LAYER_PROTOCOL_MODEL_NO_MAPPING_METHODS`：`interfaces.request/response` 与 `api.request/response` 协议模型禁止声明 `toXxx(...)`、`fromXxx(...)`、`ofXxx(...)` 装配方法；协议模型与应用契约、Facade 契约之间的转换固定收敛到 `interfaces.assembler.*InterfaceAssembler`
 - `LAYER_PROTOCOL_MODEL_INTERFACES_REQUEST_CLASS_LOMBOK_EXACT_ANNOTATIONS`：`interfaces.request` 中 class 形态协议模型的 Lombok 注解固定且仅允许 `@Getter`、`@Setter`、`@NoArgsConstructor`、`@AllArgsConstructor`；record 形态协议模型不适用该规则
 - `LAYER_PROTOCOL_MODEL_API_REQUEST_CLASS_LOMBOK_EXACT_ANNOTATIONS`：`api.request` 中 class 形态协议模型的 Lombok 注解固定且仅允许 `@Getter`、`@NoArgsConstructor`、`@AllArgsConstructor`；record 形态协议模型不适用该规则

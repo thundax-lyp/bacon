@@ -1,227 +1,88 @@
 # Bacon
 
-面向企业级场景的后端业务平台。
+面向 AI Agent 的工程操作系统。
 
-> 通过 DDD 分层与强语义命名构建稳定的代码语法结构，以提升 AI 生成代码的一致性与可预测性。
+Bacon 不是一个普通的后端示例项目。它尝试回答一个更具体的问题：
 
-> 仓库中的全部文档与代码均由 AI 生成，并在统一约束下持续迭代，覆盖业务建模、架构设计、数据库设计与交付实现。
+> 当 AI 不只是生成片段，而是长期参与工程交付时，一个仓库应该怎样组织，才能让它读得准、写得对、改得稳？
 
-> 本 README 仅提供项目总览与导航；实现细节和约束规则以 `docs/` 下治理与需求文档为准。
+这个项目把文档、目录、模块、测试、TODO 和 Git 历史组织成一套协作协议。人类负责判断，AI 负责执行，工程结构负责让执行不散。
+
+## 核心想法
+
+- 文档决定 AI 先读什么，也决定什么不该默认读取。
+- 目录决定代码应该写在哪里。
+- 模块边界决定代码可以依赖谁。
+- 测试和质量规则负责拦住一部分误改。
+- TODO 只保存下一步任务，完成历史交给 Git。
+
+Bacon 的重点不在“堆技术栈”，而在让 AI Agent 可以在复杂工程里持续、稳定、可审计地工作。
 
 ## Highlights
 
-- `Runtime:` 支持 `mono` 与 `micro` 双运行模式，业务模块只维护一份核心实现
-- `Architecture:` 采用 `api / interfaces / application / domain / infra` 五层结构
-- `Domains:` 覆盖 `Auth / UPMS / Order / Inventory / Payment / Storage` 六大业务域
-- `Docs:` 需求、数据库、架构、上线准备、提示词模板与代码保持同步收敛
-- `Harness:` 面向 `harness` 执行方式设计最小上下文加载协议
-- `Delivery:` 强调幂等、补偿、重试、数据库设计与发布准备
+- `AI-first docs`：`docs/AGENT.md` 负责上下文路由，区分治理文档、业务需求、数据库设计、专项方案和人类阅读材料。
+- `Stable architecture`：业务域统一采用 `api / interfaces / application / domain / infra` 五层结构，跨域调用固定通过 `api.facade`。
+- `Mono + micro`：业务代码只写一份，`bacon-app` 同时支持单体聚合启动和按域微服务装配。
+- `Rich domains`：覆盖 `Auth / UPMS / Product / Order / Inventory / Payment / Storage` 等业务域。
+- `Guardrails`：通过 Checkstyle、Spotless、ArchUnit、测试和 Git 约定，把一部分 AI 误改拦在工程系统内。
+- `Delivery loop`：`TODO.md` 保存待执行任务，Git 保存完成历史，文档只保留稳定规则和当前上下文。
 
-## 项目概览
+## Examples
 
-技术栈：
+`Product` 是一个完整业务域落地样板。
 
-- `Java 17`
-- `Spring Boot 3.5`
-- `Spring Cloud 2025`
-- `Spring Cloud Alibaba 2025`
-- `MyBatis-Plus`
-- `Redis / JetCache`
-- `RocketMQ`
+它从需求与数据设计开始，按提交历史逐步落到工程骨架、领域模型、应用编排、跨域契约、接口适配、基础设施、启动装配和架构规则测试。当前 `bacon-product` 包含 `api / interfaces / application / domain / infra` 五个模块，覆盖商品主数据、SKU、分类、图片引用、商品快照、搜索投影、Outbox 和命令幂等。
 
-核心业务域：
+这个样板展示了 Bacon 想表达的工作方式：不是一次性生成一堆代码，而是让 AI Agent 沿着文档、任务、分层、测试和 Git 历史一步步完成可审计的业务交付。
 
-- `Auth`：账号登录、会话管理、OAuth2 授权码与令牌链路、认证审计
-- `UPMS`：租户、用户、身份、凭据、部门、岗位、角色、菜单、资源与数据权限
-- `Order`：下单编排、状态流转、支付/库存快照、Outbox/DeadLetter、幂等记录
-- `Inventory`：库存主数据、预占/释放/扣减、审计日志、Outbox 补偿与死信回放
-- `Payment`：支付单创建、渠道回调处理、关单与审计链路
-- `Storage`：对象上传、引用关系、分片上传会话、审计与补偿出站
+`Sandwich` 是另一个完整样板，关注旧 Java 三层架构项目的 Agent-first 方法论迁移。它不是把三层架构改造成 DDD，也不只是代码迁移，而是在保留原有三层 API 形态的前提下，把文档路由、治理规则、任务生命周期、质量门禁、前后端协作规则和提交闭环迁入既有工程。
 
-## 仓库结构
+这两个样板分别对应两类真实场景：`Product` 展示 DDD 新业务域如何落地，`Sandwich` 展示三层旧系统如何迁移到 Agent-first 工作方式，并在不推翻原架构的前提下获得 AI Agent 可持续协作能力。
+
+## 项目结构
 
 ```text
 bacon
-├── bacon-app/                  # 启动与装配层
-├── bacon-biz/                  # 业务域模块
-├── bacon-common/               # 公共能力模块
-├── db/                         # 数据库 schema 与种子数据
-├── deploy/                     # 部署样例与脚本
-└── docs/
-    ├── AGENT.md                # harness / AI 文档加载入口
-    ├── 00-governance/          # 架构与全局规则
-    ├── 10-requirements/        # 业务需求
-    ├── 20-database/            # 数据库设计
-    ├── 30-designs/             # 专项设计与路线图
-    ├── 40-readiness/           # 上线准备与运行手册
-    └── 50-prompts/             # 固定格式文档提示词模板
+├── bacon-app/       # 启动与装配
+├── bacon-biz/       # 业务域
+├── bacon-common/    # 共享能力
+├── db/              # 数据库脚本
+├── deploy/          # 部署样例
+└── docs/            # AI Agent 的上下文系统
 ```
 
-关键目录：
+每个业务域保持统一分层：
 
-- `bacon-app`
-  - `bacon-mono-boot`：单体启动模块
-  - `bacon-*-starter`：各业务域微服务启动模块
-  - `bacon-gateway`：网关模块
-  - `bacon-register`：注册中心模块
-- `bacon-biz`
-  - 每个业务域保持 `api / interfaces / application / domain / infra` 五层结构
-- `bacon-common`
-  - 公共基础设施能力，如 `mybatis`、`cache`、`mq`、`security`、`swagger`
-- `db`
-  - `schema/*.sql`：各域建表脚本
-  - `data/*.sql`：本地验证种子数据
+```text
+api -> interfaces -> application -> domain -> infra
+```
 
-## 架构约定
+这套结构让单体和微服务可以共用一份业务代码，运行方式由 `bacon-app` 装配。
 
-- 分层调用链固定为：`HTTP -> interfaces -> application -> domain -> repository -> MySQL/Redis`
-- 跨域调用固定通过 `api.facade`
-- 本地适配实现固定放在 `interfaces.facade`
-- 远程适配实现固定放在 `infra.facade.remote`
-- `{module}-api` 仅承载本域跨域契约，不依赖其他业务域实现分层
-- 正式仓储默认注册，不使用 `@ConditionalOnBean` 规避主链路装配
-- 多实现互斥装配使用显式配置项配合 `@ConditionalOnProperty`
-- 环境边界切换优先使用 `@Profile`
+## 文档入口
 
-更多细节见 [docs/00-governance/ARCHITECTURE.md](docs/00-governance/ARCHITECTURE.md)。
+- AI / Agent 入口：[docs/AGENT.md](docs/AGENT.md)
+- 核心思想：[docs/60-human/AI-AGENT-ENGINEERING-OS-EXPLANATION.md](docs/60-human/AI-AGENT-ENGINEERING-OS-EXPLANATION.md)
+- 架构红线：[docs/00-governance/ARCHITECTURE.md](docs/00-governance/ARCHITECTURE.md)
+- 文档规则：[docs/00-governance/DOCUMENT-RULES.md](docs/00-governance/DOCUMENT-RULES.md)
 
-## Engineering Style
+实现规则以 `docs/` 下的治理文档和业务文档为准，根目录 README 只保留项目总览。
 
-- 文档先行，约束显式，结构优先
-- 智能协作执行链路不依赖全仓扫描，而依赖最小上下文加载
-- 规则、实现、脚本与运行准备保持同源收敛
-- 目标不是展示框架堆叠，而是展示可持续维护的工程组织能力
+## 本地运行
 
-## Docs Layout
-
-`docs/` 目录主要服务 harness / AI 执行链路，不作为人类主阅读入口。
-
-- `docs/AGENT.md`：AI 文档加载协议
-- `docs/00-governance`：架构与工程级规则
-- `docs/10-requirements`：业务需求
-- `docs/20-database`：数据库设计
-- `docs/30-designs`：专项方案与路线图
-- `docs/40-readiness`：上线准备与运行手册
-- `docs/50-prompts`：固定格式文档提示词模板（按需加载，非默认实现输入）
-
-## Quick Start
-
-### Build
-
-在仓库根目录执行：
+构建：
 
 ```bash
 mvn clean verify
-mvn test
-mvn checkstyle:check
-mvn spotless:check
-mvn -Pquality-gates verify
 ```
 
-按模块构建示例：
-
-```bash
-mvn -pl bacon-app/bacon-order-starter -am -DskipTests install
-```
-
-### Run
-
-单体模式：
+单体启动：
 
 ```bash
 ./scripts/run-mono.sh
 ```
 
-或：
-
-```bash
-mvn -pl bacon-app/bacon-mono-boot spring-boot:run
-```
-
-微服务模式示例：
-
-```bash
-mvn -pl bacon-app/bacon-order-starter -am -DskipTests install
-mvn -pl bacon-app/bacon-order-starter spring-boot:run
-```
-
-### Docker Deployment
-
-`deploy/` 提供两套 `docker compose` 样例：
-
-- `mono`：`deploy/bacon-mono-boot/docker-compose.yml`
-- `micro`：`deploy/bacon-micro/docker-compose.yml`
-
-`mono` 快速启动：
-
-```bash
-mvn -q -pl bacon-app/bacon-mono-boot -am -DskipTests package
-cp deploy/bacon-mono-boot/.env.example deploy/bacon-mono-boot/.env
-docker compose --env-file deploy/bacon-mono-boot/.env -f deploy/bacon-mono-boot/docker-compose.yml up -d
-cat db/schema/*.sql | docker compose --env-file deploy/bacon-mono-boot/.env -f deploy/bacon-mono-boot/docker-compose.yml exec -T mysql mysql -uroot -p<MYSQL_ROOT_PASSWORD> bacon_sample
-cat db/data/*.sql | docker compose --env-file deploy/bacon-mono-boot/.env -f deploy/bacon-mono-boot/docker-compose.yml exec -T mysql mysql -uroot -p<MYSQL_ROOT_PASSWORD> bacon_sample
-```
-
-`micro` 快速启动：
-
-```bash
-mvn -q -pl bacon-app/bacon-gateway,bacon-app/bacon-auth-starter,bacon-app/bacon-upms-starter,bacon-app/bacon-order-starter,bacon-app/bacon-inventory-starter,bacon-app/bacon-payment-starter,bacon-app/bacon-storage-starter -am -DskipTests package
-cp deploy/bacon-micro/.env.example deploy/bacon-micro/.env
-docker compose --env-file deploy/bacon-micro/.env -f deploy/bacon-micro/docker-compose.yml up -d
-cat db/schema/*.sql | docker compose --env-file deploy/bacon-micro/.env -f deploy/bacon-micro/docker-compose.yml exec -T mysql mysql -uroot -p<MYSQL_ROOT_PASSWORD> bacon_sample
-cat db/data/*.sql | docker compose --env-file deploy/bacon-micro/.env -f deploy/bacon-micro/docker-compose.yml exec -T mysql mysql -uroot -p<MYSQL_ROOT_PASSWORD> bacon_sample
-```
-
-停止示例：
-
-```bash
-docker compose --env-file deploy/bacon-mono-boot/.env -f deploy/bacon-mono-boot/docker-compose.yml down
-docker compose --env-file deploy/bacon-micro/.env -f deploy/bacon-micro/docker-compose.yml down
-```
-
-部署细节见：
-
-- [deploy/README.md](deploy/README.md)
-- [deploy/bacon-mono-boot/README.md](deploy/bacon-mono-boot/README.md)
-- [deploy/bacon-micro/README.md](deploy/bacon-micro/README.md)
-
-## 质量工具
-
-- `spotless`：负责 formatter、import 排序与版式整理
-- `checkstyle`：负责规约检查与阻断，不负责改代码
-- `ArchUnit`：负责分层、命名与关键架构约束
-- `jacoco`：覆盖率统计与门禁（通过 `quality-gates` profile 启用）
-- `spotbugs`：静态缺陷检查（通过 `quality-gates` profile 启用）
-
-推荐执行顺序：
-
-```bash
-mvn spotless:check
-mvn checkstyle:check
-mvn test
-mvn -Pquality-gates verify
-```
-
-## Development Rules
-
-- 基础包名：`com.github.thundax.bacon`
-- Java、XML、YAML 统一使用 4 空格缩进
-- HTTP 入参放在 `interfaces.dto`，统一使用 `*Request`
-- HTTP 出参放在 `interfaces.response`，统一使用 `*Response`
-- 跨域 DTO 放在 `api.dto`，统一使用 `*DTO`
-- 领域对象、业务单号、数据库主键必须分开建模
-- 文档、代码、数据库结构必须同步演进
-
-## Key Docs
-
-- [docs/AGENT.md](docs/AGENT.md)
-- [docs/00-governance/ARCHITECTURE.md](docs/00-governance/ARCHITECTURE.md)
-- [docs/10-requirements/AUTH-REQUIREMENTS.md](docs/10-requirements/AUTH-REQUIREMENTS.md)
-- [docs/10-requirements/UPMS-REQUIREMENTS.md](docs/10-requirements/UPMS-REQUIREMENTS.md)
-- [docs/10-requirements/ORDER-REQUIREMENTS.md](docs/10-requirements/ORDER-REQUIREMENTS.md)
-- [docs/10-requirements/INVENTORY-REQUIREMENTS.md](docs/10-requirements/INVENTORY-REQUIREMENTS.md)
-- [docs/10-requirements/PAYMENT-REQUIREMENTS.md](docs/10-requirements/PAYMENT-REQUIREMENTS.md)
-- [docs/10-requirements/STORAGE-REQUIREMENTS.md](docs/10-requirements/STORAGE-REQUIREMENTS.md)
+更多运行和部署方式见 [deploy/README.md](deploy/README.md)。
 
 ## License
 
